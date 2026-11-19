@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小电视 · 平台化身 AI 陪看伙伴（概念 Demo）</title>
+<!-- 字体统一走系统栈（PingFang / 微软雅黑），不再外链 Google Fonts：国内不可达，且会阻塞首屏 -->
+<style>
+:root{
+  --bg:#0a0d13;
+  --bg-2:#10141d;
+  --bg-3:#151b28;
+  --ink:#e8eaf0;
+  --ink-dim:#98a1b3;
+  --ink-faint:#5b6472;
+  --pink:#fb7299;
+  --blue:#00aeec;
+  --line:rgba(232,234,240,.08);
+  --font-display:'Noto Serif SC',serif;
+  --font-body:'Noto Sans SC',sans-serif;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  font-weight:300;
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.9;
+  overflow-x:hidden;
+}
+/* 深夜房间：被屏幕照亮的底色 */
+body::before{
+  content:'';position:fixed;inset:0;z-index:-2;
+  background:
+    radial-gradient(ellipse 60% 45% at 70% 12%,rgba(251,114,153,.14),transparent 65%),
+    radial-gradient(ellipse 50% 40% at 20% 30%,rgba(0,174,236,.10),transparent 60%),
+    radial-gradient(ellipse 80% 60% at 50% 110%,rgba(0,174,236,.06),transparent 60%),
+    var(--bg);
+}
+/* 噪点 */
+body::after{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity:.045;
+}
+::selection{background:rgba(251,114,153,.35)}
+
+/* ===== 导航 ===== */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 32px;
+  background:rgba(10,13,19,.72);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+nav .brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:900;font-size:15px;letter-spacing:.02em}
+nav .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--pink);box-shadow:0 0 12px var(--pink)}
+nav .meta{font-size:12px;color:var(--ink-faint);letter-spacing:.08em}
+
+/* ===== 通用 ===== */
+section{position:relative;padding:120px 24px;max-width:1080px;margin:0 auto}
+.kicker{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:12px;letter-spacing:.28em;color:var(--pink);
+  border:1px solid rgba(251,114,153,.35);border-radius:999px;
+  padding:6px 16px;margin-bottom:36px;
+}
+.kicker .no{color:var(--ink-faint)}
+h2{font-family:var(--font-display);font-weight:900;font-size:clamp(26px,4vw,40px);letter-spacing:.02em;line-height:1.4;margin-bottom:20px}
+.placeholder{border:1px dashed rgba(232,234,240,.14);border-radius:16px;padding:56px 32px;text-align:center;color:var(--ink-faint);font-size:14px;letter-spacing:.12em}
+.reveal{opacity:0;transform:translateY(34px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+.reveal.visible{opacity:1;transform:none}
+
+/* ===== 第一屏 · 钩子 ===== */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:flex-start;padding-top:185px;padding-bottom:90px;max-width:1080px}
+.hero>*{min-width:0}
+.hero h1{
+  font-family:var(--font-display);font-weight:900;
+  font-size:clamp(30px,6.4vw,64px);line-height:1.32;letter-spacing:.01em;
+  margin:0 0 48px 36px;
+}
+.hero h1 .hl{color:var(--pink)}
+.hero .scene{
+  font-size:clamp(15px,1.8vw,18px);color:var(--ink-dim);max-width:640px;margin-bottom:56px;
+}
+.hero .scene b{color:var(--ink);font-weight:500}
+
+/* 第一屏插画：外卖拉面 + 右手持机停在微信「分享给谁」——白色相框照片，挂在首屏右上，与证据墙拍立得风格呼应 */
+.hero-bg{position:absolute;top:88px;right:max(-190px,calc(20px - (100vw - 1080px)/2));width:min(660px,44vw);pointer-events:none;z-index:0}
+.hero-bg img{display:block;width:100%;height:auto;padding:8px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 44px rgba(0,0,0,.16);transform:rotate(1.6deg)}
+.hero>*:not(.hero-bg){position:relative;z-index:1}
+@media (max-width:1100px){.evi-lead{max-width:calc(100% - 330px)}.hero-bg{width:320px;top:80px;right:0}}
+@media (max-width:820px){
+  .hero-bg{position:static;width:min(88vw,480px);margin:0 auto 30px}
+  .hero-bg img{transform:none}
+}
+
+/* 三种走向 */
+.forks{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:64px}
+.fork{
+  border:1px solid var(--line);border-radius:14px;padding:20px 18px;
+  background:linear-gradient(180deg,rgba(232,234,240,.03),transparent);
+}
+.fork .idx{font-family:var(--font-display);font-weight:900;font-size:13px;color:var(--ink-faint);letter-spacing:.2em;margin-bottom:10px}
+.fork .t{font-weight:700;font-size:15px;margin-bottom:6px}
+.fork .d{font-size:13px;color:var(--ink-dim);line-height:1.8}
+.fork.giveup .t{color:var(--ink-dim)}
+.fork.moments .t{color:var(--ink-dim)}
+.fork.open{border-color:rgba(251,114,153,.45);background:linear-gradient(180deg,rgba(251,114,153,.08),transparent)}
+.fork.open .t{color:var(--pink)}
+
+/* 转折句 */
+.turn{
+  font-family:var(--font-display);font-weight:600;
+  font-size:clamp(18px,2.6vw,24px);line-height:1.8;color:var(--ink);
+  border-left:3px solid var(--pink);padding-left:22px;margin-bottom:72px;
+}
+.turn .q{color:var(--pink)}
+
+/* 点图看原图 */
+.zoom{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;
+  padding:40px;background:rgba(12,14,18,.94);cursor:zoom-out}
+.zoom[hidden]{display:none}
+.zoom img{max-width:100%;max-height:100%;object-fit:contain;background:#fff;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+
+/* 入场编排 */
+.fade-in{opacity:0;animation:fadeUp .9s var(--ease) forwards}
+.s1{animation-delay:.05s}.s2{animation-delay:.2s}.s3{animation-delay:.4s}.s4{animation-delay:.6s}.s5{animation-delay:.8s}.s6{animation-delay:1s}.s7{animation-delay:1.2s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+
+footer{border-top:1px solid var(--line);padding:40px 24px 60px;text-align:center;color:var(--ink-faint);font-size:12px;letter-spacing:.1em;line-height:2}
+
+@media (max-width:820px){
+  .forks{grid-template-columns:1fr}
+  section{padding:90px 20px}
+}
+@media (max-width:520px){
+  nav{padding:14px 18px}
+  nav .meta{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .fade-in{opacity:1}
+}
+</style>
+<style>
+  /* ===== B 站风格覆盖：亮色主题（学 B 站官网） ===== */
+  :root{
+    --bg:#f6f7f8; --bg-2:#ffffff; --bg-3:#f0f1f3;
+    --ink:#18191c; --ink-dim:#61666d; --ink-faint:#9499a0;
+    --line:#e3e5e7;
+    --font-display:-apple-system,'PingFang SC','Microsoft YaHei','Segoe UI',sans-serif;
+    --font-body:-apple-system,'PingFang SC','Microsoft YaHei','Segoe UI',sans-serif;
+  }
+  body{font-weight:400}
+  body::before,body::after{content:none}
+  nav{background:rgba(255,255,255,.88)}
+  .fork{box-shadow:0 1px 4px rgba(0,0,0,.04)}
+  .fork .idx{color:var(--pink)}
+  .fork .d{color:var(--ink-dim)}
+  .ev-card{background:#ffffff;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+  .biz-block{background:#ffffff;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+  .rev-table th{color:var(--ink-dim)}
+</style>
+<style>
+/* ============================================================
+   视觉打磨层 polish · 2026-11-16
+   目标：层次 / 呼吸感 / 投屏可读。不改结构与数据，只改呈现。
+   ============================================================ */
+:root{
+  --ink:#18191c; --ink-dim:#4b5057; --ink-faint:#767d86;
+  --sh-1:0 1px 2px rgba(24,25,28,.04),0 4px 14px rgba(24,25,28,.04);
+  --sh-2:0 2px 6px rgba(24,25,28,.05),0 14px 36px rgba(24,25,28,.06);
+  --r:16px;
+}
+body{font-size:15px;line-height:1.85;-webkit-font-smoothing:antialiased}
+nav::after{content:'';position:absolute;left:0;bottom:-1px;height:2px;width:var(--progress,0%);
+  background:linear-gradient(90deg,var(--pink),var(--blue));transition:width .1s linear}
+nav .brand .dot{box-shadow:0 0 0 4px rgba(251,114,153,.14),0 0 12px var(--pink)}
+section{padding:132px 24px}
+h2{font-size:clamp(28px,4vw,42px);letter-spacing:.03em;line-height:1.35}
+.kicker{letter-spacing:.3em;padding:7px 18px;font-size:11.5px}
+
+/* 首屏：对齐 + 便签证据化 + 毛线退噪 */
+.hero h1{margin-left:0;margin-bottom:40px;letter-spacing:.04em}
+.hero .scene{margin-bottom:48px}
+.hero .evi-lead{font-size:16px;line-height:1.9}
+.evi-item .note{max-width:300px;padding:10px 14px;box-shadow:0 6px 18px rgba(24,25,28,.13)}
+.evi-item .note b{font-size:14px;line-height:1.6}
+.note-src{display:block;margin-top:6px;padding-top:5px;border-top:1px dashed rgba(24,25,28,.18);
+  font-size:10.5px;font-weight:400;letter-spacing:.04em;color:#8a7d4f}
+.note-src .z{color:#b45309;font-size:9.5px;border:1px solid rgba(180,83,9,.4);border-radius:3px;padding:0 3px;margin-left:5px}
+svg.threads line{stroke:#d79a9a!important;stroke-width:1.4!important;stroke-opacity:.42!important}
+
+/* 市场屏：字号、对比、关键数字 */
+.mk-say p{font-size:clamp(25px,3.2vw,40px);line-height:1.7}
+.mk-say p em{font-size:1.04em;padding:0 .06em;background:linear-gradient(transparent 60%,rgba(251,114,153,.2) 60%)}
+.mk-tbl{font-size:13.5px}
+.mk-tbl th{font-size:11.5px;letter-spacing:.08em}
+.mk-tbl td b{color:var(--pink)}
+.mk-note,.src{font-size:12.5px;line-height:1.9;color:var(--ink-faint)}
+.mk-sum-body p{font-size:clamp(21px,2.8vw,31px)}
+.same ul,.swot ul{font-size:13.5px;line-height:2}
+
+/* 卡片：统一表面与质感 */
+.same .c,.swot .q,.biz-block,.sp,.evi-shot{background:var(--surface);border:1px solid var(--line);box-shadow:var(--sh-1)}
+.same .c,.swot .q{transition:transform .35s var(--ease),box-shadow .35s var(--ease)}
+.same .c:hover,.swot .q:hover{transform:translateY(-3px);box-shadow:var(--sh-2)}
+.biz-block{border-radius:var(--r)}
+.rev-table{font-size:14.5px}
+.rev-table th{font-size:12.5px}
+
+/* 决策卡：编号锚点 */
+#decisions div[style*="grid-template-columns"]{counter-reset:dc}
+#decisions div[style*="grid-template-columns"]>div{counter-increment:dc;position:relative;overflow:hidden}
+#decisions div[style*="grid-template-columns"]>div::before{
+  content:'0' counter(dc);position:absolute;top:10px;right:16px;
+  font-family:var(--font-display);font-weight:900;font-size:40px;line-height:1;
+  color:rgba(251,114,153,.11);pointer-events:none}
+footer{font-size:12.5px}
+@media (max-width:820px){
+  section{padding:92px 20px}
+  .hero h1{margin-bottom:32px}
+  .mk-tbl{font-size:12.5px}
+}
+@media (prefers-reduced-motion:reduce){.same .c:hover,.swot .q:hover{transform:none}}
+</style>
+<script>
+/* polish 层脚本：DOM 就绪后统一初始化（脚本位于 head，必须等 DOM） */
+function initPolish(){
+  /* 滚动进度条 */
+  var nav=document.querySelector('nav');
+  if(nav){
+    var upd=function(){
+      var h=document.documentElement.scrollHeight-window.innerHeight;
+      nav.style.setProperty('--progress',(h>0?Math.min(100,window.scrollY/h*100):0)+'%');
+    };
+    addEventListener('scroll',upd,{passive:true});addEventListener('resize',upd);upd();
+  }
+  /* 便签补来源行：兑现设计说明里承诺但未实现的「平台·编号·赞数」 */
+  var M={'E01':'小红书 · E01','E05c':'B站 · E05c · 1449赞','E05b':'B站 · E05b · 584赞',
+    'E05e':'B站 · E05e · 1031赞','E02':'小红书 · E02 <span class="z">佐证</span>',
+    'E05f':'B站 · E05f · 419赞','E06':'B站 · E06 <span class="z">佐证</span>',
+    'E07':'B站 · E07 <span class="z">佐证</span>'};
+  document.querySelectorAll('.evi-item').forEach(function(it){
+    var img=it.querySelector('.evi-shot img'),note=it.querySelector('.note');
+    if(!img||!note||note.querySelector('.note-src'))return;
+    var m=(img.getAttribute('src')||'').match(/(E\d+[a-z]?)-/);
+    if(!m||!M[m[1]])return;
+    var s=document.createElement('span');s.className='note-src';s.innerHTML=M[m[1]];note.appendChild(s);
+  });
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initPolish);
+else initPolish();
+</script>
+<style>
+/* ============================================================
+   留白与排版精修 · 2026-11-19
+   只处理照片墙之外的版面：更大的段落间隔、更轻的边界、更统一的卡片。
+   ============================================================ */
+:root{--surface:#fff;--content:1120px}
+section:not(.hero){max-width:var(--content);padding:148px 32px}
+section:not(.hero)::before{
+  content:'';position:absolute;top:0;left:32px;right:32px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--line) 12%,var(--line) 88%,transparent);
+}
+h2{margin-bottom:32px;letter-spacing:.015em;text-wrap:balance}
+.kicker{margin-bottom:30px}
+
+/* 市场：让每个信息组成为独立章节，而不是连续堆叠 */
+#market>.reveal+.reveal,#business>.reveal+.reveal{margin-top:72px}
+.mk-h{margin:0 0 20px}
+.mk-say{max-width:920px}
+.mk-say .src{margin-top:24px}
+#market .mk-note{margin-top:16px;line-height:1.85}
+@media (min-width:821px){
+  .mk-tblwrap{
+    border:1px solid var(--line);border-radius:18px;background:#fff;
+    box-shadow:var(--sh-1);overflow:hidden;
+  }
+  .mk-tbl{border-collapse:separate;border-spacing:0}
+  .mk-tbl th,.mk-tbl td{border:0;border-bottom:1px solid var(--line);padding:20px 18px}
+  .mk-tbl th{padding-top:16px;padding-bottom:16px;background:#fbfbfd}
+  .mk-tbl tr:last-child td{border-bottom:0}
+}
+.same,.swot{gap:20px}
+.same .c{padding:30px 32px}
+.same .c h4{margin-bottom:18px}
+.same li{margin-bottom:12px}
+.same .wn{gap:12px}
+.same .wn-r{gap:12px}
+.same .wn-r span{padding:16px 18px}
+.mk-sum{
+  margin-top:56px;padding:36px 40px;border:1px solid var(--line);border-radius:20px;
+  background:linear-gradient(135deg,#fff,#fbfbfd);box-shadow:var(--sh-1);
+}
+.mk-sum-body p{margin-bottom:20px;line-height:1.75}
+.mk-sum-body p:last-child{margin-bottom:0}
+
+/* 核心体验：拉开标题、说明、原型与注释之间的距离 */
+#experience h2{margin-bottom:28px}
+#experience h2+p{max-width:760px!important;margin-bottom:20px!important;line-height:2}
+#experience h2+p+p{margin-bottom:36px!important;line-height:1.9}
+
+/* 决策卡：减少压迫感，保留轻量编号层次 */
+#decisions h2{margin-bottom:44px}
+#decisions div[style*="grid-template-columns"]{gap:20px!important}
+#decisions div[style*="grid-template-columns"]>div{
+  padding:32px 34px!important;box-shadow:var(--sh-1);
+  transition:transform .35s var(--ease),box-shadow .35s var(--ease);
+}
+#decisions div[style*="grid-template-columns"]>div:hover{transform:translateY(-3px);box-shadow:var(--sh-2)}
+#decisions div[style*="grid-template-columns"]>div>div{font-size:18px!important;margin-bottom:14px!important}
+#decisions div[style*="grid-template-columns"] p{line-height:2.05!important}
+
+/* 商业与规划：统一内容卡节奏，表格去掉密集网格感 */
+#business h2,#plan h2{margin-bottom:44px}
+.biz-block{padding:36px 40px;margin-bottom:24px}
+.biz-block .bt{margin-bottom:20px}
+.biz-block p{line-height:2.05}
+.rev-table{border-collapse:separate;border-spacing:0;margin:8px 0 16px}
+.rev-table th,.rev-table td{border:0;border-bottom:1px solid var(--line);padding:16px 14px}
+.rev-table tr:last-child td{border-bottom:0}
+.rev-note{margin:18px 0 0;line-height:1.9}
+.formula{margin-bottom:24px}
+footer{padding:56px 24px 72px}
+
+@media (max-width:820px){
+  section:not(.hero){padding:104px 22px 112px}
+  section:not(.hero)::before{left:22px;right:22px}
+  #market>.reveal+.reveal,#business>.reveal+.reveal{margin-top:52px}
+  .same .c{padding:26px 24px}
+  .mk-sum{padding:28px 24px}
+  #decisions div[style*="grid-template-columns"]>div{padding:28px 26px!important}
+  .biz-block{padding:28px 24px}
+}
+@media (max-width:720px){
+  #decisions div[style*="grid-template-columns"]{grid-template-columns:1fr!important}
+}
+/* 首屏：小屏收掉多余留白，问句先于长图被看到；马斯洛五个词不孤儿换行 */
+@media (max-width:820px){
+  .hero{padding-top:104px;padding-bottom:56px}
+  .hero h1{margin-bottom:22px}
+  .hero-bg{width:min(82vw,400px);margin-bottom:26px}
+  .evi-lead br{display:none}
+  .evi-wall{margin-top:36px}
+}
+@media (prefers-reduced-motion:reduce){
+  #decisions div[style*="grid-template-columns"]>div:hover{transform:none}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="back-resume" href="../../../index.html#work-video"
+     onclick="if(document.referrer){history.back();return false}" title="返回简历页">← 返回简历</a>
+  <div class="brand"><span class="dot"></span>小电视 · 平台化身</div>
+  <div class="demo-links">
+    <a href="workbench.html" target="_blank">运营闭环 ↗</a>
+  </div>
+  <div class="meta">个人项目 · 2026.11 · 非官方概念</div>
+</nav>
+<style>
+nav .demo-links{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;margin-right:16px}
+nav .demo-links a{font:inherit;font-size:12px;color:var(--ink);text-decoration:none;border:1px solid var(--line);
+  border-radius:999px;padding:5px 13px;background:#fff;white-space:nowrap;transition:.15s}
+nav .demo-links a:hover{border-color:var(--pink);color:var(--pink)}
+/* 返回简历：常驻导航左侧，点过返回上一页，直接打开则回简历锚点 */
+nav .back-resume{
+  flex:0 0 auto;margin-right:16px;
+  font-size:12px;line-height:1;letter-spacing:.04em;
+  color:var(--pink);text-decoration:none;white-space:nowrap;
+  border:1px solid rgba(251,114,153,.45);border-radius:999px;
+  padding:6px 13px;background:rgba(251,114,153,.07);transition:.15s;
+}
+nav .back-resume:hover{background:var(--pink);color:#fff;border-color:var(--pink)}
+@media(max-width:760px){nav .demo-links{display:none}}
+@media(max-width:520px){
+  nav .back-resume{padding:5px 11px;margin-right:10px}
+  nav .brand{font-size:13px}
+}
+</style>
+
+<!-- ====== 第一屏 · 钩子 ====== -->
+<section class="hero" id="hook">
+
+<!-- 第一屏背景画：第一人称视角——桌上一碗外卖拉面，右手举着停在微信「分享给谁」页的手机；整幅画垫在所有内容底下 -->
+<div class="hero-bg" aria-hidden="true">
+  <img src="hero-scene.jpg" alt="">
+</div>
+
+  <h1 class="fade-in s2">你，<span class="hl">孤单</span>吗？</h1>
+
+  <!-- 证据墙：社媒上捕捉到的真实自白，散落在首页，每张贴一张痛点便签 -->
+  <div class="evi fade-in s3">
+    <style>
+      .evi{min-width:0}
+      .evi-lead{max-width:620px;font-size:15.5px;color:var(--ink-dim);margin-bottom:22px}
+      .evi-lead b{color:var(--ink);font-weight:500}
+      .evi-person{min-width:0;margin:0 0 22px}
+      .sp{display:flex;gap:14px;padding:22px 24px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:0 10px 26px rgba(0,0,0,.10)}
+      .sp .av{flex:0 0 56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:26px;color:#fff}
+      .sp.xl .av{background:linear-gradient(135deg,#bfe6f9,#7cc7f0)}
+      .sp.xy .av{background:linear-gradient(135deg,#ffd3e2,#fb9dbb)}
+      .sp .nm{font-weight:700;font-size:15px;color:var(--ink);margin-bottom:4px}
+      .sp .sc{font-size:13px;color:var(--ink-dim);line-height:1.8}
+      /* 散落铺开：不定宽瀑布流（宽/窄混排，随位置自动补位） */
+      .evi-wall{
+        width:100vw;margin-left:calc(50% - 50vw);margin-top:150px;
+        position:relative;
+        padding:18px max(44px,calc((100vw - 1560px)/2)) 22px;
+      }
+      .evi-item{position:relative;margin:0 0 22px}
+      .evi-shot{background:#fff;border:1px solid var(--line);box-shadow:0 10px 26px rgba(0,0,0,.10);padding:9px}
+      .evi-shot img{display:block;width:100%;max-width:100%;height:auto;margin:0 auto;cursor:zoom-in}
+      /* 微旋角度由 JS 逐张给（--rot），不再奇偶两档 */
+      .evi-item .evi-shot{transform:rotate(var(--rot,-1deg))}
+      /* 痛点便签 */
+      .evi-item .note{position:relative;margin:-7px 0 0 12px;width:max-content;max-width:270px;background:#fff3b0;border-radius:2px;
+        padding:9px 13px;box-shadow:0 10px 22px rgba(0,0,0,.15);transform:rotate(-1.2deg)}
+      .evi-item .note::before{content:'';position:absolute;top:-5px;left:50%;width:10px;height:10px;border-radius:50%;
+        background:#e03131;transform:translateX(-50%);box-shadow:0 2px 4px rgba(0,0,0,.25)}
+      .evi-item .note b{display:block;font-size:13.5px;color:#18191c}
+      @media (max-width:820px){
+        .evi-wall{width:auto;margin-left:0;margin-top:40px;padding:0}
+        .evi-item,.evi-person{grid-column:auto!important;margin:0 0 30px!important}
+        .evi-item .note{margin:10px 0 0;width:auto;transform:none}
+      }
+    </style>
+    <p class="evi-lead">你有没有遇到过这种时刻？看喜欢的番剧、电影、视频，<b>想分享却找不到人</b>；<br>那一刻你渴望有人能陪着你，懂你的梗，欣赏你的品味。</p>
+    <div class="evi-wall">
+      <figure class="evi-item" style="grid-column:1/span 6;margin-top:0">
+        <div class="evi-shot"><img src="evidence/E01-小红书-英雄联盟线下观赛-一个人看赛太孤独-20261115.png" alt="小红书帖子：今年观赛就一个人了，评论区在问「有没有人要的呀」"></div>
+        <figcaption class="note"><b>「今年观赛就一个人了」</b></figcaption>
+      </figure>
+      <figure class="evi-item" style="grid-column:7/span 6;margin-top:26px;--w:478px">
+        <div class="evi-shot"><img src="evidence/E05c-B站评论-梅子小姐-外卖备注发朋友圈没人点赞-1449赞.png" alt="B 站评论：梅子小姐「我的外卖备注，发朋友圈但是也没人点赞」"></div>
+        <figcaption class="note"><b>「我的外卖备注，发朋友圈也没人点赞」</b></figcaption>
+      </figure>
+      <div class="evi-person" style="grid-column:1/span 4;margin-top:14px">
+        <div class="sp xl">
+          <div class="av">龙</div>
+          <div>
+            <div class="nm">小龙 · 23 岁 · 独自一人来到深圳生活</div>
+            <div class="sc">下班回到城中村出租屋，边刷 B 站边吃外卖，看到有趣的内容想转发，却不知道能转发给谁。</div>
+          </div>
+        </div>
+      </div>
+      <figure class="evi-item" style="grid-column:5/span 4;margin-top:28px">
+        <div class="evi-shot"><img src="evidence/E05b-B站评论-橘小酒-给小鸡配内心独白发朋友圈没人理-584赞63回复.png" alt="B 站评论：我叫橘小酒「自己给小鸡配了内心独白，发朋友圈也没人理我」"></div>
+        <figcaption class="note"><b>「发了朋友圈也没人理我」</b></figcaption>
+      </figure>
+      <figure class="evi-item" style="grid-column:9/span 4;margin-top:6px;--w:457px">
+        <div class="evi-shot"><img src="evidence/E05e-B站评论-Dister-没人看我画的短漫-1031赞.png" alt="B 站评论：是Dister不是狸「没有人看我画的短漫，你们能帮帮我看看」"></div>
+        <figcaption class="note"><b>「没有人看我画的短漫」</b></figcaption>
+      </figure>
+      <figure class="evi-item" style="grid-column:1/span 4;margin-top:20px;--w:422px">
+        <div class="evi-shot"><img src="evidence/E02-小红书-做什么都是一个人-习惯化孤独-20261115.png" alt="小红书帖子：做什么事都是自己一个人，已经习惯"></div>
+        <figcaption class="note"><b>「做什么都是一个人，习惯了」</b></figcaption>
+      </figure>
+      <figure class="evi-item" style="grid-column:5/span 4;margin-top:34px">
+        <div class="evi-shot"><img src="evidence/E05f-B站评论-鼠鼠-七年前的电影票不知道分享给谁-419赞.png" alt="B 站评论：鼠鼠该刨搁了「翻到了七八年前看电影的票……可是不知道分享给谁」"></div>
+        <figcaption class="note"><b>「可是不知道分享给谁」</b></figcaption>
+      </figure>
+      <div class="evi-person" style="grid-column:9/span 4;margin-top:10px">
+        <div class="sp xy">
+          <div class="av">雅</div>
+          <div>
+            <div class="nm">小雅 · 18 岁 · 大一新生</div>
+            <div class="sc">沉迷 B 站二次元，番剧转发给同学，他们总 get 不到她的点。</div>
+          </div>
+        </div>
+      </div>
+      <figure class="evi-item" style="grid-column:1/span 6;margin-top:18px;--w:399px">
+        <div class="evi-shot"><img src="evidence/E06-B站评论-ydfufu-周围没朋友听-41赞10回复-2024-12.png" alt="B 站评论：ydfufu「周围没朋友听」"></div>
+        <figcaption class="note"><b>「周围没朋友听」</b></figcaption>
+      </figure>
+      <figure class="evi-item" style="grid-column:7/span 6;margin-top:10px;--w:457px">
+        <div class="evi-shot"><img src="evidence/E07-B站评论-望舒Lyla-没人转发给我我自己转发给自己-2024-12-25.png" alt="B 站评论：望舒Lyla「没人转发给我，我自己转发给自己了」"></div>
+        <figcaption class="note"><b>「我自己转发给自己了」</b></figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- 证据 → 需求：每张照片的红线连到马斯洛里对应的层 -->
+  <div class="needmap fade-in s7">
+    <style>
+      .needmap{width:100%;margin:80px auto 0;max-width:900px;text-align:center}
+      .needs{display:flex;justify-content:center;align-items:baseline;gap:96px;flex-wrap:wrap;padding:36px 0 6px}
+      .needs span{font-family:var(--font-display);font-weight:900;font-size:clamp(18px,2.2vw,24px);color:var(--ink-faint);letter-spacing:.02em}
+      .needs span.hot{color:var(--pink)}
+      @media (max-width:820px){.needs{gap:14px;padding-top:30px}.needs span{font-size:15px}}
+      .hero>.threads{position:absolute!important;inset:0;z-index:2;pointer-events:none;overflow:visible}
+      .project-byline{margin:44px auto 0;text-align:center;font-size:11px;letter-spacing:.12em;line-height:1.8;color:var(--ink-faint)}
+    </style>
+    <div class="needs">
+      <span>自我实现</span>
+      <span class="hot" id="need-respect">尊重</span>
+      <span class="hot" id="need-belong">归属与爱</span>
+      <span>安全</span>
+      <span>生理</span>
+    </div>
+  </div>
+
+  <svg class="threads" id="threads" aria-hidden="true"></svg>
+  <p class="project-byline fade-in">小电视 · 常驻播放器、锚定当前视频的 AI 陪看伙伴 ｜ 个人项目 · 独立完成需求研究、产品定义与交互原型 ｜ 2026.11 ｜ 概念验证 · Mock 数据</p>
+</section>
+
+<!-- ====== 第二屏 · 市场与空位 ====== -->
+<section id="market" aria-label="市场与空位：规模、竞品、替代方案">
+  <div class="kicker"><span class="no">02</span>市场与空位</div>
+  <div class="reveal">
+    <style>
+      .mk-say{max-width:940px}
+      .mk-say p{font-family:var(--font-display);font-weight:900;font-size:clamp(24px,3vw,38px);line-height:1.6;letter-spacing:.01em;margin:0}
+      .mk-say em{font-style:normal;color:var(--pink)}
+      .mk-say .src{font-size:11px;color:var(--ink-faint);line-height:1.9;margin-top:18px}
+      .mk-note{font-size:11.5px;color:var(--ink-faint);line-height:1.9;margin:12px 0 0}
+      .mk-h{font-size:13px;font-weight:600;letter-spacing:.2em;color:var(--blue);margin:38px 0 12px}
+      .mk-tblwrap{overflow-x:auto;border-radius:12px}
+      .mk-tbl{width:100%;border-collapse:collapse;font-size:12.5px;min-width:780px}
+      .mk-tbl th,.mk-tbl td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top;line-height:1.75}
+      .mk-tbl th{color:var(--ink-faint);font-weight:500;font-size:11px;letter-spacing:.12em;white-space:nowrap}
+      .mk-tbl th:nth-child(1){width:12%}
+      .mk-tbl th:nth-child(2){width:25%}
+      .mk-tbl th:nth-child(3){width:27%}
+      .mk-tbl th:nth-child(4){width:21%}
+      .mk-tbl th:nth-child(5){width:15%}
+      .mk-tbl td.p{font-family:var(--font-display);font-weight:900;color:var(--ink);white-space:nowrap}
+      .mk-tbl td b{color:var(--ink);font-weight:500}
+      .same{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+      .why-alt{margin-top:14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+      .why-alt article{padding:18px 20px;border:1px solid var(--line);border-radius:14px;background:#fff}
+      .why-alt h4{margin-bottom:5px;font-size:13px;font-weight:600;color:var(--ink)}
+      .why-alt p{font-size:12px;line-height:1.85;color:var(--ink-dim)}
+      .why-alt .conclusion{grid-column:1/-1;padding:14px 18px;border-style:dashed;background:#fbfbfd;font-size:12px;line-height:1.8;color:var(--ink-dim)}
+      @media (max-width:820px){.why-alt{grid-template-columns:1fr}.why-alt .conclusion{grid-column:auto}}
+      .same .c{border:1px solid var(--line);border-radius:14px;padding:20px 22px;background:var(--bg-2)}
+      .same .c.ours{border-color:rgba(251,114,153,.42);background:linear-gradient(180deg,rgba(251,114,153,.07),transparent)}
+      .same .c h4{font-family:var(--font-display);font-weight:900;font-size:14px;letter-spacing:.04em;margin-bottom:12px;color:var(--ink-dim)}
+      .same .c.ours h4{color:var(--pink)}
+      .same ul{list-style:none;font-size:12.5px;color:var(--ink-dim);line-height:1.95}
+      .same li{position:relative;padding-left:15px;margin-bottom:6px}
+      .same li::before{content:'';position:absolute;left:0;top:.82em;width:5px;height:5px;border-radius:50%;background:var(--ink-faint)}
+      .same .ours li::before{background:var(--pink)}
+      .same li b{color:var(--ink);font-weight:500}
+      .same .wn{display:grid;gap:8px}
+      .same .wn-r{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+      .same .wn-r span{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.85;color:var(--ink-dim);background:rgba(232,234,240,.02)}
+      .same .wn-r span:first-child{border-color:rgba(251,114,153,.35);background:linear-gradient(180deg,rgba(251,114,153,.06),transparent);color:var(--ink)}
+      .same .wn b{display:inline-block;font-weight:500;font-size:10.5px;line-height:1;border-radius:6px;padding:3px 7px;margin-right:8px;vertical-align:2px}
+      .same .wn-r span:first-child b{color:var(--pink);border:1px solid rgba(251,114,153,.45)}
+      .same .wn-r span:last-child b{color:var(--ink-faint);border:1px solid rgba(232,234,240,.2)}
+      @media (max-width:820px){.same .wn-r{grid-template-columns:1fr}}
+      .swot{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+      .swot .q{border:1px solid var(--line);border-radius:14px;padding:18px 20px;background:var(--bg-2)}
+      .swot .q.s{border-color:rgba(251,114,153,.35);background:linear-gradient(180deg,rgba(251,114,153,.06),transparent)}
+      .swot .q.o{border-color:rgba(0,174,236,.3);background:linear-gradient(180deg,rgba(0,174,236,.06),transparent)}
+      .swot .q h4{font-family:var(--font-display);font-weight:900;font-size:13px;letter-spacing:.06em;margin-bottom:10px;color:var(--ink-dim)}
+      .swot .q.s h4{color:var(--pink)}
+      .swot .q.o h4{color:var(--blue)}
+      .swot .q h4 span{font-family:var(--font-body);font-size:10.5px;font-weight:400;letter-spacing:.2em;color:var(--ink-faint);margin-right:8px}
+      .swot ul{list-style:none;font-size:12.5px;color:var(--ink-dim);line-height:1.9}
+      .swot li{position:relative;padding-left:14px;margin-bottom:4px}
+      .swot li::before{content:'·';position:absolute;left:2px;color:var(--ink-faint)}
+      .swot li b{color:var(--ink);font-weight:500}
+      .analysis-intro{max-width:820px;margin:-4px 0 24px;font-size:13.5px;line-height:1.9;color:var(--ink-dim)}
+      .analysis-source{margin-top:14px;font-size:11.5px;line-height:1.8;color:var(--ink-faint)}
+      /* 标准商业模式画布：供给（伙伴/活动/资源）—价值—用户（关系/渠道/细分），底部财务闭环 */
+      .bmc-shell{overflow:hidden;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:var(--sh-1)}
+      .bmc-main{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-areas:"kp ka vp cr cs" "kp kr vp ch cs";gap:1px;background:var(--line)}
+      .bmc-shell .bmc-card{min-width:0;max-width:none;margin:0;padding:20px 18px 18px;background:#fff}
+      .bmc-shell .bmc-card::before,.swot-matrix .swot-card::before,.tows-grid .tows-card::before{content:none}
+      .bmc-card.kp{grid-area:kp}.bmc-card.ka{grid-area:ka}.bmc-card.kr{grid-area:kr}
+      .bmc-card.vp{grid-area:vp;background:linear-gradient(180deg,rgba(251,114,153,.09),#fff 72%)}
+      .bmc-card.cr{grid-area:cr}.bmc-card.ch{grid-area:ch}.bmc-card.cs{grid-area:cs}
+      .bmc-head{display:flex;flex-direction:column;align-items:flex-start;gap:4px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+      .bmc-head h4{font-size:15px;font-weight:700;line-height:1.45;letter-spacing:.02em;color:var(--ink);white-space:nowrap}
+      .bmc-en{order:-1;font-size:9px;line-height:1.4;letter-spacing:.1em;color:var(--ink-faint);white-space:nowrap;text-transform:uppercase}
+      .bmc-card.vp .bmc-head h4{color:#d94f7c}
+      .bmc-card ul,.swot-card ul{list-style:none}
+      .bmc-card li{position:relative;margin-bottom:10px;padding-left:12px;font-size:12.5px;line-height:1.8;color:var(--ink-dim);overflow-wrap:anywhere}
+      .bmc-card li:last-child{margin-bottom:0}
+      .bmc-card li::before{content:'';position:absolute;left:0;top:.75em;width:4px;height:4px;border-radius:50%;background:#b8bdc5}
+      .bmc-card.vp li::before{background:var(--pink)}
+      .bmc-card li b{font-weight:600;color:var(--ink)}
+      .bmc-bottom{display:grid;grid-template-columns:1fr 1fr;gap:1px;border-top:1px solid var(--line);background:var(--line)}
+      .bmc-bottom .bmc-card{background:#fbfbfd}
+      .bmc-logic{display:grid;grid-template-columns:110px repeat(3,minmax(0,1fr));gap:14px;align-items:start;padding:18px 22px;border-top:1px solid #f7dce5;background:#fff7fa}
+      .bmc-logic .label{font-size:10px;font-weight:700;line-height:1.6;letter-spacing:.14em;color:#d94f7c;white-space:nowrap}
+      .bmc-logic p{padding-left:12px;border-left:1px solid #f0ccd8;font-size:12px;line-height:1.8;color:var(--ink-dim)}
+      .bmc-logic b{display:block;margin-bottom:4px;font-weight:600;color:var(--ink)}
+      /* 单用户经济：先把竞品口径算清，再用增量收入倒推可承受的 AI 成本 */
+      .ue-shell{margin-top:26px;overflow:hidden;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:var(--sh-1)}
+      .ue-head{padding:26px 28px 22px;border-bottom:1px solid var(--line);background:#fbfbfd}
+      .ue-kicker{margin-bottom:9px;font-size:10px;font-weight:700;letter-spacing:.16em;color:var(--pink)}
+      .ue-head h4{font-size:19px;font-weight:700;line-height:1.5;color:var(--ink)}
+      .ue-head p{max-width:880px;margin-top:8px;font-size:12.5px;line-height:1.85;color:var(--ink-dim)}
+      .ue-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+      .ue-pane{min-width:0;padding:24px 28px 26px}
+      .ue-pane+.ue-pane{border-left:1px solid var(--line)}
+      .ue-grid .ue-pane,.ue-gates .ue-gate{max-width:none;margin:0}
+      .ue-grid .ue-pane{padding:24px 28px 26px}
+      .ue-gates .ue-gate{padding:20px 22px}
+      .ue-grid .ue-pane::before,.ue-gates .ue-gate::before{content:none}
+      .ue-pane-h{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+      .ue-plain{margin-bottom:14px;font-size:12px;line-height:1.8;color:var(--ink)}
+      .ue-pane-h h5{font-size:14px;font-weight:700;color:var(--ink)}
+      .ue-pane-h span{font-size:9px;letter-spacing:.12em;color:var(--ink-faint);white-space:nowrap}
+      .ue-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:12px;line-height:1.7;color:var(--ink-dim)}
+      .ue-row b{font-weight:600;color:var(--ink);white-space:nowrap}
+      .ue-row.total{border-bottom:0;color:var(--ink)}
+      .ue-row.total b{font-size:15px}
+      .ue-formula{margin-top:14px;padding:13px 15px;border-radius:10px;background:#fff7fa;font-size:12px;line-height:1.8;color:var(--ink)}
+      .ue-formula code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12.5px;color:#c44772;overflow-wrap:anywhere}
+      .ue-formula.negative{background:#f7f7f8}
+      .ue-formula.negative code{color:#6b7280}
+      .ue-small{margin-top:10px;font-size:11px;line-height:1.75;color:var(--ink-faint)}
+      .ue-gates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;border-top:1px solid var(--line);background:var(--line)}
+      .ue-gate{min-width:0;padding:20px 22px;background:#fff}
+      .ue-gate .idx{display:block;margin-bottom:8px;font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--blue)}
+      .ue-gate h5{margin-bottom:6px;font-size:13px;font-weight:700;color:var(--ink)}
+      .ue-gate p{font-size:11.5px;line-height:1.8;color:var(--ink-dim)}
+      .ue-stop{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;padding:16px 24px;border-top:1px solid var(--line);background:#fbfbfd}
+      .ue-stop span{font-size:9px;font-weight:700;line-height:1.7;letter-spacing:.14em;color:var(--pink);white-space:nowrap}
+      .ue-stop p{font-size:11.5px;line-height:1.8;color:var(--ink-dim)}
+      .ue-stop b{font-weight:600;color:var(--ink)}
+      .rev-shelf{margin-top:16px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+      .rev-card{min-width:0;padding:22px;border:1px solid var(--line);border-top:3px solid #b8bdc5;border-radius:16px;background:#fff;box-shadow:var(--sh-1)}
+      .rev-card:nth-child(1){border-top-color:var(--pink)}
+      .rev-card:nth-child(2){border-top-color:var(--blue)}
+      .rev-card:nth-child(3){border-top-color:#d99a35}
+      .rev-no{display:block;margin-bottom:9px;font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--ink-faint)}
+      .rev-card h4{margin-bottom:8px;font-size:15px;font-weight:700;color:var(--ink)}
+      .rev-card p{font-size:12px;line-height:1.85;color:var(--ink-dim)}
+      .rev-price{display:block;margin-top:14px;font-size:12px;font-weight:600;line-height:1.6;color:var(--ink)}
+      .rev-tag{display:block;margin-top:2px;font-size:10px;line-height:1.7;color:var(--ink-faint)}
+      .rev-membership{margin-top:12px;padding:16px 20px;border:1px solid #dceef8;border-radius:12px;background:#f5fbfe}
+      .rev-membership b{font-weight:600;color:var(--ink)}
+      .rev-membership p{font-size:12px;line-height:1.8;color:var(--ink-dim)}
+      .rev-mix{margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 18px;border:1px dashed var(--line);border-radius:12px;font-size:11.5px;line-height:1.8;color:var(--ink-dim)}
+      .rev-mix.plat{border-style:solid;background:#fbfbfd}
+      .rev-total{margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:16px 20px;border-radius:12px;background:#fff7fa;font-size:12.5px;line-height:1.8;color:var(--ink)}
+      .rev-total b{font-weight:600;color:#d94f7c}
+      .rev-total .eq{font-size:12px;color:var(--ink-dim)}
+      .rev-total .eq b{color:#c44772}
+      .rev-mix b{font-weight:600;color:var(--ink)}
+      .rev-mix strong{font-size:12px;font-weight:600;color:#d94f7c;white-space:nowrap}
+      .rev-rules{margin-top:14px;padding:18px 22px;border-left:3px solid #d99a35;border-radius:0 12px 12px 0;background:#fdfaf4;font-size:12px;line-height:1.85;color:var(--ink-dim)}
+      .rev-rules b{font-weight:600;color:var(--ink)}
+      .rev-rules span{display:block;margin-top:5px;color:var(--ink-faint)}
+      @media (max-width:900px){
+        .rev-shelf{grid-template-columns:1fr;}
+        .rev-mix{align-items:flex-start;flex-direction:column;gap:4px}
+      }
+      @media (max-width:900px){
+        .ue-grid{grid-template-columns:1fr}
+        .ue-pane+.ue-pane{border-top:1px solid var(--line);border-left:0}
+        .ue-gates{grid-template-columns:1fr}
+      }
+      @media (max-width:680px){
+        .ue-head,.ue-grid .ue-pane{padding-left:22px;padding-right:22px}
+        .ue-pane-h{align-items:flex-start;flex-direction:column;gap:3px}
+        .ue-row{grid-template-columns:1fr;gap:2px}
+        .ue-row b{white-space:normal}
+        .ue-stop{grid-template-columns:1fr;gap:5px;padding:16px 22px}
+      }
+      /* SWOT：先分内外部与利弊，再由 TOWS 导出行动 */
+      .swot-matrix{display:grid;grid-template-columns:48px repeat(2,minmax(0,1fr));gap:12px}
+      .swot-corner{display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;color:var(--ink-faint);font-size:10px;letter-spacing:.12em;writing-mode:vertical-rl}
+      .swot-axis{display:flex;align-items:center;justify-content:center;font-size:11px;letter-spacing:.16em;color:var(--ink-faint)}
+      .swot-axis.side{min-height:80px;writing-mode:vertical-rl}
+      .swot-matrix .swot-card{min-width:0;max-width:none;margin:0;padding:24px 26px;border:1px solid var(--line);border-top:3px solid #b8bdc5;border-radius:16px;background:#fff;box-shadow:var(--sh-1)}
+      .swot-card.s{border-top-color:var(--pink)}.swot-card.w{border-top-color:#d99a35}
+      .swot-card.o{border-top-color:var(--blue)}.swot-card.t{border-top-color:#6b7280}
+      .swot-card-head{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+      .swot-letter{min-width:38px;font-size:34px;font-weight:800;line-height:1;color:#9aa0a8}
+      .s .swot-letter{color:var(--pink)}.w .swot-letter{color:#c48322}.o .swot-letter{color:var(--blue)}.t .swot-letter{color:#5b6472}
+      .swot-card h4{font-size:16px;font-weight:700;line-height:1.5;color:var(--ink)}
+      .swot-card h4 span{display:block;margin-top:2px;font-size:10px;font-weight:400;letter-spacing:.12em;color:var(--ink-faint)}
+      .swot-card li{position:relative;margin-bottom:14px;padding-left:14px;font-size:13px;line-height:1.9;color:var(--ink-dim)}
+      .swot-card li:last-child{margin-bottom:0}
+      .swot-card li::before{content:'';position:absolute;left:0;top:.78em;width:5px;height:5px;border-radius:50%;background:#b8bdc5}
+      .swot-card.s li::before{background:var(--pink)}.swot-card.w li::before{background:#d99a35}.swot-card.o li::before{background:var(--blue)}
+      .swot-card li b{display:block;font-weight:600;color:var(--ink)}
+      .tows{margin-top:36px}
+      .tows-h{margin-bottom:16px;font-size:12px;font-weight:600;letter-spacing:.16em;color:var(--blue)}
+      .tows-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+      .tows-grid .tows-card{max-width:none;margin:0;padding:20px 22px;border:1px solid var(--line);border-radius:14px;background:#fbfbfd}
+      .tows-tag{display:inline-block;margin-bottom:9px;font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--pink)}
+      .tows-card h5{margin-bottom:8px;font-size:14px;font-weight:700;color:var(--ink)}
+      .tows-card p{font-size:12.5px;line-height:1.9;color:var(--ink-dim)}
+      .tows-metric{display:block;margin-top:10px;padding-top:9px;border-top:1px dashed var(--line);font-size:11px;line-height:1.75;color:var(--ink-faint)}
+      .swot-verdict{margin-top:20px;padding:20px 24px;border-left:3px solid var(--pink);border-radius:0 14px 14px 0;background:#fff7fa;font-size:13.5px;line-height:1.9;color:var(--ink-dim)}
+      .swot-verdict b{font-weight:600;color:var(--ink)}
+      @media (max-width:980px){
+        .bmc-main{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"vp vp" "cs cr" "ch kr" "ka kp"}
+        .bmc-logic{grid-template-columns:repeat(3,minmax(0,1fr))}
+        .bmc-logic .label{grid-column:1/-1}
+      }
+      @media (max-width:700px){
+        .swot-matrix{grid-template-columns:1fr}
+        .swot-corner,.swot-axis{display:none}
+        .swot-matrix .swot-card{padding:22px}
+        .tows-grid{grid-template-columns:1fr}
+      }
+      @media (max-width:680px){
+        .bmc-main{grid-template-columns:1fr;grid-template-areas:"vp" "cs" "cr" "ch" "kr" "ka" "kp"}
+        .bmc-bottom{grid-template-columns:1fr}
+        .bmc-shell .bmc-card{padding:20px 22px}
+        .bmc-logic{grid-template-columns:1fr;gap:6px;padding:18px 22px}
+      }
+      @media (max-width:820px){
+        .same,.swot{grid-template-columns:1fr}
+        /* 手机上表格改成一张张卡：不横向滚动，「赚多少」不会被切掉 */
+        .mk-tbl{min-width:0}
+        .mk-tbl tr:first-child{display:none}
+        .mk-tbl tr{display:block;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;padding:14px 16px;background:var(--bg-2)}
+        .mk-tbl td{display:block;border:0;padding:0 0 8px}
+        .mk-tbl td:nth-child(n+2)::before{display:block;font-size:10.5px;letter-spacing:.18em;color:var(--ink-faint);margin-bottom:2px}
+        .mk-tbl td:nth-child(2)::before{content:'提供的产品或服务'}
+        .mk-tbl td:nth-child(3)::before{content:'规模 / 利润'}
+        .mk-tbl td:nth-child(4)::before{content:'现状'}
+        .mk-tbl td:nth-child(5)::before{content:'市场占比'}
+        .mk-tbl td.p{padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+      }
+      .mk-sum{margin-top:40px}
+      .mk-sum-h{display:flex;align-items:center;gap:9px;font-size:12px;letter-spacing:.24em;color:var(--pink);margin-bottom:18px}
+      .mk-sum-h i{width:7px;height:7px;border-radius:50%;background:var(--pink);box-shadow:0 0 10px rgba(251,114,153,.8);animation:mkblink 1.6s infinite}
+      .mk-sum-body{min-height:170px}
+      .mk-sum-body p{font-family:var(--font-display);font-weight:900;font-size:clamp(20px,2.6vw,30px);line-height:1.6;letter-spacing:.01em;color:var(--ink);margin:0 0 14px;text-wrap:balance}
+      .mk-sum-body b{font-weight:900;color:var(--pink)}
+      .mk-sum-body .mk-num{font-size:.55em;color:var(--pink);letter-spacing:.08em;margin-right:14px;vertical-align:.12em}
+      .mk-cursor{display:inline-block;width:3px;height:.9em;background:var(--pink);vertical-align:-.08em;margin-left:4px;animation:mkblink 1s steps(1,end) infinite}
+      @keyframes mkblink{0%,100%{opacity:1}50%{opacity:0}}
+      @media (max-width:820px){.mk-sum-body{min-height:160px}}
+    </style>
+
+    <div class="mk-say">
+      <p>2025 年，全球 AI 陪伴市场已到 <em>368 亿美元</em>；中国 AI 情感陪伴市场，2027 年将到 <em>约 240 亿元</em>。</p>
+      <div class="src">368 亿：Grand View Research《AI Companion Market》，2026-06；240 亿：头豹研究院（2025），2027 年按同一条曲线折算</div>
+    </div>
+    <div class="mk-note">口径提示：全球口径含硬件与企业端，中国口径为 AI 情感陪伴，两者不可直接相加；2027 / 2028 均为机构预测。</div>
+  </div>
+
+  <div class="reveal">
+    <div class="mk-h">国际市场</div>
+    <div class="mk-tblwrap">
+      <table class="mk-tbl">
+        <tr><th>产品</th><th>提供的产品或服务</th><th>规模 / 利润</th><th>现状</th><th>市场占比</th></tr>
+        <tr>
+          <td class="p">Character.AI</td>
+          <td>UGC 角色聊天：用户自建角色，以文字为主；订阅 4.99 / 9.99 美元 + 广告</td>
+          <td>1,200 万 MAU；2026-08 收入 530 万美元（订阅 280 + 广告 250）＝ 每 MAU <b>$0.44</b>；1–8 月算力 5,610 万美元，月均每 MAU <b>$0.58</b>；8 月总成本 1,330 万、净亏 820 万</td>
+          <td>2026-10 申请 Chapter 11 破产保护，重组中</td>
+          <td>MAU 全球第二（峰值 2,800 万 → 约 1,200 万）</td>
+        </tr>
+        <tr>
+          <td class="p">Talkie</td>
+          <td>MiniMax 出海版：角色聊天 + 卡牌收集；订阅 + 内购 + 广告</td>
+          <td>3,107 万 MAU；与星野 2025 前九月合计 1,875 万美元（占 MiniMax 收入 35.1%）；AI 原生业务毛利率 4.7%</td>
+          <td>2024-12 起美区 App Store 下架未恢复，集团重心转海螺 AI</td>
+          <td>MAU 全球第一（3,107 万，超 Character.AI）</td>
+        </tr>
+        <tr>
+          <td class="p">Replika</td>
+          <td>个人 AI 伴侣：文字 / 语音 / 视频；订阅 19.99–29.99 美元/月</td>
+          <td>累计 4,000 万用户；ARR 1,400 万美元（2024-06）；免费转付费约 25%</td>
+          <td>93 人、无外部融资，自负盈亏（未审计）；增长乏力</td>
+          <td>未披露 MAU；欧美订阅基本盘</td>
+        </tr>
+        <tr>
+          <td class="p">Chai</td>
+          <td>角色聊天，区域差异化定价：欧美日免费 + 广告，低 ARPU 市场设付费门槛</td>
+          <td>DAU 100 万+；年化收入 <b>1.2 亿美元</b>（订阅 + 内购 60%、广告 40%）</td>
+          <td>自称剔除营销费用后盈利（未审计）——目前最像跑通的一家</td>
+          <td>收入第一（年化 1.2 亿美元）</td>
+        </tr>
+      </table>
+    </div>
+    <div class="mk-note">占比写公开口径下的相对位置，不做机构份额推算；没有公开数据的产品直接标「未披露」。Character.AI 的 0.44 与 0.58 是「收入 / MAU」与「1–8 月月均算力 / MAU」。</div>
+  </div>
+
+  <div class="reveal">
+    <div class="mk-h">国内市场</div>
+    <div class="mk-tblwrap">
+      <table class="mk-tbl">
+        <tr><th>产品</th><th>提供的产品或服务</th><th>规模 / 利润</th><th>现状</th><th>市场占比</th></tr>
+        <tr>
+          <td class="p">猫箱 · 字节</td>
+          <td>AI 角色扮演 + 语音通话 + 剧情 + UGC；会员 25 元/月 + 猫粮内购</td>
+          <td>445–472 万 MAU；iOS 累计内购超 <b>2,200 万美元</b>；单月活变现约星野 / 筑梦岛 4 倍</td>
+          <td>2026Q1 中国 iOS AI 应用收入第一；利润未单独披露</td>
+          <td>已披露 MAU 第一（约 57%）</td>
+        </tr>
+        <tr>
+          <td class="p">星野 · MiniMax</td>
+          <td>AI 角色扮演社区：捏崽 + 语音；广告 + 订阅 + 内购</td>
+          <td>338 万 MAU（2024-11 峰值 512 万）；广告 59.7% / 订阅 35.2% / 内购 5.1%；AI 原生业务毛利率 4.7%</td>
+          <td>2025 年 1–5 月 iOS 下载跌 81%，集团重心转企业端</td>
+          <td>已披露 MAU 第二（约 43%）</td>
+        </tr>
+        <tr>
+          <td class="p">筑梦岛 · 阅文</td>
+          <td>女性向「梦中人」，多模态 + 阅文 IP；内购 / 订阅</td>
+          <td>官方未披露 MAU；单用户变现约为猫箱 1/4</td>
+          <td>2025-01 独立运营，融资超 1,000 万美元</td>
+          <td>未披露</td>
+        </tr>
+      </table>
+    </div>
+    <div class="mk-note">三家都没单独披露利润：猫箱的 2,200 万美元是 iOS 内购流水，不是净收入。占比只在已披露 MAU 的两家之间可比（猫箱 : 星野 ≈ 57 : 43）。也没有一家靠「纯聊天计时收费」——钱来自广告、会员分层、剧情解锁，以及硬件（珞博芙崽 399 元 + 订阅，销售额超 1.2 亿元）。</div>
+    <div class="mk-sum" id="mkSum">
+      <div class="mk-sum-h"><i></i>我的总结 · 三个判断</div>
+      <div class="mk-sum-body"></div>
+    </div>
+  </div>
+
+  <div class="reveal">
+    <div class="mk-h">为什么不是已有方案</div>
+    <div class="why-alt">
+      <article><h4>熟人 / 群聊</h4><p>要找得到人，还要对方正好懂这个梗；分享本身有社交成本，不是每个瞬间都值得发出去。</p></article>
+      <article><h4>弹幕 / 评论区</h4><p>公开、异步、面向所有人；没有只属于你的记忆，也无法接住私下的那点情绪。</p></article>
+      <article><h4>直播 / 虚拟主播</h4><p>主播决定看什么、什么时候开播，注意力是一对多；它替代不了你此刻自己选的那条视频。</p></article>
+      <article><h4>通用 AI / 角色聊天</h4><p>不在播放器里，不知道你正看哪一帧；开放式聊天把成本和打扰同时放大。</p></article>
+      <article class="conclusion">不是要替代真人社交，也不争夺直播、赛事这类事件型观看；只补「内容很好，身边无人可说」的日常独看时刻。</article>
+    </div>
+  </div>
+</section>
+
+<!-- ====== 第三屏 · 核心体验 ====== -->
+<section id="experience">
+  <style>
+    .vc-lead{max-width:760px;margin:0 0 26px;font-size:14.5px;line-height:1.95;color:var(--ink-dim)}
+    .vc-demo{margin-bottom:10px;overflow:hidden;border:0;border-radius:0;background:#05070a;box-shadow:0 14px 34px rgba(0,0,0,.16)}
+    .vc-demo-frame{position:relative;aspect-ratio:980 / 464;background:#05070a}
+    .vc-demo-frame iframe{display:block;width:100%;height:100%;border:0;background:transparent}
+    .vc-caption{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 18px;font-size:11.5px;line-height:1.75;color:var(--ink-faint)}
+    .vc-caption a{color:var(--ink-dim);text-decoration:none;border-bottom:1px solid var(--line);white-space:nowrap}
+    .vc-caption a:hover{color:var(--pink);border-color:var(--pink)}
+    .vc-hints{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px}
+    .vc-hint{padding:18px 20px;border:1px solid var(--line);border-radius:14px;background:var(--bg-2)}
+    .vc-hint .i{display:block;margin-bottom:7px;font-size:9px;letter-spacing:.16em;color:var(--blue)}
+    .vc-hint h3{font-size:13px;font-weight:500;line-height:1.6;color:var(--ink);margin-bottom:4px}
+    .vc-hint p{font-size:12px;line-height:1.8;color:var(--ink-dim)}
+    .vc-demo-note{border:1px solid var(--line);border-radius:14px;padding:16px 20px;font-size:12.5px;line-height:1.9;color:var(--ink-faint)}
+    .vc-demo-note b{color:var(--ink-dim);font-weight:500}
+    .impl{margin-top:18px;padding:22px 24px;border:1px solid var(--line);border-radius:16px;background:var(--bg-2)}
+    .impl-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+    .impl-head .t{font-size:10px;font-weight:600;letter-spacing:.18em;color:var(--blue)}
+    .impl-head a{font-size:11px;color:var(--ink-faint);text-decoration:none;border-bottom:1px solid var(--line)}
+    .impl-head a:hover{color:var(--pink);border-color:var(--pink)}
+    .impl-flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;list-style:none}
+    .impl-flow li{position:relative;min-width:0;padding:0 16px}
+    .impl-flow li:first-child{padding-left:0}
+    .impl-flow li:last-child{padding-right:0}
+    .impl-flow li+li{border-left:1px solid var(--line)}
+    .impl-flow .n{display:block;margin-bottom:6px;font-size:9px;letter-spacing:.12em;color:var(--ink-faint)}
+    .impl-flow h3{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px}
+    .impl-flow p{font-size:11.5px;line-height:1.8;color:var(--ink-dim)}
+    @media (max-width:760px){
+      .vc-hints{grid-template-columns:1fr}
+      .vc-demo-frame{aspect-ratio:980 / 464}
+      .impl{padding:20px}
+      .impl-flow{grid-template-columns:1fr;gap:14px}
+      .impl-flow li{padding:14px 0 0;border-top:1px solid var(--line)}
+      .impl-flow li:first-child{padding-top:0;border-top:0}
+      .impl-flow li+li{border-left:0}
+    }
+  </style>
+  <div class="kicker"><span class="no">03</span>核心体验</div>
+  <h2 class="reveal">它怎么和你看同一条视频</h2>
+  <p class="vc-lead reveal">下面不是录屏，是可以动鼠标的页面。画面里那台小电视就是它：不暂停、不弹窗，只用眼神、神态和一句短念头回应你正在看的东西。</p>
+
+  <div class="vc-hints reveal">
+    <div class="vc-hint"><span class="i">01 · ATTENTION</span><h3>视线先跟上</h3><p>把鼠标移到画面上，它的眼睛会跟着走——先确认你们看的是同一处，再谈说话。</p></div>
+    <div class="vc-hint"><span class="i">02 · REACTION</span><h3>不打断播放</h3><p>反应只占画面一角，用神态和短句；没有遮罩、没有弹窗，不想理它就不理。</p></div>
+    <div class="vc-hint"><span class="i">03 · DIALOGUE</span><h3>你开口它才说话</h3><p>默认不调用生成模型，只有你主动问才进入对话——这是成本口径，也是打扰口径。</p></div>
+  </div>
+
+  <div class="vc-demo reveal">
+    <div class="vc-demo-frame">
+      <iframe id="vcDemoFrame" src="video-companion/mascot-states.html?embed=landscape&amp;v=20261119b" title="小电视在视频画面中观察主体、移动视线并给出短句反应的可交互演示" loading="eager"></iframe>
+    </div>
+  </div>
+  <div class="vc-caption reveal">
+    <span>概念稿：播放画面用一张公开影片截图代表，神态与台词按剧本节点触发。</span>
+    <a href="video-companion/mascot-states.html?embed=landscape" target="_blank" rel="noopener">单独打开演示 ↗</a>
+  </div>
+
+  <div class="impl reveal">
+    <div class="impl-head"><span class="t">演示背后 · 它为什么不靠实时看懂视频</span><a href="architecture.html" target="_blank" rel="noopener">完整系统架构 ↗</a></div>
+    <ol class="impl-flow">
+      <li><span class="n">01 · INGEST</span><h3>视频入库预解析</h3><p>抽取画面语义、故事线与关键节点，形成可复用的「剧本」资产。</p></li>
+      <li><span class="n">02 · SCRIPT</span><h3>播放时读取剧本</h3><p>同一内容只理解一次；播放端按时间点取节点，不为每次观看重复烧算力。</p></li>
+      <li><span class="n">03 · PERFORM</span><h3>状态系统做演出</h3><p>时间 × 内容 × 用户行为组合成在场强度，优先用眼神、动作与停顿表达。</p></li>
+      <li><span class="n">04 · DIALOGUE</span><h3>用户开口才生成</h3><p>只有显式触发才进入语音或文本生成；默认在场不调用大模型。</p></li>
+    </ol>
+  </div>
+</section>
+
+<section id="business" aria-label="商业设计：画布、收入来源与 SWOT">
+  <div class="kicker"><span class="no">04</span>商业设计</div>
+  <h2 class="reveal">这门生意能不能成立</h2>
+
+  <div class="reveal" id="business-canvas">
+    <div class="mk-h">我们的商业画布</div>
+    <p class="analysis-intro">画布只放可观察的输入、机制和交易路径：左侧是供给条件，中间是产品机制，右侧是用户与触点，底部列成本与收入；已知资产和待证结果分开呈现。</p>
+    <div class="bmc-shell" role="group" aria-label="小电视平台化身的标准商业模式画布，包含九个模块">
+      <div class="bmc-main">
+        <section class="bmc-card kp">
+          <div class="bmc-head"><h4>关键伙伴</h4><span class="bmc-en">Key Partners</span></div>
+          <ul>
+            <li><b>平台协作</b>播放器、内容、会员、安全与法务团队。</li>
+            <li><b>生态供给</b>UP 主与版权方供内容联名，设计师与供应链做形象组件，模型及云服务商供推理。</li>
+          </ul>
+        </section>
+        <section class="bmc-card ka">
+          <div class="bmc-head"><h4>关键活动</h4><span class="bmc-en">Key Activities</span></div>
+          <ul>
+            <li><b>内容理解</b>视频预解析、关键节点与安全标签生产。</li>
+            <li><b>陪伴运行</b>轻量神态响应、按需对话、记忆更新与遗忘。</li>
+            <li><b>运营验证</b>内容安全、成本控制、留存与商品购买率实验。</li>
+          </ul>
+        </section>
+        <section class="bmc-card kr">
+          <div class="bmc-head"><h4>核心资源</h4><span class="bmc-en">Key Resources</span></div>
+          <ul>
+            <li><b>平台资产</b>视频内容、播放上下文、小电视 IP 与会员支付体系。</li>
+            <li><b>内容资产</b>视频「剧本」、神态素材、组件化形象与小窝资产。</li>
+            <li><b>关系资产</b>经用户授权、可问可删的概要记忆与碎片记忆。</li>
+          </ul>
+        </section>
+        <section class="bmc-card vp">
+          <div class="bmc-head"><h4>价值主张</h4><span class="bmc-en">Value Propositions</span></div>
+          <ul>
+            <li><b>输入</b>当前视频内容、剧情节点，以及用户主动给出的回应。</li>
+            <li><b>输出</b>随画面变化的神态、少量电报体反馈、可回看的共同记忆。</li>
+            <li><b>边界</b>明示 AI，不装真人；不做开放角色扮演，不打断播放。</li>
+          </ul>
+        </section>
+        <section class="bmc-card cr">
+          <div class="bmc-head"><h4>客户关系</h4><span class="bmc-en">Customer Relationships</span></div>
+          <ul>
+            <li><b>长期私密陪伴</b>共同观看与记忆形成「每个人的一只」。</li>
+            <li><b>可信边界</b>明示 AI；总开关可关、记忆可问可删，不做依赖设计。</li>
+          </ul>
+        </section>
+        <section class="bmc-card ch">
+          <div class="bmc-head"><h4>渠道通路</h4><span class="bmc-en">Channels</span></div>
+          <ul>
+            <li><b>原生入口</b>注册即在播放器常驻，无独立 App 与买量依赖。</li>
+            <li><b>商业触点</b>大会员权益、会员购与年度纪念场景。</li>
+          </ul>
+        </section>
+        <section class="bmc-card cs">
+          <div class="bmc-head"><h4>客户细分</h4><span class="bmc-en">Customer Segments</span></div>
+          <ul>
+            <li><b>主场景线索</b>小雅：番剧转发给同学，对方 get 不到兴趣点。</li>
+            <li><b>延伸场景线索</b>小龙：看到有趣内容想转发，却不知道能发给谁。</li>
+            <li><b>平台侧使用者</b>会员、广告与 IP 衍生业务承接可能的增量。</li>
+          </ul>
+        </section>
+      </div>
+      <div class="bmc-bottom">
+        <section class="bmc-card cost">
+          <div class="bmc-head"><h4>成本结构</h4><span class="bmc-en">Cost Structure</span></div>
+          <ul>
+            <li><b>固定成本</b>模型适配、神态素材、播放器与安全管线建设。</li>
+            <li><b>变动成本</b>视频预解析与存储、实时推理、对话及记忆服务。</li>
+            <li><b>成本红线</b>直接 AI 成本 ≤ ¥0.09 / 参与 MAU / 月；超限先降级重对话。</li>
+          </ul>
+        </section>
+        <section class="bmc-card revenue">
+          <div class="bmc-head"><h4>收入来源</h4><span class="bmc-en">Revenue Streams</span></div>
+          <ul>
+            <li><b>陪伴本体免费</b>不设独立订阅或聊天计时收费。</li>
+            <li><b>间接回收</b>会员转化与续订、平台广告大盘增量，均需归因验证。</li>
+            <li><b>直接收入</b>形象外壳、小窝组件、联名与纪念衍生品；只卖表达，不卖人格、亲密度或对话次数。</li>
+            <li><b>单用户目标</b>增量收入 ≥ ¥0.18，覆盖 AI ≤ ¥0.09 与运营 ¥0.04，贡献 ≥ ¥0.05。</li>
+          </ul>
+        </section>
+      </div>
+      <div class="bmc-logic">
+        <span class="label">推理边界</span>
+        <p><b>已有资产</b>内容、播放器、小电视 IP、会员支付管线。</p>
+        <p><b>方案机制</b>一次解析、多次轻反应、按需重对话。</p>
+        <p><b>仍待证明</b>3% 广告 uplift、2% 会员续订 uplift 与 0.5% 购买率是否成立，AI 成本能否压到 ¥0.09。</p>
+      </div>
+    </div>
+    <div class="analysis-source">依据：02《目标用户画像与需求分析》产品决策；成本与收入口径见 R3 / R5。留存、付费转化及成本节约均待实测。</div>
+  </div>
+
+  <div class="reveal" id="revenue-design">
+    <div class="mk-h">收入来源：卖形象与组件，不卖关系</div>
+    <p class="analysis-intro">B 站 2025 年 IP 衍生品及其他收入 19.66 亿元，会员购与联名交易链路已经存在；这只说明「为形象和周边付费」的路径存在，不证明本产品能卖出多少。下面按可售卖对象拆成三层，价格带均为待测试假设。</p>
+    <div class="rev-shelf">
+      <article class="rev-card">
+        <span class="rev-no">01 / 形象层</span>
+        <h4>小电视的「壳」</h4>
+        <p>外壳、天线、眼睛光效、季节主题、番剧与 UP 主联名。换装不换人格，换完仍是你那只。</p>
+        <span class="rev-price">建议测试价 ¥18–45 / 套</span>
+        <span class="rev-tag">单卖 · 大会员折扣</span>
+      </article>
+      <article class="rev-card">
+        <span class="rev-no">02 / 空间层</span>
+        <h4>小窝的组件</h4>
+        <p>墙纸、地毯、家具、摆件、灯光。单件可换、套装可组，形成持续上新，而不是一次性大礼包。</p>
+        <span class="rev-price">¥3–18 / 件 · 套装 ¥28–68</span>
+        <span class="rev-tag">组件化 SKU · 可持续扩展</span>
+      </article>
+      <article class="rev-card">
+        <span class="rev-no">03 / 纪念层</span>
+        <h4>共同经历的物件</h4>
+        <p>年度回顾册、徽章、亚克力、联名周边。把一起看过的内容，变成可以保存和展示的东西。</p>
+        <span class="rev-price">¥29–129 / 次</span>
+        <span class="rev-tag">会员购 · 实物衍生</span>
+      </article>
+    </div>
+    <div class="rev-membership">
+      <p><b>大会员怎么接：</b>每季 1 套基础外观随会员解锁；联名款、设计师款单卖，会员享折扣。会员权益增强续订，单卖承接更深的表达需求，核心表情与完整陪伴永久免费。</p>
+    </div>
+    <div class="rev-mix">
+      <span><b>直接收入：</b>形象 / 组件 0.35% × ¥18 毛利 = ¥0.06；纪念 / 联名 0.15% × ¥20 毛利 = ¥0.03。</span>
+      <strong>小计 ¥0.09</strong>
+    </div>
+    <div class="rev-mix plat">
+      <span><b>平台侧增量：</b>广告 ¥2.29 × 3% = ¥0.07；大会员续订 2% = ¥0.02。这部分要靠对照组分账，不算化身自己赚的钱。</span>
+      <strong>小计 ¥0.09</strong>
+    </div>
+    <div class="rev-total">
+      <span>两项合计 <b>¥0.18 / 参与 MAU / 月</b></span>
+      <span class="eq">反推 AI 成本上限：¥0.18 − 运营 ¥0.04 − 最低贡献 ¥0.05 = <b>≤ ¥0.09</b></span>
+    </div>
+    <div class="analysis-source">依据：B 站 2025 年 IP 衍生品及其他收入 19.66 亿元（R5）；广告与增值服务基数 ¥5.01/MAU/月、大会员 2,570 万 × ¥148/年（R5）。¥18 / ¥20 为扣除制作、IP 分成与渠道费用后的单笔毛利假设；价格带、购买率、3% 与 2% 的 uplift 均未验证。</div>
+  </div>
+
+  <div class="reveal" id="swot-analysis">
+    <div class="mk-h">SWOT 分析</div>
+    <p class="analysis-intro">先摆线索，再谈策略。每格列观察到的数据、竞品行为或设计事实；S / W 对应内部条件，O / T 对应外部环境，末尾只收束由线索导出的验证顺序。</p>
+    <div class="swot-matrix" role="group" aria-label="小电视平台化身的 SWOT 证据矩阵">
+      <div class="swot-corner">分析维度</div>
+      <div class="swot-axis">有利线索</div>
+      <div class="swot-axis">不利线索</div>
+      <div class="swot-axis side">内部条件</div>
+      <section class="swot-card s">
+        <div class="swot-card-head"><span class="swot-letter">S</span><h4>优势<span>Strengths · 内部有利线索</span></h4></div>
+        <ul>
+          <li><b>同一平台闭环</b>当前视频、播放器入口、小电视 IP、大会员与会员购均在 B 站体系内，无需跨 App 拼接。</li>
+          <li><b>上下文可以复用</b>一条视频的客观解析全站复用；神态反应查剧本节点，重对话只在用户主动时发生。</li>
+          <li><b>原生与插件的对照</b>第三方方案需要额外安装和授权；官方方案可直接读取播放上下文。</li>
+        </ul>
+      </section>
+      <section class="swot-card w">
+        <div class="swot-card-head"><span class="swot-letter">W</span><h4>劣势<span>Weaknesses · 内部不利线索</span></h4></div>
+        <ul>
+          <li><b>证据停在需求层</b>现有 8 组证据记录「想分享 / 没人回应」；AI 陪看接受度与留存证据仍为 0 组。</li>
+          <li><b>产品规则相互牵制</b>默认常驻要求可感知，极少主动插话又要求低打扰；神态密度没有现成基准。</li>
+          <li><b>增长入口单一</b>方案明确不做独立 App、不买量；分发与商业化均依赖 B 站。</li>
+        </ul>
+      </section>
+      <div class="swot-axis side">外部环境</div>
+      <section class="swot-card o">
+        <div class="swot-card-head"><span class="swot-letter">O</span><h4>机会<span>Opportunities · 外部有利线索</span></h4></div>
+        <ul>
+          <li><b>竞品功能分布</b>R4 中主流视频平台多为搜索、总结、问答与创作工具；爱奇艺角色互动也不锚定播放画面。</li>
+          <li><b>第三方付费信号</b>HakkoAI 标价 9.99 美元 / 月，Bilitato、BiliScript 等插件已出现；官方原生陪看仍缺位。</li>
+          <li><b>赛道单位经济对照</b>Character.AI 8 月收入 $0.44/MAU、1–8 月月均算力 $0.58/MAU、总运营成本 $1.11/MAU，说明全栈成本与用户收入之间存在缺口。</li>
+        </ul>
+      </section>
+      <section class="swot-card t">
+        <div class="swot-card-head"><span class="swot-letter">T</span><h4>威胁<span>Threats · 外部不利线索</span></h4></div>
+        <ul>
+          <li><b>可复制项清楚</b>常驻入口、角色对话和模型调用，都可被其他平台或模型厂实现。</li>
+          <li><b>成本随行为增长</b>对话、记忆与内容安全均随用户和使用量扩张；收入增量尚未完成归因。</li>
+          <li><b>高敏因素叠加</b>长期记忆、情感陪伴与未成年用户同时存在，隐私、依赖和内容标识需持续治理。</li>
+        </ul>
+      </section>
+    </div>
+    <div class="tows">
+      <div class="tows-h">TOWS · 从线索到行动</div>
+      <div class="tows-grid">
+        <section class="tows-card">
+          <span class="tows-tag">SO · 原生整合先行</span>
+          <h5>官方功能空位 × 平台内闭环</h5>
+          <p>竞品仍停留在工具或插件 → 用播放器内小电视做低打扰陪看，先覆盖番剧、VLOG 等日常独看场景。</p>
+          <span class="tows-metric">观察：主动互动率、观看完成率、场景偏好</span>
+        </section>
+        <section class="tows-card">
+          <span class="tows-tag">WO · 证据缺口决定试点</span>
+          <h5>8 组需求证据、0 组产品验证</h5>
+          <p>先做 5–8 人可用性测试，再分区灰度；先验证神态密度与唤起，再开放复杂对话。</p>
+          <span class="tows-metric">观察：接住率、关闭率、打扰投诉率</span>
+        </section>
+        <section class="tows-card">
+          <span class="tows-tag">ST · 可替换与不可替换分开</span>
+          <h5>模型可换，共同经历不清空</h5>
+          <p>多模型供应商保留替换能力；视频「剧本」与用户授权记忆持续沉淀，避免把差异押在单一模型上。</p>
+          <span class="tows-metric">观察：D7 / D30 留存、记忆纠错与删除、供应商可替换性</span>
+        </section>
+        <section class="tows-card">
+          <span class="tows-tag">WT · 把反例变成阈值</span>
+          <h5>全栈成本 × 默认常驻</h5>
+          <p>采用增量口径：单 MAU 增量收入必须覆盖 AI 成本与运营；连续两周贡献为负，先降级重对话，再退回纯神态或停止扩量。</p>
+          <span class="tows-metric">门槛：增量收入 ≥ AI 成本 + 运营成本；广告与会员增量需对照组归因</span>
+        </section>
+      </div>
+    </div>
+    <div class="swot-verdict"><b>8 组证据只到需求、0 组到产品，商业增量也尚未归因。</b>因此下一步按「陪伴价值 → 留存增量 → 单位经济」顺序验证，而不是直接全站商业化。</div>
+    <div class="analysis-source">线索来源：证据库 E01–E08、02 产品决策与需求审计、R3 AI 陪伴赛道、R4 视频平台竞品。矩阵中的方案效果仍以灰度实验为准。</div>
+  </div>
+</section>
+
+<footer>
+  本页面为个人简历项目概念稿，非哔哩哔哩官方产品。<br>
+  小电视 / 2233 娘形象版权归哔哩哔哩所有，此处仅作求职作品集示意。
+</footer>
+
+<div class="zoom" id="zoom" hidden><img id="zoomImg" alt="原始截图"></div>
+
+<script>
+// 滚动显现
+const io=new IntersectionObserver(es=>{
+  es.forEach(en=>{if(en.isIntersecting){en.target.classList.add('visible');io.unobserve(en.target)}});
+},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+// 证据墙：点图看原始分辨率（截图上的字必须看得清）
+(function(){
+  const z=document.getElementById('zoom'), zi=document.getElementById('zoomImg');
+  if(!z)return;
+  document.querySelectorAll('.evi-shot img').forEach(img=>{
+    img.addEventListener('click',()=>{zi.src=img.getAttribute('src');zi.alt=img.alt||'';z.hidden=false;});
+  });
+  z.addEventListener('click',()=>{z.hidden=true;zi.removeAttribute('src');});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!z.hidden)z.hidden=true;});
+})();
+</script>
+<script>
+// 毛线：从每张便签的红图钉拉出来，连到「尊重」「归属与爱」两个词上方的图钉
+(function(){
+  const hook=document.getElementById('hook');
+  const svg=document.getElementById('threads');
+  const rl=document.getElementById('need-respect');
+  const bl=document.getElementById('need-belong');
+  if(!hook||!svg||!rl||!bl)return;
+  const NS='http://www.w3.org/2000/svg';
+  /* 每张照片/画像对应的词：0 = 归属与爱，1 = 尊重 */
+  const MAP=[0,1,0,1,0,0,0,1];
+  function mk(tag,a){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);return e;}
+  function draw(){
+    if(window.innerWidth<=900){svg.style.display='none';return;}
+    svg.style.display='';
+    const hr=hook.getBoundingClientRect();
+    const W=hook.clientWidth,H=hook.clientHeight;
+    svg.setAttribute('viewBox','0 0 '+W+' '+H);
+    svg.style.width=W+'px';svg.style.height=H+'px';
+    while(svg.firstChild)svg.removeChild(svg.firstChild);
+    const defs=mk('defs',{});
+    const mask=mk('mask',{id:'m1',maskUnits:'userSpaceOnUse'});
+    mask.appendChild(mk('rect',{x:-9999,y:-9999,width:W+19998,height:H+19998,fill:'#fff'}));
+    document.querySelectorAll('.evi-shot, .evi-item .note, .evi-person .sp').forEach(function(n){
+      const r=n.getBoundingClientRect();
+      mask.appendChild(mk('rect',{x:r.left-hr.left,y:r.top-hr.top,width:r.width,height:r.height,fill:'#000'}));
+    });
+    defs.appendChild(mask);svg.appendChild(defs);
+    const g=mk('g',{mask:'url(#m1)'});
+    svg.appendChild(g);
+    const rr=rl.getBoundingClientRect(), br=bl.getBoundingClientRect();
+    const pins=[
+      {x:br.left+br.width/2-hr.left, y:br.top-hr.top-16},
+      {x:rr.left+rr.width/2-hr.left, y:rr.top-hr.top-16}
+    ];
+    function line(x,y,t){
+      const p=pins[t];
+      const dx=p.x-x,dy=p.y-y,L=Math.hypot(dx,dy)||1;
+      g.appendChild(mk('line',{x1:x,y1:y,x2:p.x-dx/L*7,y2:p.y-dy/L*7,stroke:'#8f4a4a','stroke-width':2,'stroke-linecap':'round','stroke-opacity':'.95'}));
+    }
+    document.querySelectorAll('.evi-item').forEach(function(it,i){
+      const note=it.querySelector('.note');
+      if(!note)return;
+      const r=note.getBoundingClientRect();
+      line(r.left+r.width/2-hr.left, r.top-hr.top, MAP[i]||0);
+    });
+    document.querySelectorAll('.evi-person').forEach(function(p,i){
+      const card=p.querySelector('.sp');
+      if(!card)return;
+      const r=card.getBoundingClientRect();
+      line(r.left+r.width/2-hr.left, r.bottom-hr.top, (i===0?0:1));
+    });
+    /* 图钉：画在两个词的上方 */
+    pins.forEach(function(p){
+      svg.appendChild(mk('circle',{cx:p.x,cy:p.y,r:5,fill:'#e03131'}));
+      svg.appendChild(mk('circle',{cx:p.x-1.6,cy:p.y-1.6,r:1.5,fill:'#ff9b9b'}));
+    });
+  }
+  let t;
+  function redraw(){clearTimeout(t);t=setTimeout(draw,140);}
+  window.addEventListener('load',draw);
+  window.addEventListener('resize',redraw);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(draw);
+  draw();
+})();
+</script>
+<script>
+// 照片墙：不定宽瀑布流（宽/窄混排，错落不规整）
+(function(){
+  const wall=document.querySelector('.evi-wall');
+  if(!wall)return;
+  const items=[...wall.querySelectorAll('.evi-item,.evi-person')];
+  const GAP=22,UNITS=6;
+  /* 每项占几个宽度单位：3 = 宽（两列一行），2 = 窄（三列一行） */
+  const SPAN=[3,2,2,3,2,2,3,2,2,2];
+  /* 逐张错落：左右破出内容边界、上下错位、宽度微调、微旋。
+     固定值而非随机数——刷新和录屏每次一样。 */
+  const JX =[-22,-8,-16,22,-6,-20,-26,-4,18,-12];  // 落在最左列时向左破出
+  const JW =[44,10,34,6,28,12,40,8,32,16];         // 落在最右列时向右破出
+  const JS =[-6,4,-8,6,-4,8,-6,4,-8,6];            // 每张自身左右微移（打散内部竖线）
+  const DY =[18,-10,24,-16,8,22,-14,12,-8,20];      // 上下错位
+  const DW =[6,-5,8,-7,5,-6,7,-4,6,-5];            // 宽度微调
+  const ROT=[-1.8,1.2,.7,-1.4,1.6,-.9,1.4,-1.9,1,-1.2];
+  let lastW=0,tm;
+  function layout(){
+    if(window.innerWidth<=820){
+      items.forEach(function(el){el.style.position='';el.style.margin='';el.style.left='';el.style.top='';el.style.width='';el.style.removeProperty('--rot');});
+      wall.style.height='';
+      lastW=wall.clientWidth;
+      return;
+    }
+    const cs=getComputedStyle(wall);
+    const pl=parseFloat(cs.paddingLeft),pr=parseFloat(cs.paddingRight),pt=parseFloat(cs.paddingTop);
+    const W=wall.clientWidth-pl-pr;
+    const unit=(W-(UNITS-1)*GAP)/UNITS;
+    const hts=[];
+    for(let k=0;k<UNITS;k++)hts.push(0);
+    items.forEach(function(el,i){
+      const s=Math.min(SPAN[i]||2,UNITS);
+      let best=0,bestY=1e9;
+      for(let st=0;st<=UNITS-s;st++){
+        let y=0;
+        for(let k=st;k<st+s;k++)y=Math.max(y,hts[k]);
+        if(y<bestY){bestY=y;best=st;}
+      }
+      let x=pl+best*(unit+GAP)+(JS[i]||0), w=unit*s+(s-1)*GAP, y=bestY+(DY[i]||0);
+      if(best===0)x+=(JX[i]||0);
+      if(best+s===UNITS)w+=(JW[i]||0);
+      w+=(DW[i]||0);
+      if(y<0)y=0;
+      el.style.position='absolute';
+      el.style.margin='0';
+      el.style.left=x+'px';
+      el.style.top=(pt+y)+'px';
+      el.style.width=w+'px';
+      el.style.setProperty('--rot',(ROT[i]||0)+'deg');
+      const h=el.offsetHeight;
+      for(let k=best;k<best+s;k++)hts[k]=y+h+GAP;
+    });
+    wall.style.height=(pt+Math.max.apply(null,hts)+26)+'px';
+    lastW=wall.clientWidth;
+  }
+  function run(){layout();window.dispatchEvent(new Event('resize'));}
+  window.addEventListener('load',run);
+  wall.querySelectorAll('img').forEach(function(img){if(!img.complete)img.addEventListener('load',run);});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(run);
+  window.addEventListener('resize',function(){
+    if(Math.abs(wall.clientWidth-lastW)<2)return;
+    clearTimeout(tm);tm=setTimeout(run,120);
+  });
+  layout();
+})();
+</script>
+<script>
+// 市场小结：滚动到可见后逐字打出（prefers-reduced-motion 时直接整段显示）
+(function(){
+  const box=document.getElementById('mkSum');
+  if(!box)return;
+  const body=box.querySelector('.mk-sum-body');
+  const cursor=document.createElement('span');
+  cursor.className='mk-cursor';
+  /* 三个判断，大字标题，一句一条；b:1 的片段用粉色强调 */
+  const paras=[
+    [{t:'「陪伴」这件事'},{t:'被架空',b:1},{t:'，故事大多基于凭空虚构。'}],
+    [{t:'与现有的用户使用行为惯性'},{t:'相悖',b:1},{t:'。'}],
+    [{t:'角色'},{t:'缺乏主体性',b:1},{t:'，价值被稀释。'}]
+  ];
+  const SPEED=40,PAUSE=420;
+  function fill(p,segs){
+    segs.forEach(seg=>{const el=seg.b?document.createElement('b'):document.createElement('span');el.textContent=seg.t;p.appendChild(el);});
+  }
+  function withNum(p,idx){
+    const n=document.createElement('span');n.className='mk-num';n.textContent='0'+(idx+1);p.appendChild(n);
+  }
+  function typeAll(){
+    let pi=0;
+    (function nextPara(){
+      if(pi>=paras.length){cursor.remove();return;}
+      const idx=pi++, p=document.createElement('p');
+      withNum(p,idx);
+      p.appendChild(cursor);
+      body.appendChild(p);
+      const segs=paras[idx];
+      let si=0;
+      (function nextSeg(){
+        if(si>=segs.length){setTimeout(nextPara,PAUSE);return;}
+        const seg=segs[si++], el=seg.b?document.createElement('b'):document.createElement('span');
+        p.insertBefore(el,cursor);
+        const tn=document.createTextNode('');
+        el.appendChild(tn);
+        let i=0;
+        (function tick(){
+          tn.data=seg.t.slice(0,++i);
+          if(i<seg.t.length)setTimeout(tick,SPEED);else nextSeg();
+        })();
+      })();
+    })();
+  }
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    paras.forEach((segs,idx)=>{
+      const p=document.createElement('p');
+      withNum(p,idx);
+      fill(p,segs);
+      body.appendChild(p);
+    });
+    return;
+  }
+  const o=new IntersectionObserver(es=>{
+    es.forEach(en=>{if(en.isIntersecting){o.disconnect();typeAll();}});
+  },{threshold:.3});
+  o.observe(box);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>导出岗位档案</title>
+<style>
+  body { font-family: ui-sans-serif, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+         max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; color: #191919; }
+  a { color: #191919; text-decoration: none; border-bottom: 1px solid #dcdcda; }
+  a:hover { border-bottom-color: #191919; }
+  h1 { font-size: 17px; }
+  p.item { padding: 10px 0; border-bottom: 1px solid #f1f1ef; margin: 0; font-size: 14px; }
+  .note { margin-top: 24px; font-size: 12.5px; line-height: 1.9; color: #9b9a97; }
+  #out { font-size: 13px; color: #6f6e69; }
+</style>
+</head>
+<body>
+<p><a href="/">← 返回</a></p>
+<h1>导出岗位档案（结构化 markdown）</h1>
+<div id="list"></div>
+<p id="out"></p>
+<p class="note">导出的 md 包含：岗位信息、总分、六维评分、薪资与工时（含休息偏离度、时薪区间、性价比倍数区间，倍数以全国 = 1.00 为基准）、城市基础数据（带来源）、维度分析、JD 风险标记、JD 结构化原文。</p>
+<script src="/score.js"></script>
+<script src="/archive.js"></script>
+<!-- 使用记录：导出这一页也算一次浏览，导出动作记一条 export_backup（失败静默，不影响下载） -->
+<script src="/track.js"></script>
+<script>
+const list = JSON.parse(localStorage.getItem('ai-jd-history-v1') || '[]');
+const params = new URLSearchParams(location.search);
+const idx = params.has('i') ? Number(params.get('i')) : -1;
+const out = document.getElementById('out');
+if (window.Track) window.Track.view('export');
+if (idx >= 0 && list[idx]) {
+  const rec = list[idx];
+  const md = window.buildArchiveMd(rec);
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '岗位档案-' + String((rec.job && rec.job.title) || 'record').replace(/[\\/:*?"<>|\s]/g, '_') + '.md';
+  document.body.appendChild(a);
+  a.click();
+  out.textContent = '已生成并下载：' + a.download + '（' + md.length + ' 字）';
+  if (window.Track) window.Track.event('export_backup', { title: String((rec.job && rec.job.title) || ''), size: md.length });
+} else {
+  const host = document.getElementById('list');
+  if (!list.length) { host.textContent = '还没有档案。'; }
+  list.forEach((r, i) => {
+    const p = document.createElement('p');
+    p.className = 'item';
+    const a = document.createElement('a');
+    a.href = '/export.html?i=' + i;
+    a.textContent = `${(r.job && r.job.title) || '未命名岗位'} · ${(r.job && r.job.company) || '—'} · 总分 ${r.overall}`;
+    p.appendChild(a);
+    host.appendChild(p);
+  });
+}
+</script>
+</body>
+</html>

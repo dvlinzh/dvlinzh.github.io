@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="icon" href="data:,">
+<title>自述档案问卷（测试页） · 智能JD分析</title>
+<style>
+  :root {
+    --ink: #191919;
+    --ink-2: #6f6e69;
+    --ink-3: #9b9a97;
+    --line: #e9e9e7;
+    --line-2: #dcdcda;
+    --paper: #fff;
+    --paper-2: #f7f7f5;
+    --paper-3: #f1f1ef;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --font: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink); font-family: var(--font); }
+  body { min-height: 100vh; display: flex; flex-direction: column; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* ---------- 顶部：可点击的分段进度条 + 题号 ---------- */
+  .topbar { position: sticky; top: 0; z-index: 10; background: var(--paper); padding: 18px 24px 14px; }
+  .topbar-inner { max-width: 640px; margin: 0 auto; }
+  .topline { display: flex; align-items: center; justify-content: space-between; min-height: 26px; }
+  .topline-left { display: flex; align-items: center; gap: 16px; }
+  /* 问卷页左上角的品牌按钮：与 app 顶栏同一枚 logo，点它回首页 */
+  .brand-btn { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; padding: 0; cursor: pointer; }
+  .brand-btn:hover .brand-name { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+  .brand-mark { width: 22px; height: 22px; border-radius: 2px; display: grid; place-items: center; background: var(--ink); }
+  .brand-name { font-size: 13.5px; font-weight: 600; letter-spacing: 0.2px; color: var(--ink); }
+  .back-btn {
+    border: 0; background: none; padding: 2px 6px 2px 0; margin-left: -2px;
+    font-size: 13.5px; color: var(--ink-2); cursor: pointer; visibility: hidden;
+  }
+  .back-btn.show { visibility: visible; }
+  .back-btn:hover { color: var(--ink); }
+  .skip-btn { border: 0; background: none; padding: 2px 0 2px 6px; font-size: 13.5px; color: var(--ink-3); cursor: pointer; visibility: hidden; }
+  .skip-btn.show { visibility: visible; }
+  .skip-btn:hover { color: var(--ink); }
+  .progress-track { display: flex; gap: 2px; margin-top: 10px; }
+  .seg {
+    flex: 1; height: 16px; position: relative; border: 0; background: none; padding: 0; cursor: pointer;
+  }
+  .seg::after {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px;
+    background: var(--paper-3); transition: background 0.25s var(--ease), opacity 0.15s var(--ease);
+  }
+  .seg.done::after { background: var(--ink); }
+  .seg.cur::after { background: var(--ink); height: 6px; }
+  .seg:hover::after { opacity: 0.65; }
+  .progress-label { margin-top: 6px; font-size: 12.5px; color: var(--ink-3); }
+  .progress-label b { font-weight: 600; color: var(--ink-2); }
+  .progress-label .jump-tip { color: var(--ink-3); }
+  .progress-label .edit-tip { color: var(--ink-2); }
+
+  /* ---------- 主舞台 ---------- */
+  .main { flex: 1; padding: 24px 24px 120px; }
+  .stage { max-width: 640px; margin: 0 auto; padding-top: 6vh; }
+  .stage.enter { animation: rise 0.3s var(--ease); }
+  @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .q-group { font-size: 12.5px; color: var(--ink-3); letter-spacing: 1px; margin-bottom: 10px; }
+  .q-title { font-size: 21px; font-weight: 600; line-height: 1.5; margin: 0 0 10px; }
+  .q-hint { font-size: 12.5px; line-height: 1.9; color: var(--ink-3); margin: 0 0 22px; }
+  .q-detail-toggle {
+    display: inline-block; border: 0; background: none; padding: 0; margin: -8px 0 20px;
+    font-size: 12.5px; color: var(--ink-2); cursor: pointer; border-bottom: 1px solid var(--line-2);
+  }
+  .q-detail-toggle:hover { color: var(--ink); border-bottom-color: var(--ink); }
+  .q-detail { display: none; font-size: 12.5px; line-height: 1.9; color: var(--ink-2); background: var(--paper-2); padding: 10px 14px; margin: -6px 0 20px; }
+  .q-detail.show { display: block; }
+
+  /* ---------- 选项 ---------- */
+  .opts { display: flex; flex-direction: column; gap: 10px; }
+  .opt {
+    position: relative; display: flex; align-items: center; gap: 12px; width: 100%;
+    min-height: 52px; padding: 8px 44px 8px 18px; text-align: left;
+    background: var(--paper); border: 1px solid var(--line-2); border-radius: 2px;
+    font-size: 15px; line-height: 1.55; cursor: pointer;
+    transition: border-color 0.18s var(--ease), background 0.18s var(--ease);
+  }
+  .opt:hover { background: var(--paper-2); }
+  .opt.on { border-color: var(--ink); }
+  .opt.on::after {
+    content: ""; position: absolute; right: 16px; top: 50%; width: 9px; height: 5px;
+    border-left: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink);
+    transform: translateY(-70%) rotate(-45deg);
+  }
+  .opt .key { flex: 0 0 auto; font-size: 11.5px; color: var(--ink-3); min-width: 12px; }
+  .opt.on .key { color: var(--ink); }
+  .opt .txt { flex: 1; }
+
+  .multi-count { margin-top: 12px; font-size: 12.5px; color: var(--ink-3); }
+  .multi-count.full { color: var(--ink-2); }
+
+  /* ---------- 输入类 ---------- */
+  .input-wrap { display: flex; flex-direction: column; gap: 12px; }
+  .text-input {
+    width: 100%; font: inherit; font-size: 16px; padding: 12px 14px;
+    border: 1px solid var(--line-2); border-radius: 2px; background: var(--paper); color: var(--ink);
+  }
+  .text-input:focus { border-color: var(--ink); outline: none; }
+  .text-input::placeholder { color: var(--ink-3); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    border: 1px solid var(--line-2); background: var(--paper); border-radius: 2px;
+    min-height: 40px; padding: 7px 14px; font-size: 13.5px; color: var(--ink-2); cursor: pointer;
+  }
+  .chip:hover { background: var(--paper-2); color: var(--ink); }
+  .chip.on { border-color: var(--ink); color: var(--ink); }
+  .salary-row { display: flex; align-items: center; gap: 10px; }
+  .salary-row .text-input { flex: 1; }
+  .salary-unit { font-size: 14px; color: var(--ink-3); }
+  .input-error { font-size: 12.5px; color: var(--ink); min-height: 18px; }
+
+  /* ---------- 底部继续 ---------- */
+  .footer {
+    position: fixed; left: 0; right: 0; bottom: 0; background: var(--paper);
+    padding: 14px 24px calc(14px + env(safe-area-inset-bottom));
+  }
+  .footer-inner { max-width: 640px; margin: 0 auto; }
+  .btn-solid {
+    width: 100%; min-height: 52px; border: 0; border-radius: 2px;
+    background: var(--ink); color: #fff; font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: background 0.18s var(--ease), opacity 0.18s var(--ease);
+  }
+  .btn-solid:hover:not(:disabled) { background: #000; }
+  .btn-solid:disabled { opacity: 0.35; cursor: default; }
+
+  /* ---------- 完成页 ---------- */
+  .done { max-width: 640px; margin: 0 auto; padding-top: 5vh; }
+  .gate h1 { font-size: 24px; font-weight: 600; margin: 0 0 8px; }
+  .gate .sub { font-size: 13px; line-height: 1.9; color: var(--ink-3); margin: 0 0 20px; }
+  .gate-actions { display: flex; flex-direction: column; gap: 10px; max-width: 380px; margin-bottom: 8px; }
+  .done h2 { font-size: 15px; font-weight: 600; margin: 34px 0 8px; }
+  .done .sub2 { font-size: 12.5px; color: var(--ink-3); margin: 0 0 8px; }
+  .sum-group { margin-bottom: 26px; }
+  .sum-group h3 { font-size: 13px; font-weight: 600; color: var(--ink-2); letter-spacing: 1px; margin: 0 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+  .sum-row { display: flex; gap: 16px; padding: 7px 0; font-size: 14px; line-height: 1.7; }
+  .sum-row .k { flex: 0 0 40%; color: var(--ink-3); }
+  .sum-row .v { flex: 1; }
+  .out-block { margin-top: 34px; border-top: 1px solid var(--line); padding-top: 24px; }
+  .out-block h2 { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+  .out-block .note { font-size: 12.5px; color: var(--ink-3); margin: 0 0 14px; }
+  .out-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .btn-outline {
+    min-height: 52px; padding: 10px 18px; background: var(--paper);
+    border: 1px solid var(--line-2); border-radius: 2px; font-size: 14px; cursor: pointer;
+  }
+  .btn-outline:hover { background: var(--paper-2); }
+  .out-actions .btn-outline { min-height: 44px; }
+  .text-out {
+    display: none; white-space: pre-wrap; font-size: 13.5px; line-height: 1.9;
+    color: var(--ink-2); background: var(--paper-2); padding: 16px 18px; border-radius: 2px;
+  }
+  .text-out.show { display: block; }
+  .page-note { max-width: 640px; margin: 44px auto 0; padding: 0 24px 40px; font-size: 12px; color: var(--ink-3); }
+  .page-note.center { text-align: center; }
+
+  @media (max-width: 640px) {
+    .topbar { padding: 14px 20px 12px; }
+    .main { padding: 16px 20px 120px; }
+    .stage { padding-top: 3vh; }
+    .q-title { font-size: 19px; }
+    .footer { padding-left: 20px; padding-right: 20px; }
+    .page-note { padding-left: 20px; padding-right: 20px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .stage.enter { animation: none; }
+    .seg::after, .opt, .btn-solid { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="topline">
+      <div class="topline-left">
+        <button class="brand-btn" id="btnBrand" type="button" title="回到首页">
+          <span class="brand-mark" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+              <path d="M4 13.5L8 8.5L11 11.5L16 5.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M13 5.5H16V8.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="brand-name">智能JD分析</span>
+        </button>
+        <button class="back-btn" id="btnBack" type="button">← 返回</button>
+      </div>
+      <button class="skip-btn" id="btnSkip" type="button">跳过这题</button>
+    </div>
+    <div class="progress-track" id="progressTrack" title="点某一小段，跳到那一题去改"></div>
+    <p class="progress-label" id="progressLabel"></p>
+  </div>
+</header>
+
+<main class="main">
+  <div class="stage" id="stage"></div>
+
+  <div class="done" id="doneView" hidden>
+    <div class="gate">
+      <h1>答完了！现在进行分析？</h1>
+      <p class="sub">分析会按上面的信息跑一遍六维评分，出一份能和 JD 放在一起比较的档案；不着急也可以先存着，随时再开。</p>
+      <div class="gate-actions">
+        <button class="btn-solid" id="btnGoAnalyze" type="button">现在进行分析</button>
+        <button class="btn-outline" id="btnSaveOnly" type="button">先不分析，存进历史档案</button>
+      </div>
+    </div>
+
+    <h2>你答的内容</h2>
+    <div id="summary"></div>
+
+    <div class="out-block">
+      <h2>自述档案文本（预览）</h2>
+      <p class="note">这一段就是将来导入分析时系统读到的「档案正文」。</p>
+      <div class="out-actions">
+        <button class="btn-outline" id="btnGenText" type="button">生成自述档案文本</button>
+        <button class="btn-outline" id="btnCopyText" type="button">复制文本</button>
+        <button class="btn-outline" id="btnRestart" type="button">从头再来</button>
+      </div>
+      <div class="text-out" id="textOut"></div>
+    </div>
+  </div>
+
+  <p class="page-note center">问卷会作为「待分析草稿」存在本机浏览器（历史档案里能看到），不会上传</p>
+</main>
+
+<footer class="footer" id="footer">
+  <div class="footer-inner">
+    <button class="btn-solid" id="btnNext" type="button" disabled>继续</button>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- 题库（顺序即题序；每题都能改变一个分数或图上位置） ---------- */
+  var CITIES = ['北京', '上海', '广州', '深圳', '杭州', '成都', '南京', '武汉', '西安', '苏州',
+    '天津', '重庆', '长沙', '郑州', '青岛', '合肥', '厦门', '福州', '济南', '东莞'];
+
+  var QUESTIONS = [
+    { id: 'title', group: '基本情况', type: 'text', label: '岗位名',
+      q: '你现在这份工作，岗位名叫什么？',
+      hint: '用平时的叫法就行——我们会拿它去查你所在城市的职业薪资水平，写得越常见越查得准。',
+      placeholder: '例：前端开发工程师' },
+
+    { id: 'city', group: '基本情况', type: 'city', label: '城市',
+      q: '在哪个城市？',
+      hint: '选你实际工作的城市（不是户籍地）——薪资刻度、性价比、发展潜力都按城市算；不在列表里的直接输入。',
+      placeholder: '其他城市，直接输入' },
+
+    { id: 'company', group: '基本情况', type: 'text', label: '公司', skip: true,
+      q: '公司叫什么名字？',
+      hint: '可以留空；填了能帮我们判断公司信息是否完整。',
+      placeholder: '例：字节跳动（可留空）' },
+
+    { id: 'companyType', group: '基本情况', type: 'multi', max: 2, label: '公司类型',
+      q: '公司在哪几类？（最多选 2 个）',
+      hint: '类别会重叠，比如「国企 + 上市」「外企 + 大厂」都可以都选——它帮我们判断「雇主能不能长期养人」。',
+      options: ['政府 / 事业单位', '国企 / 央企', '外企', '上市公司或大厂', '中小民企', '初创（3 年内）', '其他 / 自由职业'] },
+
+    { id: 'employType', group: '工作形式与稳定性', type: 'single', label: '用工性质',
+      q: '这份工作是什么用工性质？',
+      hint: '编制内最稳，正式合同次之，外包/派遣、项目制、兼职依次更差——这是稳定性里最重的一题。',
+      options: ['编制内（公务员 / 事业编）', '正式合同（正职）', '外包 / 劳务派遣', '项目制 / 合同工', '兼职 / 实习', '其他'] },
+
+    { id: 'companyTrend', group: '工作形式与稳定性', type: 'single', label: '经营状况',
+      q: '公司现在的经营状况？',
+      hint: '按你的感受选，没有对错。',
+      options: ['明显在扩张', '稳步增长', '平稳', '增长乏力 / 略有下滑', '在收缩 / 裁员', '说不清'] },
+
+    { id: 'rolePlace', group: '工作形式与稳定性', type: 'single', label: '岗位地位',
+      q: '你的岗位属于？',
+      hint: '同样是「非核心」，次级业务、配套支持和边缘补位，稳定性差很多。',
+      options: ['核心业务主线岗', '次级业务 / 新业务岗', '支持 / 配套岗', '边缘或临时补位', '说不清'] },
+
+    { id: 'tenure', group: '工作形式与稳定性', type: 'single', label: '能干多久',
+      q: '这个岗位，一般人会干多久？',
+      hint: '看同事的流动，不是看你自己的打算。',
+      options: ['几个月就换人', '一两年', '能长期干下去', '说不清'] },
+
+    { id: 'repetition', group: '工作形式与稳定性', type: 'single', label: '重复性占比',
+      q: '你的工作里，重复性的活占多少？',
+      hint: '整理资料、填表、查资料、套模板这类就算重复活——它决定这份工作会不会被 AI 替掉。',
+      options: ['很少（不到 20%）', '一部分（约 20%–50%）', '一半以上（约 50%–80%）', '几乎都是（80% 以上）'] },
+
+    { id: 'salary', group: '薪资', type: 'number', label: '月薪',
+      q: '每月固定发多少？（税前）',
+      hint: '按月不固定的（底薪+提成那种），填合同上的固定部分就行——浮动占多少，下一题会问。',
+      chips: [[3000, '3k'], [5000, '5k'], [8000, '8k'], [12000, '12k'], [20000, '20k'], [30000, '30k'], [50000, '50k']] },
+
+    { id: 'months', group: '薪资', type: 'single', label: '发薪月数',
+      q: '一年发几个月工资？',
+      hint: '16 薪按 16 算：月当量 = 月薪 × 月数 ÷ 12。',
+      options: ['12 个月', '13 个月', '14 个月', '15 个月', '16 个月及以上', '不定'] },
+
+    { id: 'floatShare', group: '薪资', type: 'single', label: '浮动占比',
+      q: '你的月收入里，浮动部分（绩效 / 提成 / 奖金）大概占多少？',
+      hint: '浮动越大，我们越按保守口径算分。',
+      detail: '为什么问这个：固定为主就按你填的月薪算；浮动占比大，说明这个数不一定每月都拿得到，我们按更保守的区间下沿算分——宁可低估，也不把拿不准的钱算成你的收入。',
+      options: ['几乎没有（固定为主）', '一小部分（不到 20%）', '一部分（20%–50%）', '一半以上', '说不清'] },
+
+    { id: 'socialInsurance', group: '薪资', type: 'single', label: '社保公积金',
+      q: '社保公积金怎么交？',
+      hint: '拿不准就看一眼工资条。',
+      options: ['足额缴纳（按实际工资）', '按最低基数缴', '只缴了其中一项（如只有社保没有公积金）', '没有缴 / 自己缴'] },
+
+    { id: 'restType', group: '作息与假期', type: 'single', label: '每周怎么休',
+      q: '每周怎么休？',
+      hint: '这题权重高（休息占 25%）；排班制的，按平均每月实际能休几天选最接近的一档。',
+      options: ['上四休三', '双休', '大小周', '单休（做六休一）', '月休 2–4 天', '轮班 / 排班不固定', '基本无休'] },
+
+    { id: 'dailyHours', group: '作息与假期', type: 'single', label: '每日工时',
+      q: '每天实际工作多久？',
+      hint: '算上加班，不算午休和通勤；正好 8 小时选第一档。',
+      options: ['8 小时以内', '8–9 小时', '9–10 小时', '10–12 小时', '12 小时以上'] },
+
+    { id: 'overtime', group: '作息与假期', type: 'single', label: '加班频率',
+      q: '加班多吗？',
+      hint: '按最近三个月的常态选。',
+      options: ['基本不加班', '偶尔（每月几天）', '经常（每周几次）', '几乎天天'] },
+
+    { id: 'overtimePay', group: '作息与假期', type: 'single', label: '加班补偿',
+      q: '加班有补偿吗？',
+      hint: '有补偿的话，强度扣分会减半。',
+      detail: '为什么问这个：有加班费或调休，说明额外的付出有对价；同样加班，有没有补偿在评分里不是一回事。',
+      options: ['有加班费', '有调休', '两者都有', '都没有', '说不清'] },
+
+    { id: 'annualLeave', group: '作息与假期', type: 'single', label: '年假',
+      q: '一年带薪年假多少天？',
+      hint: '不含法定节假日——双休但没年假，也会降档。',
+      options: ['没有', '1–5 天', '6–10 天', '11–15 天', '16 天以上'] },
+
+    { id: 'duties', group: '你在做什么', type: 'multi', max: 3, label: '主要工作内容',
+      q: '你的主要工作内容？（最多选 3 个）',
+      hint: '选最主要的三个，它帮我们判断这份工作被 AI 替代的风险。',
+      options: ['写东西 / 文本', '数据与分析', '销售 / 拉客户', '主动拓客 / 开发客户（打电话、发邮件）',
+        '客户服务', '代码 / 开发', '设计 / 创意', '运营 / 策划', '管理 / 带团队',
+        '现场 / 外勤 / 体力', '行政 / 财务 / 法务', '其他（上面没有的）'] },
+
+    { id: 'gaps', group: '你在做什么', type: 'multi', label: '够着干的要求',
+      q: '这份工作里，有没有你在「够着干」的要求？',
+      hint: '指要求比你现有的经历高（比如学历、证书还不够）——都说没有也可以。',
+      exclusive: '没有',
+      options: ['没有', '学历', '证书 / 资格', '经验年限'] },
+  ];
+
+  // 选项统一成对象：{ text, group }。group 用于「同组互斥」的多选（社保/公积金各自一档）
+  QUESTIONS.forEach(function (qq) {
+    if (qq.options) {
+      qq.options = qq.options.map(function (o) {
+        return typeof o === 'string' ? { text: o, group: null } : { text: o.text, group: o.group || null };
+      });
+    }
+  });
+
+  var TOTAL = QUESTIONS.length;
+  var PENDING_KEY = 'ai-jd-self-pending-v1';
+
+  var state = { index: 0, answers: {}, done: false, returnTo: null, pendingId: null };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var stage = $('stage'), doneView = $('doneView'), summarEl = $('summary');
+  var progressTrack = $('progressTrack'), progressLabel = $('progressLabel');
+  var btnBack = $('btnBack'), btnSkip = $('btnSkip'), btnNext = $('btnNext');
+  var footer = $('footer');
+
+  /* ---------- 待分析草稿：存在本机，历史档案里能看到 ---------- */
+  function readPending() {
+    try { return JSON.parse(localStorage.getItem(PENDING_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function writePending(arr) {
+    try { localStorage.setItem(PENDING_KEY, JSON.stringify(arr.slice(0, 10))); } catch (e) { /* 隐私模式等，静默 */ }
+  }
+  function savePending() {
+    var id = state.pendingId || ('self-' + Date.now());
+    state.pendingId = id;
+    var rec = {
+      id: id,
+      savedAt: Date.now(),
+      answers: JSON.parse(JSON.stringify(state.answers)),
+      // 摘要行：app 端的「成果预览」直接渲染这组 k/v，不用在 app 里重复一份题目元数据
+      summaryRows: QUESTIONS.map(function (qq) {
+        return { group: qq.group, k: qq.label || qq.q, v: answerText(qq) };
+      }),
+      text: selfText(),
+      job: {
+        title: state.answers.title || '',
+        city: state.answers.city || '',
+        company: state.answers.company || '',
+        salary: typeof state.answers.salary === 'number' ? state.answers.salary : null,
+      },
+    };
+    var arr = readPending().filter(function (r) { return r.id !== id; });
+    arr.unshift(rec);
+    writePending(arr);
+    return id;
+  }
+  function resumePending(id) {
+    var rec = readPending().filter(function (r) { return r.id === id; })[0];
+    if (!rec) return false;
+    state.answers = JSON.parse(JSON.stringify(rec.answers || {}));
+    state.pendingId = id;
+    return true;
+  }
+
+  /* ---------- 进度条＝跳题导航（每题一段，随时点回去改） ---------- */
+  QUESTIONS.forEach(function (qq, i) {
+    var seg = document.createElement('button');
+    seg.type = 'button';
+    seg.className = 'seg';
+    seg.dataset.idx = i;
+    seg.title = '第 ' + (i + 1) + ' 题 · ' + (qq.label || qq.q);
+    seg.setAttribute('aria-label', seg.title);
+    seg.addEventListener('click', function () { jumpTo(i); });
+    progressTrack.appendChild(seg);
+  });
+
+  function jumpTo(i) {
+    if (state.done || i === state.index) return;
+    if (state.returnTo == null) state.returnTo = state.index;
+    state.index = i;
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- 工具 ---------- */
+  function q() { return QUESTIONS[state.index]; }
+
+  function canContinue() {
+    var qq = q(); if (!qq) return false;
+    var v = state.answers[qq.id];
+    if (qq.skip) return true;
+    if (qq.type === 'text' || qq.type === 'city') return typeof v === 'string' && v.trim().length > 0;
+    if (qq.type === 'number') return typeof v === 'number' && v >= 500 && v <= 1000000;
+    if (qq.type === 'single') return typeof v === 'string' && v.length > 0;
+    if (qq.type === 'multi') return Array.isArray(v) && v.length > 0;
+    return false;
+  }
+
+  function isAnswered(i) {
+    var qq = QUESTIONS[i];
+    var v = state.answers[qq.id];
+    if (qq.skip && v === '') return true;
+    return !!v && (!Array.isArray(v) || v.length > 0);
+  }
+
+  function el(tag, className, text) {
+    var e = document.createElement(tag);
+    if (className) e.className = className;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  /* ---------- 回答后只刷新局部状态：不重建 DOM、不重放切题动画（修掉闪动） ---------- */
+  function syncAfterAnswer() {
+    btnNext.disabled = !canContinue();
+    paintProgress();
+  }
+
+  function paintProgress() {
+    Array.prototype.forEach.call(progressTrack.children, function (seg, i) {
+      seg.classList.toggle('done', isAnswered(i));
+      seg.classList.toggle('cur', i === state.index);
+    });
+  }
+
+  function optionButtons() {
+    return stage.querySelectorAll('.opt');
+  }
+
+  function applySelection(qq, value) {
+    state.answers[qq.id] = value;
+    Array.prototype.forEach.call(optionButtons(), function (b) {
+      b.classList.toggle('on', b.dataset.value === value);
+    });
+    syncAfterAnswer();
+  }
+
+  function applyMultiState(qq) {
+    var cur = state.answers[qq.id] || [];
+    Array.prototype.forEach.call(optionButtons(), function (b) {
+      b.classList.toggle('on', cur.indexOf(b.dataset.value) >= 0);
+    });
+    var note = document.getElementById('multiNote');
+    if (note) {
+      note.textContent = multiNote(qq, cur);
+      note.classList.toggle('full', !!(qq.max && cur.length >= qq.max));
+    }
+    syncAfterAnswer();
+  }
+
+  /* ---------- 渲染（只在切题时调用） ---------- */
+  function render() {
+    var qq = q();
+    if (!qq) { showDone(); return; }
+
+    paintProgress();
+    var editTip = state.returnTo != null
+      ? ' <span class="edit-tip">· 正在修改，答完回到第 ' + (state.returnTo + 1) + ' 题</span>'
+      : ' <span class="jump-tip">· 点上方刻度可跳题</span>';
+    progressLabel.innerHTML = '第 <b>' + (state.index + 1) + '</b> / ' + TOTAL + ' 题 · ' + qq.group + editTip;
+
+    btnBack.textContent = state.returnTo != null ? '回到第 ' + (state.returnTo + 1) + ' 题' : '← 返回上一题';
+    btnBack.classList.toggle('show', state.returnTo != null || state.index > 0);
+    btnSkip.classList.toggle('show', !!qq.skip);
+
+    stage.innerHTML = '';
+    var box = el('div', 'stage-inner');
+    box.appendChild(el('p', 'q-group', qq.group));
+    box.appendChild(el('h1', 'q-title', qq.q));
+    if (qq.hint) box.appendChild(el('p', 'q-hint', '提示 · ' + qq.hint));
+    if (qq.detail) {
+      var dt = el('button', 'q-detail-toggle', '为什么问这个');
+      var dd = el('div', 'q-detail', qq.detail);
+      dt.type = 'button';
+      dt.addEventListener('click', function () { dd.classList.toggle('show'); });
+      box.appendChild(dt);
+      box.appendChild(dd);
+    }
+
+    if (qq.type === 'single') box.appendChild(renderOpts(qq, false));
+    else if (qq.type === 'multi') box.appendChild(renderOpts(qq, true));
+    else if (qq.type === 'text') box.appendChild(renderText(qq));
+    else if (qq.type === 'city') box.appendChild(renderCity(qq));
+    else if (qq.type === 'number') box.appendChild(renderNumber(qq));
+
+    stage.appendChild(box);
+    stage.classList.remove('enter');
+    void stage.offsetWidth;
+    stage.classList.add('enter');
+
+    btnNext.disabled = !canContinue();
+    if (state.returnTo != null) btnNext.textContent = '回到第 ' + (state.returnTo + 1) + ' 题';
+    else btnNext.textContent = state.index === TOTAL - 1 ? '答完了，看结果' : '继续';
+    var focusTarget = box.querySelector('.text-input');
+    if (focusTarget && (qq.type === 'text' || qq.type === 'number')) focusTarget.focus();
+  }
+
+  function renderOpts(qq, isMulti) {
+    var frag = document.createDocumentFragment();
+    var wrap = el('div', 'opts');
+    var cur = state.answers[qq.id];
+    qq.options.forEach(function (opt, i) {
+      var b = el('button', 'opt');
+      b.type = 'button';
+      b.dataset.idx = i;
+      b.dataset.value = opt.text;
+      if (i < 9) b.appendChild(el('span', 'key', String(i + 1)));
+      b.appendChild(el('span', 'txt', opt.text));
+      if (isMulti) {
+        if (Array.isArray(cur) && cur.indexOf(opt.text) >= 0) b.classList.add('on');
+        b.addEventListener('click', function () { toggleOption(qq, opt); });
+      } else {
+        if (cur === opt.text) b.classList.add('on');
+        b.addEventListener('click', function () { applySelection(qq, opt.text); });
+      }
+      wrap.appendChild(b);
+    });
+    frag.appendChild(wrap);
+    if (isMulti) {
+      var act = state.answers[qq.id] || [];
+      var note = el('p', 'multi-count', multiNote(qq, act));
+      note.id = 'multiNote';
+      if (qq.max && act.length >= qq.max) note.classList.add('full');
+      frag.appendChild(note);
+    }
+    return frag;
+  }
+
+  function multiNote(qq, cur) {
+    if (qq.max) return '已选 ' + cur.length + ' / ' + qq.max + (cur.length >= qq.max ? '（想换就点掉一个再选）' : '');
+    return cur.length ? '已选 ' + cur.length + ' 项' : '可以多选';
+  }
+
+  function renderText(qq) {
+    var wrap = el('div', 'input-wrap');
+    var input = el('input', 'text-input');
+    input.type = 'text';
+    input.placeholder = qq.placeholder || '';
+    input.value = state.answers[qq.id] || '';
+    input.addEventListener('input', function () {
+      state.answers[qq.id] = input.value;
+      syncAfterAnswer();
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && canContinue()) { e.preventDefault(); next(); }
+    });
+    wrap.appendChild(input);
+    return wrap;
+  }
+
+  function renderCity(qq) {
+    var wrap = el('div', 'input-wrap');
+    var chips = el('div', 'chips');
+    var cur = state.answers[qq.id] || '';
+    CITIES.forEach(function (c) {
+      var b = el('button', 'chip', c);
+      b.type = 'button';
+      b.dataset.value = c;
+      if (cur === c) b.classList.add('on');
+      b.addEventListener('click', function () {
+        state.answers[qq.id] = c;
+        Array.prototype.forEach.call(chips.children, function (x) { x.classList.toggle('on', x.dataset.value === c); });
+        input.value = '';
+        syncAfterAnswer();
+      });
+      chips.appendChild(b);
+    });
+    wrap.appendChild(chips);
+    var input = el('input', 'text-input');
+    input.type = 'text';
+    input.placeholder = qq.placeholder || '';
+    if (cur && CITIES.indexOf(cur) < 0) input.value = cur;
+    input.addEventListener('input', function () {
+      state.answers[qq.id] = input.value;
+      Array.prototype.forEach.call(chips.children, function (b) { b.classList.toggle('on', b.dataset.value === input.value); });
+      syncAfterAnswer();
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && canContinue()) { e.preventDefault(); next(); }
+    });
+    wrap.appendChild(input);
+    return wrap;
+  }
+
+  function renderNumber(qq) {
+    var wrap = el('div', 'input-wrap');
+    var row = el('div', 'salary-row');
+    var input = el('input', 'text-input');
+    input.type = 'text';
+    input.inputMode = 'numeric';
+    input.placeholder = '例：12000';
+    if (typeof state.answers[qq.id] === 'number') input.value = String(state.answers[qq.id]);
+    var unit = el('span', 'salary-unit', '元 / 月');
+    row.appendChild(input);
+    row.appendChild(unit);
+    wrap.appendChild(row);
+
+    var chips = el('div', 'chips');
+    (qq.chips || []).forEach(function (pair) {
+      var b = el('button', 'chip', pair[1]);
+      b.type = 'button';
+      if (state.answers[qq.id] === pair[0]) b.classList.add('on');
+      b.addEventListener('click', function () {
+        state.answers[qq.id] = pair[0];
+        input.value = String(pair[0]);
+        Array.prototype.forEach.call(chips.children, function (x) { x.classList.toggle('on', x.textContent === pair[1]); });
+        syncAfterAnswer();
+      });
+      chips.appendChild(b);
+    });
+    wrap.appendChild(chips);
+
+    var err = el('p', 'input-error', '');
+    wrap.appendChild(err);
+    input.addEventListener('input', function () {
+      var digits = input.value.replace(/[^\d]/g, '');
+      if (digits !== input.value) input.value = digits;
+      var n = digits ? parseInt(digits, 10) : NaN;
+      state.answers[qq.id] = digits ? n : '';
+      var bad = digits && (n < 500 || n > 1000000);
+      err.textContent = bad ? '这个数字是不是写错了？填 500 – 100 万之间的月薪。' : '';
+      Array.prototype.forEach.call(chips.children, function (x) { x.classList.remove('on'); });
+      syncAfterAnswer();
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && canContinue()) { e.preventDefault(); next(); }
+    });
+    return wrap;
+  }
+
+  /* ---------- 多选：组内互斥（社保/公积金各选一档）、上限、互斥项 ---------- */
+  function toggleOption(qq, opt) {
+    var cur = (state.answers[qq.id] || []).slice();
+    var at = cur.indexOf(opt.text);
+    if (at >= 0) cur.splice(at, 1);
+    else {
+      if (qq.exclusive && opt.text === qq.exclusive) cur = [];
+      else if (qq.exclusive) cur = cur.filter(function (x) { return x !== qq.exclusive; });
+      if (opt.group === 'none') {
+        cur = [];
+      } else {
+        cur = cur.filter(function (x) {
+          var o = qq.options.filter(function (z) { return z.text === x; })[0];
+          if (!o) return true;
+          if (o.group === 'none') return false;                       // 选了具体项，去掉「都没缴/自己缴」
+          return !(opt.group && o.group === opt.group);               // 组内互斥
+        });
+      }
+      if (qq.max && cur.length >= qq.max) return;
+      cur.push(opt.text);
+    }
+    state.answers[qq.id] = cur;
+    applyMultiState(qq);
+  }
+
+  /* ---------- 导航 ---------- */
+  function next() {
+    if (!canContinue() && !(q() && q().skip)) return;
+    if (state.returnTo != null) {
+      var back = state.returnTo;
+      state.returnTo = null;
+      state.index = back;
+      render();
+      window.scrollTo(0, 0);
+      return;
+    }
+    if (state.index >= TOTAL - 1) { showDone(); return; }
+    state.index += 1;
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  function goBack() {
+    if (state.returnTo != null) {
+      state.index = state.returnTo;
+      state.returnTo = null;
+      render();
+      window.scrollTo(0, 0);
+      return;
+    }
+    if (state.index <= 0) return;
+    state.index -= 1;
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  function skip() {
+    var qq = q();
+    if (!qq || !qq.skip) return;
+    state.answers[qq.id] = '';
+    next();
+  }
+
+  btnNext.addEventListener('click', next);
+  // 左上角品牌按钮＝回应用首页
+  $('btnBrand').addEventListener('click', function () { window.location.href = '/'; });
+  btnBack.addEventListener('click', goBack);
+  btnSkip.addEventListener('click', skip);
+
+  document.addEventListener('keydown', function (e) {
+    if (state.done) return;
+    var t = e.target;
+    var typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA');
+    if (e.key === 'Enter') { if (canContinue()) { e.preventDefault(); next(); } return; }
+    if (typing) return;
+    if (/^[1-9]$/.test(e.key)) {
+      var qq = q();
+      var i = parseInt(e.key, 10) - 1;
+      if (qq && qq.type === 'city') {
+        if (i < CITIES.length) { e.preventDefault(); pickCity(qq, CITIES[i]); }
+        return;
+      }
+      if (qq && qq.options && i < qq.options.length) {
+        e.preventDefault();
+        if (qq.type === 'single') applySelection(qq, qq.options[i].text);
+        else toggleOption(qq, qq.options[i]);
+      }
+      return;
+    }
+    if (e.key === 'Backspace' || e.key === 'ArrowLeft') { e.preventDefault(); goBack(); }
+  });
+
+  function pickCity(qq, c) {
+    state.answers[qq.id] = c;
+    var chips = stage.querySelectorAll('.chip');
+    Array.prototype.forEach.call(chips, function (x) { x.classList.toggle('on', x.dataset.value === c); });
+    var input = stage.querySelector('.text-input');
+    if (input) input.value = '';
+    syncAfterAnswer();
+  }
+
+  /* ---------- 完成页 ---------- */
+  function answerText(qq) {
+    var v = state.answers[qq.id];
+    if (qq.type === 'number') return (typeof v === 'number' && v > 0) ? (kfmtYuan(v) + 'K/月') : '未填';
+    if (Array.isArray(v)) return v.length ? v.join('、') : '未填';
+    if (v == null || v === '') return qq.skip ? '未填（跳过）' : '未填';
+    return String(v);
+  }
+
+  function showDone() {
+    state.done = true;
+    state.returnTo = null;
+    stage.hidden = true;
+    footer.hidden = true;
+    btnBack.classList.remove('show');
+    btnSkip.classList.remove('show');
+    Array.prototype.forEach.call(progressTrack.children, function (seg) {
+      seg.classList.remove('cur');
+      seg.classList.add('done');
+    });
+    progressLabel.innerHTML = '<b>' + TOTAL + '</b> / ' + TOTAL + ' 题 · 已完成';
+
+    summarEl.innerHTML = '';
+    var groups = [];
+    QUESTIONS.forEach(function (qq) {
+      var g = groups.filter(function (x) { return x.name === qq.group; })[0];
+      if (!g) { g = { name: qq.group, items: [] }; groups.push(g); }
+      g.items.push(qq);
+    });
+    groups.forEach(function (g) {
+      var box = el('div', 'sum-group');
+      box.appendChild(el('h3', null, g.name));
+      g.items.forEach(function (qq) {
+        var row = el('div', 'sum-row');
+        row.appendChild(el('span', 'k', qq.label || qq.q));
+        row.appendChild(el('span', 'v', answerText(qq)));
+        box.appendChild(row);
+      });
+      summarEl.appendChild(box);
+    });
+
+    doneView.hidden = false;
+    window.scrollTo(0, 0);
+  }
+
+  function a(id) { return state.answers[id]; }
+
+  // 月薪统一成 K（22000 → 22K，8500 → 8.5K）——自述文本里薪资一律「XK × 月数」的写法
+  function kfmtYuan(v) {
+    var k = Number(v) / 1000;
+    if (!isFinite(k) || k <= 0) return '';
+    return Number.isInteger(k) ? String(k) : k.toFixed(1);
+  }
+
+  function selfText() {
+    var lines = [];
+    var head = a('title') || '（未填岗位）';
+    if (a('city')) head += ' · ' + a('city');
+    var typeArr = a('companyType') || [];
+    lines.push('【自述档案（用户自述，非 JD 原文）】');
+    lines.push('岗位：' + head);
+    if (a('company')) lines.push('公司：' + a('company') + '（' + (typeArr.length ? typeArr.join('、') : '未填') + '）');
+    else lines.push('公司：未填（' + (typeArr.length ? typeArr.join('、') : '未填') + '）');
+    lines.push('用工：' + (a('employType') || '未填') + ' · 岗位地位：' + (a('rolePlace') || '未填') + ' · 经营状况：' + (a('companyTrend') || '未填'));
+    var k = typeof a('salary') === 'number' ? kfmtYuan(a('salary')) : '';
+    lines.push('薪资：' + (k ? k + 'K' : '未填')
+      + ' × ' + (a('months') || '未填') + ' · 浮动占比：' + (a('floatShare') || '未填'));
+    lines.push('社保公积金：' + (a('socialInsurance') || '未填'));
+    lines.push('作息：' + (a('restType') || '未填') + ' · 每天 ' + (a('dailyHours') || '未填')
+      + ' · 加班：' + (a('overtime') || '未填') + '（' + (a('overtimePay') || '未填') + '） · 年假：' + (a('annualLeave') || '未填'));
+    lines.push('稳定性：一般人干 ' + (a('tenure') || '未填') + ' · 重复性工作 ' + (a('repetition') || '未填'));
+    var duties = a('duties') || [];
+    lines.push('主要工作内容：' + (duties.length ? duties.join('、') : '未填'));
+    var gaps = a('gaps') || [];
+    lines.push('够着干的要求：' + (gaps.length ? gaps.join('、') : '未填'));
+    return lines.join('\n');
+  }
+
+  /* ---------- 完成页两个出口：现在分析 / 先存着 ---------- */
+  $('btnGoAnalyze').addEventListener('click', function () {
+    var id = savePending();
+    window.location.href = '/?self=' + encodeURIComponent(id) + '&go=1';
+  });
+
+  $('btnSaveOnly').addEventListener('click', function () {
+    var id = savePending();
+    window.location.href = '/?self=' + encodeURIComponent(id) + '&saved=1';
+  });
+
+  $('btnGenText').addEventListener('click', function () {
+    var out = $('textOut');
+    out.textContent = selfText();
+    out.classList.add('show');
+  });
+
+  // 一键复制自述档案文本（复制的同时把它显示出来，让用户看到复制了什么）
+  $('btnCopyText').addEventListener('click', function () {
+    var btn = $('btnCopyText');
+    var text = selfText();
+    var out = $('textOut');
+    out.textContent = text;
+    out.classList.add('show');
+    var ok = function () { btn.textContent = '已复制 ✓'; setTimeout(function () { btn.textContent = '复制文本'; }, 1600); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(ok, function () { fallbackCopy(text, ok); });
+    } else fallbackCopy(text, ok);
+  });
+
+  function fallbackCopy(text, ok) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); ok(); } catch (e) { /* 测试页，复制失败就只显示 */ }
+    document.body.removeChild(ta);
+  }
+
+  $('btnRestart').addEventListener('click', function () {
+    state = { index: 0, answers: {}, done: false, returnTo: null, pendingId: null };
+    doneView.hidden = true;
+    stage.hidden = false;
+    footer.hidden = false;
+    $('textOut').classList.remove('show');
+    render();
+    window.scrollTo(0, 0);
+  });
+
+  /* ---------- 启动：支持 ?resume=<id> 从历史草稿回来继续改 ---------- */
+  var resumeId = new URLSearchParams(window.location.search).get('resume');
+  if (resumeId) resumePending(resumeId);
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1395 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>小电视 · 状态系统 v0.9（三大基础状态 + 表情清单）</title>
+<link rel="icon" href="data:,">
+<script>
+if (new URLSearchParams(window.location.search).get('embed') === 'landscape') {
+  document.documentElement.classList.add('embed-landscape');
+}
+</script>
+<style>
+  :root{
+    --paper:#f6f1e7;   /* 纸感底色 */
+    --ink:#5b5d63;     /* 深灰线条 */
+    --shell:#fffdf6;   /* 机身奶油白 */
+    --screenbg:#f0e9d8;/* 屏幕墨水屏浅色 */
+    --pink:#fb7299;    /* B 站粉，仅点缀 */
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle, rgba(91,93,99,.055) 1px, transparent 1.5px) 0 0/22px 22px,
+      var(--paper);
+    min-height:100vh;
+    padding:48px 24px 80px;
+  }
+  .page{ max-width:1500px; margin:0 auto; }
+
+  header{ display:flex; align-items:center; gap:14px; margin-bottom:8px; }
+  header .tv{ --tv-size:46px; }
+  h1{ font-size:22px; letter-spacing:.5px; }
+  .sub{ color:rgba(91,93,99,.75); font-size:14px; margin-bottom:10px; line-height:1.8; }
+  .sub b{ color:var(--ink); font-weight:600; }
+  .chips{ display:inline-flex; flex-wrap:wrap; gap:8px; margin-bottom:30px; font-size:12px; color:rgba(91,93,99,.8); }
+  .chips span{ border:1px solid rgba(91,93,99,.3); border-radius:999px; padding:4px 12px; background:var(--shell); }
+
+  h2{
+    font-size:13px; font-weight:600; letter-spacing:2px;
+    color:rgba(91,93,99,.7); margin:44px 0 6px;
+    display:flex; align-items:center; gap:10px;
+  }
+  h2::after{ content:""; flex:1; height:1px; background:rgba(91,93,99,.2); }
+  .h2note{ font-size:12px; color:rgba(91,93,99,.6); margin-bottom:16px; }
+
+  /* ════ 电视部件：机身静止；默认脸=线条眼；情绪=颜文字上屏 ════ */
+  .tv{ width:var(--tv-size,150px); display:block; overflow:visible; }
+  .tv__antenna line, .tv__antenna path{ stroke:var(--ink); stroke-width:9; stroke-linecap:round; fill:none; }
+  .tv__body{ fill:var(--shell); stroke:var(--ink); stroke-width:5; }
+  .tv__screen{ fill:var(--screenbg); stroke:rgba(91,93,99,.15); stroke-width:2; }
+  .tv__face .eye{
+    stroke:var(--ink); stroke-width:10; stroke-linecap:round; fill:none;
+    transform-box:fill-box; transform-origin:center;
+  }
+  .kao{ font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif; font-weight:600; fill:var(--ink); }
+  .tv-wrap{ position:relative; display:inline-block; }
+
+  /* 睡觉=睡着了：Z 从嘴巴冒出来，越飘越大；快速动眼期快、深度睡眠慢 */
+  .zzz-bub{ opacity:0; animation:zzRise 9s ease-out infinite; }
+  @keyframes zzRise{
+    0%{ opacity:0; transform:translate(0,0) scale(.55); }
+    15%{ opacity:.95; }
+    38%{ opacity:.85; transform:translate(var(--dx,0), -40px) scale(1.3); }
+    52%{ opacity:0; transform:translate(var(--dx,0), -40px) scale(1.3); }
+    100%{ opacity:0; transform:translate(var(--dx,0), -40px) scale(1.3); }
+  }
+  .tv--rem .zzz-bub{ animation-duration:4s; }
+  .tv--deep .zzz-bub{ animation-duration:15s; }
+
+  /* 屏幕动效：只有眨眼、眼神移动、屏幕明暗 */
+  .tv--track .eye, .tv--peek .eye, .tv--big .eye{ animation:blink 5s infinite; }
+  .tv--quiet .eye{ opacity:.35; animation:blink 12s infinite; }
+  @keyframes blink{ 0%,91%,100%{ transform:scaleY(1); } 94%,96%{ transform:scaleY(.12); } }
+
+  /* 爱心/星星眼：符号按心跳节奏变大变小，左右错开半拍，不呆板 */
+  .beat{ fill:var(--ink); transform-box:fill-box; transform-origin:center; animation:beat 1.5s ease-in-out infinite; }
+  @keyframes beat{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.25); } }
+  /* 惊吓感叹号：只在每个周期开头弹出一小会儿，其余时间隐藏（不是常态显示） */
+  .bang{ opacity:0; transform-box:fill-box; transform-origin:center; animation:bang 3.4s ease-in-out infinite; }
+  @keyframes bang{
+    0%   { opacity:0; transform:scale(.3) rotate(-10deg); }
+    5%   { opacity:1; transform:scale(1.2) rotate(0deg); }
+    10%  { transform:scale(1); }
+    20%  { opacity:1; }
+    28%,100%{ opacity:0; transform:scale(.5); }
+  }
+  /* 冷汗：汗珠在脸颊边慢慢往下滑、边滑边淡出，循环 */
+  .sweat{ fill:var(--ink); opacity:0; transform-box:fill-box; animation:sweat 2.6s ease-in infinite; }
+  @keyframes sweat{
+    0%   { opacity:0; transform:translateY(-4px) scale(.7); }
+    15%  { opacity:.9; transform:translateY(0) scale(1); }
+    60%  { opacity:.9; }
+    100%{ opacity:0; transform:translateY(16px) scale(.85); }
+  }
+
+  /* ════ 主演示：大电视自动轮换池子 ════ */
+  .stage{ display:flex; flex-direction:column; align-items:center; gap:22px; padding:34px 0 8px; }
+  .stage .tv{ --tv-size:230px; }
+  /* ════ 表情选择器：选情绪 → 点表情 → 换到两屏 BOT ════ */
+  .picker{ padding:8px 0 4px; }
+  .picker-bar{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:22px; }
+  .picker-bar button{
+    font:500 12.5px/1 inherit; padding:7px 14px; border-radius:999px; cursor:pointer;
+    border:1.5px solid rgba(91,93,99,.4); background:var(--shell); color:var(--ink);
+  }
+  .picker-bar button.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .picker-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; }
+  .picker-card{
+    padding:8px 4px 12px; display:flex; flex-direction:column; align-items:center; cursor:pointer;
+    transition:transform .15s;
+  }
+  .picker-card:hover{ transform:translateY(-2px); }
+  .picker-card.active span{ color:var(--pink); font-weight:600; }
+  .picker-card .tv-wrap{ height:104px; display:flex; align-items:center; justify-content:center; }
+  .picker-card .tv{ --tv-size:98px; }
+  .picker-card .tv--peek{ --tv-size:72px; }
+  .picker-card .frame-view{ display:flex; }   /* 选择器内统一用播放框视图 */
+  .picker-card span{ font-size:12px; margin-top:8px; color:rgba(91,93,99,.85); text-align:center; }
+  /* 岛里换上表情：奶油白，黑底上才看得见 */
+  .island-stage .island__face .kao,
+  .island-stage .island__face .beat,
+  .island-stage .island__face .sweat{ fill:var(--shell); }
+
+  /* ════ 表情全量清单网格 ════ */
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:18px; }
+  .card{
+    background:var(--shell); border:1.5px solid rgba(91,93,99,.25);
+    border-radius:18px; padding:28px 16px 18px;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .card .tv-wrap{ height:168px; display:flex; align-items:center; justify-content:center; }
+  .card .tv{ --tv-size:146px; }
+  /* gallery 卡：与选择器一致——去掉白框，只留透明播放框 */
+  #gallery .card{ background:none; border:none; border-radius:0; padding:8px 4px 12px; }
+  #gallery .card .frame-view{ display:flex; }
+  .card .tv--peek{ --tv-size:92px; }
+  .card h3{ font-size:15px; margin-top:14px; }
+  .card p{ font-size:12px; color:rgba(91,93,99,.7); text-align:center; margin-top:4px; line-height:1.6; }
+  /* 表情卡的模式切换：整机 / 视频播放框 */
+  .card-modes{ display:flex; gap:6px; margin-top:10px; }
+  .card-modes button{
+    font-size:11px; padding:3px 11px; border-radius:999px; cursor:pointer;
+    border:1px solid rgba(91,93,99,.32); background:var(--paper); color:rgba(91,93,99,.85);
+  }
+  .card-modes button.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  /* 视频播放框：横屏 BOT 同款透明玻璃，只有一个表情 + 限定它的空间框 */
+  .frame-view{ display:none; width:150px; height:64px; border-radius:999px; position:relative;
+    align-items:center; justify-content:center; overflow:hidden;
+    border:1px solid rgba(255,255,255,.34);
+    -webkit-backdrop-filter:blur(2px) saturate(1.25) brightness(1.05);
+    backdrop-filter:blur(2px) saturate(1.25) brightness(1.05);
+    box-shadow:0 6px 18px rgba(0,0,0,.18), inset 0 1px 1px rgba(255,255,255,.5), inset 0 -1px 1px rgba(255,255,255,.2);
+    background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.02) 48%, rgba(255,255,255,.1));
+  }
+  .frame-view::before{ content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    background:radial-gradient(120% 140% at 20% 0%, rgba(255,255,255,.22), transparent 60%); }
+  .frame-face{ width:120px; height:60px; display:block; }
+  .frame-face .eye{ animation:blink 5s infinite; transform-box:fill-box; transform-origin:center; }
+  .face--sleep .eye{ animation:none; }   /* 睡脸闭着眼，不眨眼 */
+  .card.mode-frame .tv-view{ display:none; }
+  .card.mode-frame .frame-view{ display:flex; }
+  /* gallery 全局模式栏 */
+  .gallery-bar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:26px 0 2px;
+    padding:12px 16px; background:var(--shell); border:1.5px solid rgba(91,93,99,.22); border-radius:14px; }
+  .gallery-bar__label{ font-size:13px; font-weight:600; margin-right:4px; }
+  .gallery-bar button{ font-size:12px; padding:5px 14px; border-radius:999px; cursor:pointer;
+    border:1px solid rgba(91,93,99,.32); background:var(--paper); color:rgba(91,93,99,.85); }
+  .gallery-bar button.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .gallery-bar__note{ font-size:11px; color:rgba(91,93,99,.6); margin-left:auto; }
+  .pill{
+    margin-top:8px; font-size:11px; color:rgba(91,93,99,.7);
+    border:1px solid rgba(91,93,99,.3); border-radius:999px; padding:3px 10px; background:var(--paper);
+  }
+
+  /* ════ 灵动岛形态：它住在灵动岛里（手机原截图当底图，竖屏原比例不改） ════ */
+  .island-stage{ display:flex; gap:48px; flex-wrap:wrap; align-items:flex-start; }
+  .phone-col{ flex:none; width:440px; }
+  .land-col{ flex:none; width:956px; margin-top:516px; }   /* 956-440：让横屏视窗与竖屏视窗底部对齐 */
+  .phone{ position:relative; width:440px; height:956px; border-radius:52px; overflow:hidden;
+    background:#0a0a0c; box-shadow:0 0 0 10px #1c1c20, 0 0 0 12px #3a3a41, 0 20px 46px rgba(0,0,0,.30); }
+  .phone__screen{ position:absolute; inset:0; overflow:hidden; }
+  .phone__screen img{ width:100%; height:100%; object-fit:cover; display:block; }
+  /* 视觉捕捉：每个屏幕只有一个高透明灰色细环，视线落到哪个主体就平滑挪过去并维持 */
+  .focus-hit{
+    position:absolute; z-index:2; width:104px; height:104px; border-radius:50%;
+    transform:translate(-50%,-50%); cursor:crosshair;
+  }
+  .reticle{
+    position:absolute; z-index:3; width:46px; height:46px; margin:-23px 0 0 -23px;
+    border:4px solid rgba(232,236,245,.5); border-radius:50%;
+    box-shadow:0 0 7px rgba(220,228,242,.18);
+    pointer-events:none; opacity:0; transform:scale(.86);
+    transition:left .7s cubic-bezier(.4,0,.2,1), top .7s cubic-bezier(.4,0,.2,1),
+               opacity .35s ease, transform .45s ease;
+  }
+  .reticle.is-on{ opacity:1; transform:scale(1); }
+  /* 思考：岛下四个白点依次亮起，没有对话框 */
+  .think-dots{
+    position:absolute; z-index:4; left:50%; top:58px; transform:translateX(-50%);
+    display:flex; gap:7px; opacity:0; pointer-events:none; transition:opacity .2s ease;
+  }
+  .think-dots.is-on{ opacity:1; }
+  .think-dots i{
+    width:7px; height:7px; border-radius:50%; background:rgba(255,253,246,.18);
+    animation:dotLight 1.6s linear infinite;
+  }
+  .think-dots i:nth-child(1){ animation-delay:0s; }
+  .think-dots i:nth-child(2){ animation-delay:.22s; }
+  .think-dots i:nth-child(3){ animation-delay:.44s; }
+  .think-dots i:nth-child(4){ animation-delay:.66s; }
+  @keyframes dotLight{
+    0%,8%   { background:rgba(255,253,246,.18); box-shadow:none; }
+    15%,55% { background:var(--shell); box-shadow:0 0 7px rgba(255,253,246,.9); }
+    70%,100%{ background:rgba(255,253,246,.18); box-shadow:none; }
+  }
+  /* 台词气泡：离岛更远，思考点之后才弹出 */
+  .thought{
+    position:absolute; z-index:4; left:50%; top:72px; transform:translateX(-50%) translateY(-6px);
+    opacity:0; pointer-events:none; transition:opacity .3s ease, transform .3s ease;
+    background:#fffdf6; color:#3a3c44; border:1.5px solid rgba(91,93,99,.22);
+    border-radius:12px; padding:7px 13px; white-space:nowrap;
+    font-size:12.5px; font-weight:600; letter-spacing:.5px;
+    box-shadow:0 5px 16px rgba(0,0,0,.25);
+  }
+  .thought::before{
+    content:""; position:absolute; top:-6px; left:50%; transform:translateX(-50%);
+    border-left:6px solid transparent; border-right:6px solid transparent;
+    border-bottom:6px solid rgba(91,93,99,.22);
+  }
+  .thought::after{
+    content:""; position:absolute; top:-4.5px; left:50%; transform:translateX(-50%);
+    border-left:5px solid transparent; border-right:5px solid transparent;
+    border-bottom:5px solid #fffdf6;
+  }
+  .thought.is-on{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .thought__say{ animation:sayPop .35s cubic-bezier(.2,1.3,.4,1); }
+  @keyframes sayPop{ from{ transform:scale(.8); } to{ transform:scale(1); } }
+  /* 换脸淡入淡出：状态切换时先淡出旧脸，换完 innerHTML 再淡入，不再瞬间跳脸 */
+  .face-follow{ transition:opacity .19s ease; }
+  .face-follow.face-morphing{ opacity:0; }
+  .island .face-follow.gazing{ transition:transform .7s cubic-bezier(.4,0,.2,1), opacity .19s ease; }
+  /* 岛＝手机屏幕里的那块黑（真机尺寸 125×36.67pt）；外面一圈白光＝它正在运行 */
+  .island{
+    position:relative; box-sizing:border-box; border-radius:999px; overflow:hidden; background:transparent;
+    border:1px solid transparent;
+    -webkit-backdrop-filter:blur(0px) saturate(1) brightness(1);
+    backdrop-filter:blur(0px) saturate(1) brightness(1);
+    /* 过渡写在基态：进出 away / error / sleep 都平滑，不会因移除 class 而瞬间跳回 */
+    transition:background .5s ease, border-color .5s ease, box-shadow .5s ease,
+               backdrop-filter .5s ease, -webkit-backdrop-filter .5s ease;
+    box-shadow:0 0 0 1.5px rgba(255,253,246,.38), 0 0 6px 1px rgba(255,253,246,.34), 0 0 16px 2px rgba(255,253,246,.20);
+  }
+  /* 竖屏岛白光呼吸：明灭很轻，像在待机。away 磨砂态会单独停掉外圈呼吸 */
+  @keyframes islandBreath{
+    0%,100%{ box-shadow:0 0 0 1.5px rgba(255,253,246,.30), 0 0 6px 1px rgba(255,253,246,.26), 0 0 16px 2px rgba(255,253,246,.14); }
+    50%    { box-shadow:0 0 0 1.5px rgba(255,253,246,.48), 0 0 8px 1px rgba(255,253,246,.42), 0 0 22px 3px rgba(255,253,246,.26); }
+  }
+  .phone__screen .island{ position:absolute; top:11px; left:50%; transform:translateX(-50%);
+    animation:islandBreath 3.6s ease-in-out infinite; }
+  .island__face{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); display:block;
+    filter:blur(0); transition:filter .48s ease, opacity .4s ease; }
+  /* 岛上只有眼睛：黑底上用机身的奶油白 */
+  /* 岛里的眼睛和 gallery 的"竖条眼·素颜"是同一个表情，也要眨眼才灵动 */
+  .island .eye{ stroke:var(--shell); animation:blink 5s infinite; }
+  /* 眼睛在画面里左右看 */
+  .island-look--scan{ animation:islandScan 3.4s ease-in-out infinite; }
+  @keyframes islandScan{ 0%,100%{ transform:translateX(-7px); } 50%{ transform:translateX(7px); } }
+  /* ════ 沉浸式横屏：与竖屏是同一台手机（旋转 90°），尺寸一致；无岛黑底，眼睛直接浮在画面中间上方 ════ */
+  .land-phone{
+    position:relative; width:956px; height:440px; border-radius:52px; overflow:hidden;
+    background:#0a0a0c; box-shadow:0 0 0 10px #1c1c20, 0 0 0 12px #3a3a41, 0 20px 46px rgba(0,0,0,.30);
+  }
+  .land-phone__screen{ position:absolute; inset:0; overflow:hidden; }
+  .land-phone__screen img{ width:100%; height:100%; object-fit:cover; display:block; }
+  /* 横屏的 BOT：沿用灵动岛外形，里面透明；外圈是比竖屏更淡的白光，同样轻轻呼吸 */
+  .land-bot{
+    position:absolute; z-index:4; bottom:11px; right:52px;
+  }
+  @keyframes landIslandBreath{
+    0%,100%{ box-shadow:0 0 0 1px rgba(255,253,246,.14), 0 0 10px 1px rgba(255,253,246,.12); }
+    50%    { box-shadow:0 0 0 1px rgba(255,253,246,.24), 0 0 15px 2px rgba(255,253,246,.22); }
+  }
+  .land-bot .island{
+    background:transparent;
+    box-shadow:0 0 0 1px rgba(255,253,246,.18), 0 0 12px 1px rgba(255,253,246,.16);
+    animation:landIslandBreath 3.6s ease-in-out infinite;
+    border:1px solid rgba(255,255,255,.34);
+    -webkit-backdrop-filter:blur(2px) saturate(1.25) brightness(1.05);
+    backdrop-filter:blur(2px) saturate(1.25) brightness(1.05);
+  }
+  .land-bot .island::after{
+    content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.02) 48%, rgba(255,255,255,.10));
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.4), inset 0 -1px 1px rgba(255,255,255,.18);
+  }
+  .land-bot .eye{ filter:drop-shadow(0 1px 2px rgba(0,0,0,.65)); }
+  .land-bot .face-follow{ transition:opacity .19s ease; }   /* 横屏不缓动跟随，但保留换脸淡入淡出 */
+  /* 横屏的焦点环 / 思考点 / 台词气泡：跟着 BOT 走，在它上方依次出现 */
+  .land-hit{ position:absolute; z-index:2; width:96px; height:96px; border-radius:50%; transform:translate(-50%,-50%); cursor:crosshair; }
+  .land-reticle{ position:absolute; z-index:3; width:46px; height:46px; margin:-23px 0 0 -23px;
+    border:4px solid rgba(232,236,245,.5); border-radius:50%; pointer-events:none;
+    opacity:0; transform:scale(.86);
+    transition:left .55s cubic-bezier(.4,0,.2,1), top .55s cubic-bezier(.4,0,.2,1), opacity .35s, transform .45s; }
+  .land-reticle.is-on{ opacity:1; transform:scale(1); }
+  /* BOT 中心在 right:114.5px（52 + 125/2）；思考点与气泡都对齐这个中心，紧贴岛的上方 */
+  .land-think{ position:absolute; z-index:5; right:114px; bottom:51px; transform:translateX(50%); }
+  .land-think .think-dots{ position:relative; left:auto; right:auto; top:auto; bottom:auto; transform:none; }
+  .land-speech{ position:absolute; z-index:5; right:114px; bottom:64px; transform:translateX(50%); }
+  .land-speech .thought{ position:relative; left:auto; right:auto; top:auto; bottom:auto; transform:translateY(6px); }
+  .land-speech .thought.is-on{ transform:translateY(0); }
+  /* 气泡在岛的上方 → 尖角朝下，指向 BOT */
+  .land-speech .thought::before{
+    top:auto; bottom:-6px; border-top:6px solid rgba(91,93,99,.22); border-bottom:0;
+  }
+  .land-speech .thought::after{
+    top:auto; bottom:-4.5px; border-top:5px solid #fffdf6; border-bottom:0;
+  }
+  /* ════ 演出控制：醒着 / 睡眠 / 离开 / 异常（下方控制按钮，下移+放大） ════ */
+  .show-ctrl{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin:52px 0 0; }
+  .show-ctrl__label{ font-size:15px; font-weight:600; color:var(--ink); margin-right:6px; }
+  .show-ctrl button{ font-size:15px; padding:11px 26px; border-radius:999px; cursor:pointer;
+    border:1.5px solid rgba(91,93,99,.36); background:var(--shell); color:rgba(91,93,99,.9); }
+  .show-ctrl button.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .show-ctrl button:disabled{ opacity:.4; cursor:default; }
+  .show-ctrl button[data-show="error"].active{ background:#c0392b; border-color:#c0392b; color:#fff; }
+  /* 睡眠态：两屏换成睡脸——居中偏下、闭眼、不眨眼、不跟鼠标/内容；停掉焦点环与台词 */
+  /* 睡眠：闭眼不眨、稍偏下、字奶油白；停掉环/思考/台词，眼睛不跟 */
+  .island-stage.state-sleep .face-follow{ transform:translateY(2px) !important; }
+  .island-stage.state-sleep .eye{ animation:none !important; }
+  /* BOT 框（岛内）的睡眠眼比整机预览略高一点：只抬眼睛，Z 字保持原位 */
+  .island-stage.state-sleep .face-follow .eye{ transform:translateY(-3px); }
+  .island-stage.state-sleep .kao{ fill:var(--shell); }
+  .island-stage.state-sleep .reticle, .island-stage.state-sleep .land-reticle,
+  .island-stage.state-sleep .think-dots, .island-stage.state-sleep .thought,
+  .island-stage.state-sleep .land-think, .island-stage.state-sleep .land-speech{ display:none !important; }
+  /* 困倦＝醒着：眼睛照常跟随（不锁 transform）、焦点环照常；只是脸是 = =、字用奶油白 */
+  .island-stage.state-drowsy .eye{ animation:none !important; }
+  .island-stage.state-drowsy .kao{ fill:var(--shell); }
+  .island-stage.state-drowsy .think-dots, .island-stage.state-drowsy .thought,
+  .island-stage.state-drowsy .land-think, .island-stage.state-drowsy .land-speech{ display:none !important; }
+  .island-stage .island, .island-stage .land-bot{ cursor:pointer; }   /* 双击 BOT 可惊醒 */
+
+  /* ════ 离开：BOT 退到磨砂玻璃后，用自己的小屏幕看内容 ════
+     暂停时只有中央 ▶；播放后 ▶ 淡出，只保留快退 / 快进 / 进度条，屏幕开始闪动。
+     回来先停在 ▶ 一拍，再原地恢复眼睛；继续离开时重新按播放。 */
+  .away-world{
+    position:absolute; inset:0; z-index:2; overflow:hidden; border-radius:inherit;
+    opacity:0; pointer-events:none; filter:blur(0);
+    transition:opacity .35s ease, filter .35s ease;
+  }
+  .state-away .island{
+    overflow:hidden;
+    animation:none;                 /* 磨砂态停掉外圈呼吸，改用下面的 inset 磨砂光 */
+    background:rgba(225,232,238,.22);
+    -webkit-backdrop-filter:blur(7px) saturate(.72) brightness(.92);
+    backdrop-filter:blur(7px) saturate(.72) brightness(.92);
+    border-color:rgba(255,255,255,.5);
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.38), inset 0 -1px 1px rgba(255,255,255,.16);
+  }
+  .state-away .away-world{ opacity:1; filter:blur(.7px); }
+  .away-screen{
+    position:absolute; inset:-18%; opacity:.12; transition:opacity .28s ease;
+    background:
+      radial-gradient(ellipse at 72% 40%, rgba(183,213,255,.55), transparent 40%),
+      radial-gradient(ellipse at 28% 72%, rgba(255,207,174,.3), transparent 44%),
+      radial-gradient(ellipse at 52% 24%, rgba(220,231,255,.38), transparent 36%);
+  }
+  .away-playing .away-screen{ animation:awayScreenPulse 3s ease-in-out infinite; }
+  @keyframes awayScreenPulse{
+    0%,100%{ opacity:.22; }
+    25%{ opacity:.6; }
+    50%{ opacity:.3; }
+    72%{ opacity:.56; }
+    86%{ opacity:.34; }
+  }
+  /* 框本身就是 BOT 的屏幕脸：没有远近和位移，只在原地切换磨砂、眼睛与播放组件。 */
+  .state-away .island__face{
+    z-index:3; left:50%; top:50%; opacity:.9;
+    transform:translate(-50%,-50%); filter:blur(1.1px);
+    transition:filter .48s ease, opacity .4s ease;
+  }
+  .island-player{ opacity:0; transition:opacity .45s cubic-bezier(.4,0,.2,1); }
+  .island-look{ transition:opacity .55s cubic-bezier(.4,0,.2,1) .06s; }   /* 稍晚淡入，与横眼淡出交叠更柔和 */
+  .state-away .island-look{ opacity:0; }
+  .state-away .island-player{ opacity:1; }
+  .state-away.away-checking .island__face,
+  .state-away.away-returning .island__face{
+    opacity:1; filter:blur(0);
+  }
+  .state-away.away-checking .island-look,
+  .state-away.away-returning .island-look{ opacity:1; }
+  .state-away.away-checking .island-player,
+  .state-away.away-returning .island-player{ opacity:0; }
+  /* 离开态：两条横眼代替播放组件——像眯眼看自己内容，柔和闪烁 + 偶尔连眨两下 */
+  .island-watch-eye{
+    stroke:var(--shell); stroke-width:12px; stroke-linecap:round; fill:none;
+    transform-box:fill-box; transform-origin:center;
+  }
+  .land-bot .island-watch-eye{ filter:drop-shadow(0 1px 2px rgba(0,0,0,.65)); }
+  /* 像电视一样明暗闪，过渡放缓不跳；眨眼错开节奏，看着像在看内容 */
+  :is(.state-away, .away-preview).away-playing .island-watch-eye{
+    animation:awayEyeFlicker 3s ease-in-out infinite, awayEyeBlink 2.8s ease-in-out infinite;
+  }
+  @keyframes awayEyeFlicker{
+    0%,100%{ opacity:.92; }
+    22%{ opacity:.66; }
+    46%{ opacity:.9; }
+    68%{ opacity:.74; }
+    84%{ opacity:1; }
+  }
+  /* 双眨：一次快速连眨两下（睁→闭→睁→闭→睁），然后长时间睁着 */
+  @keyframes awayEyeBlink{
+    0%,82%,86%,90%,100%{ transform:scaleY(1); }
+    84%,88%{ transform:scaleY(.1); }
+  }
+  .state-away .reticle, .state-away .land-reticle,
+  .state-away .think-dots, .state-away .thought,
+  .state-away .land-think, .state-away .land-speech{ display:none !important; }
+  .away-title{
+    position:absolute; z-index:8; display:flex; align-items:center; gap:4px;
+    max-width:190px; padding:0; border:0; cursor:pointer;
+    -webkit-appearance:none; appearance:none; background:none;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    font:600 11px/1.2 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    color:var(--shell);
+    text-shadow:0 1px 3px rgba(0,0,0,.85), 0 0 9px rgba(0,0,0,.5);
+    opacity:0; pointer-events:none; transition:opacity .2s ease;
+  }
+  .away-title.is-on{ opacity:1; pointer-events:auto; }
+  .away-title__dot{ display:none; }
+  .away-title__arrow{ flex:none; font-size:12px; line-height:10px; opacity:.9; }
+  .phone__screen .away-title{ left:50%; top:50px; transform:translateX(-50%); }
+  .land-phone__screen .away-title{ right:114px; bottom:50px; transform:translateX(50%); }
+  /* "正在看"：无卡片纯白字 + 轻投影（两屏同步）；标题一行放不下才跑马灯，
+     两份内容首尾相接，-50% 位移无缝循环。 */
+  .away-title .away-marquee{ display:flex; width:max-content; flex:none; white-space:nowrap; }
+  .away-title .away-marquee > span{ flex:none; padding-right:16px; }
+  .away-title.is-scrolling .away-marquee{ animation:awayMarquee var(--marquee-dur,7s) linear infinite; }
+  @keyframes awayMarquee{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+  .away-preview{
+    position:relative; width:150px; height:64px; overflow:hidden; border-radius:999px;
+    background:rgba(225,232,238,.24); border:1px solid rgba(255,255,255,.5);
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.38), 0 6px 18px rgba(0,0,0,.12);
+  }
+  .away-preview .away-world{ opacity:1; filter:blur(.7px); }
+  .away-preview .island__face{
+    z-index:3; left:50%; top:50%; transform:translate(-50%,-50%) scale(.88); filter:blur(.65px);
+  }
+  .away-preview .island-look{ opacity:0; }
+  .away-preview .island-player{ opacity:1; }
+
+  /* ════ 异常 · 断网：眼睛原地定格变灰，外缘有扫描光弧绕圈 ════ */
+  @property --orbit-angle{ syntax:'<angle>'; inherits:false; initial-value:0deg; }
+  .signal-orbit{
+    position:absolute; inset:-3px; z-index:5; border-radius:inherit; padding:2px;
+    opacity:0; pointer-events:none;
+    background:conic-gradient(from var(--orbit-angle),
+      transparent 0 66%, rgba(255,253,246,.16) 76%, rgba(255,253,246,.62) 87%, #fff 91%, transparent 97%);
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;
+    mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite:exclude;
+  }
+  .state-error .island{ overflow:visible; }   /* 让扫描光弧能贴着外缘显示 */
+  .state-error .signal-orbit{
+    opacity:1;
+    animation:orbitSweep 1.6s linear infinite, orbitBlink .8s ease-in-out infinite alternate;
+  }
+  @keyframes orbitSweep{ to{ --orbit-angle:360deg; } }
+  @keyframes orbitBlink{ from{ opacity:.45; } to{ opacity:1; } }
+  /* 眼睛只换颜色、停掉眨眼；位置、形状、背景与视频都不变。 */
+  .state-error .island-look .eye{
+    stroke:#8a8a90; opacity:1; animation:none;
+  }
+  /* 异常态停掉焦点环/气泡/思考点 */
+  .island-stage.state-error .reticle, .island-stage.state-error .land-reticle,
+  .island-stage.state-error .think-dots, .island-stage.state-error .thought,
+  .island-stage.state-error .land-think, .island-stage.state-error .land-speech{ display:none !important; }
+  /* 被惊醒：气泡里逐字打字打出"？？"→"干嘛"（不再从头顶冒问号），两屏同款 */
+  .wake-say{
+    position:absolute; z-index:7; opacity:0; pointer-events:none; white-space:nowrap;
+    font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif; font-size:13px; font-weight:600;
+    color:#3a3c44; background:#fffdf6; border:1.5px solid rgba(91,93,99,.22);
+    border-radius:12px; padding:6px 12px; transition:opacity .2s ease;
+  }
+  .wake-say::after{ content:""; position:absolute; left:22px; bottom:-7px;
+    border-left:6px solid transparent; border-right:6px solid transparent; border-top:6px solid #fffdf6; }
+  .phone__screen .wake-say{ left:50%; top:66px; transform:translateX(-50%); }
+  .land-phone__screen .wake-say{ right:114px; bottom:96px; transform:translateX(50%); }
+  .wake-say.is-on{ opacity:1; }
+  footer{ margin-top:48px; font-size:12px; color:rgba(91,93,99,.55); text-align:center; line-height:1.8; }
+
+  /* 简历嵌入：透明裁切到手机外框，只保留原版横屏画面与 BOT。 */
+  html.embed-landscape,
+  html.embed-landscape body{ background:transparent !important; }
+  html.embed-landscape body{ min-height:0; padding:0; overflow:hidden; }
+  html.embed-landscape .page{ width:100%; max-width:none; margin:0; }
+  html.embed-landscape .page > header,
+  html.embed-landscape .page > .sub,
+  html.embed-landscape .page > .chips,
+  html.embed-landscape .page > h2,
+  html.embed-landscape .page > .h2note,
+  html.embed-landscape #states,
+  html.embed-landscape #showCtrl,
+  html.embed-landscape .picker,
+  html.embed-landscape #galleryBar,
+  html.embed-landscape #gallery,
+  html.embed-landscape .page > footer{ display:none !important; }
+  html.embed-landscape #islandStage{ display:block; width:100%; margin:0; padding:0; }
+  html.embed-landscape #islandStage .phone-col{ display:none !important; }
+  html.embed-landscape .land-col{
+    width:100% !important; height:calc(464px * var(--land-fit,1));
+    margin:0 !important;
+  }
+  html.embed-landscape .land-phone{
+    width:980px; height:464px;
+    transform:scale(var(--land-fit,1)); transform-origin:top left;
+    margin:0; border-radius:0; box-shadow:none;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <span id="logo"></span>
+    <h1>小电视 · 状态系统 v0.9</h1>
+  </header>
+  <p class="sub">
+    BOT 语言逻辑：视频上传时预处理抽离<b>画面语义 · 故事线 · 剧本</b>；播放时 BOT 据<b>剧本 + 关系 + 记忆 + 喜好 + 时间</b>实时表演。台词是它<b>基于画面说的短念头</b>（如"亮得睡不着""别松手啊""想摸一下"），像人脱口而出——不堆主语、不堆描述；<b>每句必须有情绪落点</b>（怕、馋、偏心、想念），不是给画面贴标签；没有身体视角，<b>不用"这／那／他"指代画面</b>，但用"我"说自己。同一主体两句轮着说，词直接连成句，逐词吐出。
+    三大基础状态：<b>陪你看 · 外出模式 · 睡眠模式</b>——先画三态，再挂表情全量清单。
+    表情全量清单：<b>每一个颜文字单独一张卡，不合并、不轮换</b>，方便逐个挑。
+    表情选择器：选情绪 → 点表情 → 竖屏 / 横屏里的 BOT 同步换成这张脸。
+  </p>
+  <div class="chips">
+    <span>32 张表情卡逐个列出</span>
+    <span>睡眠模式：屏幕上一直往外冒 Zzz</span>
+    <span>离开模式：点一下回来查看，再点一下正式回来</span>
+    <span>眼睛跟鼠标 = 跟画面主体（全页有效）</span>
+    <span>生僻字 ꒪/꒳/˘ 若显示成方框，报告卡片名即可</span>
+  </div>
+
+  <h2>三大基础状态</h2>
+  <p class="h2note">"陪你看"是默认态；它想去追自己的内容 → "外出模式"（退到磨砂玻璃后看自己的电视）；深夜困了 → 自动"睡眠模式"；被叫醒或天亮 → 回到"陪你看"。</p>
+  <section class="grid" id="states"></section>
+
+  <h2>灵动岛形态 · 竖屏与沉浸式横屏</h2>
+  <p class="h2note">同一台手机，竖着拿／横着拿：两屏的 BOT 都是同一个灵动岛本体——那块带白光的小黑屏，里面只画竖条眼·素颜，会眨眼。竖屏时岛在正上方；横屏时岛挪到右下角，贴着下边缘、离右边稍远。两屏等大（机身旋转 90°）、眼睛等大。具体表情在下方"表情选择器"里点选。</p>
+  <section class="island-stage" id="islandStage">
+    <div class="phone-col">
+      <div class="phone"><div class="phone__screen" id="phone1"></div></div>
+    </div>
+    <div class="land-col">
+      <div class="land-phone">
+        <div class="land-phone__screen" id="landscape">
+          <img src="ref_immersive.jpg" alt="沉浸式横屏播放 · 游戏画面原截图">
+          <div class="land-bot" id="landBot"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="show-ctrl" id="showCtrl">
+    <span class="show-ctrl__label">演出状态</span>
+    <button data-show="company" class="active">醒着</button>
+    <button data-show="sleep">睡眠</button>
+    <button data-show="away" title="第一次点击：回到磨砂框前查看，无交互会再退回去；再次点击：正式回来">离开</button>
+    <button data-show="error" title="覆盖层：不改变模式（醒着/睡眠/离开都可能断网）；主视觉是旋转光圈，不只眼睛变灰">异常 · 断网（覆盖）</button>
+  </div>
+
+  <h2>表情选择器 · 点一下换到两屏 BOT</h2>
+  <p class="h2note">先选情绪，再点某张脸——上方竖屏 / 横屏里的 BOT 会立刻换成这张表情。岛上表情用奶油白显示（黑底才看得见）。</p>
+  <section class="picker">
+    <div class="picker-bar" id="pickerBar"></div>
+    <div class="picker-grid" id="pickerGrid"></div>
+  </section>
+
+  <div class="gallery-bar" id="galleryBar" style="display:none">
+    <span class="gallery-bar__label">表情显示模式</span>
+    <button data-all="tv" class="active">全部 · 整机</button>
+    <button data-all="frame">全部 · 播放框</button>
+    <span class="gallery-bar__note">播放框＝透明玻璃框里只有表情，仍会跟鼠标</span>
+  </div>
+  <div id="gallery"></div>
+
+  <footer>
+    每张卡 = 一个确认候选：留下还是删掉，报卡片编号即可。<br>机身不动、屏幕表情；醒着 = 竖条眼，睡觉 = 冒 Zzz。下一步可接进 demo/index.html 第一屏。
+  </footer>
+</div>
+
+<script>
+  // ── 机身外框：直线边 + 等半径圆角，轮廓处处相切（手写路径两侧有鼓包、顶边起拱） ──
+  const BODY = '<rect class="tv__body" x="23" y="40" width="154" height="130" rx="32"/>';
+
+  // ── 默认脸：线条眼（用户原始设定） ──
+  const eyeAt = (x, dx, y1, y2) =>
+    `<g transform="translate(${x} 0)"><line class="eye" x1="${dx}" y1="${y1}" x2="${dx}" y2="${y2}"/></g>`;
+  const V = (x) => eyeAt(x, 0, -13, 13);            // 竖条：醒
+
+  // ── 颜文字上屏：字号按字符数自适应 ──
+  const KAO = (chars) => {
+    // 按估算宽度反算字号：每个表情铺到差不多的宽度（以"害羞·之二"的饱满度为标准），大小粗细就齐了
+    const w = [...chars].reduce((s, ch) => s + ('ω＼＞＜Д▽★💢꒪꒳￣﹏｀⌒◍'.includes(ch) ? 1 : '⁄/*_-.´`˘~'.includes(ch) ? 0.52 : 0.74), 0);
+    const size = Math.max(17, Math.min(34, 88 / w));
+    return `<text class="kao" x="0" y="9" text-anchor="middle" style="font-size:${size.toFixed(1)}px">${chars}</text>`;
+  };
+
+  const BARS_A = V(-22) + V(22);   // 竖条眼
+  // 害怕·之一专用：°Д° 之外，两个"！"在头上方偶尔弹出（bang 动画控制，只出现一会儿）
+  const BANG = (x, y, delay) => `<text class="kao bang" x="${x}" y="${y}" text-anchor="middle" style="font-size:24px;animation-delay:${delay}s">!</text>`;
+  const SHOCK_FACE = KAO('°Д°') + BANG(36, -26, 0) + BANG(48, -10, -.3);
+  // 害怕·之二：＞﹏＜ 加一个"！"，同样只是偶尔弹出
+  const SCREAM_FACE = KAO('＞﹏＜') + BANG(40, -22, -.6);
+  // 害怕·之四：；Д｀ 两颊各挂一滴冷汗，循环往下滑落
+  const SWEAT = (x, delay) => `<g transform="translate(${x} -10)"><path class="sweat" style="animation-delay:${delay}s" d="M0 -7 C2.6 -2.6 5 .6 5 3.6 A5 5 0 1 1 -5 3.6 C-5 .6 -2.6 -2.6 0 -7 Z"/></g>`;
+  const SWEAT_FACE = KAO('；Д｀') + SWEAT(-42, 0) + SWEAT(42, -1.3);
+  const MILD_ANGER_FACE = KAO('-_-💢');
+  // 组合脸：竖条眼不动，只换嘴巴——同一个"人"做出不同表情，不再一张脸定死
+  const MOUTH = (ch) => `<text class="kao" x="0" y="21" text-anchor="middle" style="font-size:21px">${ch}</text>`;
+  const BARS_MOUTH = (ch) => BARS_A + MOUTH(ch);
+  // 爱心/星星眼：用 SVG 符号代替文字，才能各自做"变大变小"的动效；两只同步一鼓一鼓
+  const SYM_FACE = (tag, attrs) => [-23, 23].map((x) =>
+    `<g transform="translate(${x} 0)"><${tag} class="beat" ${attrs}/></g>`
+  ).join('');
+  const HEART_FACE = SYM_FACE('path', 'd="M0 12 C-1.4 7.2 -11.5 1.4 -11.5 -5.8 A6 6 0 0 1 0 -5.8 A6 6 0 0 1 11.5 -5.8 C11.5 1.4 1.4 7.2 0 12 Z"');
+  const STAR_FACE  = SYM_FACE('polygon', 'points="0,-15.6 3.9,-5.3 14.8,-4.8 6.3,2 9.2,12.6 0,6.6 -9.2,12.6 -6.3,2 -14.8,-4.8 -3.9,-5.3"');
+  // 困倦眼：竖线眼下面压一条小横杠（困纹），代表困了；最后一档双眼闭上
+  const EYE_H = (x) => `<g transform="translate(${x} 0)"><line class="eye" x1="-11" y1="0" x2="11" y2="0"/></g>`;
+  const DROWSY = [
+    eyeAt(-22, 0, -8, 8) + eyeAt(22, 0, -8, 8) +
+      `<line class="eye" x1="-29" y1="15" x2="-15" y2="15" style="stroke-width:7px"/><line class="eye" x1="15" y1="15" x2="29" y2="15" style="stroke-width:7px"/>`,
+    EYE_H(-22) + EYE_H(22),
+    // 之三：= =，每只眼两条横线（细一点、拉开一点，别糊成一坨）
+    `<g transform="translate(-22 0)"><line class="eye" x1="-12" y1="-6" x2="12" y2="-6" style="stroke-width:6px"/><line class="eye" x1="-12" y1="7" x2="12" y2="7" style="stroke-width:6px"/></g>` +
+      `<g transform="translate(22 0)"><line class="eye" x1="-12" y1="-6" x2="12" y2="-6" style="stroke-width:6px"/><line class="eye" x1="-12" y1="7" x2="12" y2="7" style="stroke-width:6px"/></g>`,
+    KAO('¯﹃¯'),                                   // 之四：疲倦，困得张着嘴
+  ];
+  // 睡觉脸：闭眼两条细横线（比别的表情细、位置更靠下），3 个 Z 从嘴巴的位置错峰冒出、越飘越大
+  const ZZZ = [0,1,2].map(i => `<text class="kao zzz-bub" x="0" y="30" text-anchor="middle" style="font-size:${20 + i*7}px; --dx:${[-26,0,26][i]}px; animation-delay:${(i*3).toFixed(1)}s">Z</text>`).join('');
+  const SLEEP_FACE = `<line class="eye" x1="-34" y1="18" x2="-10" y2="18" style="stroke-width:6px"/><line class="eye" x1="10" y1="18" x2="34" y2="18" style="stroke-width:6px"/>` + ZZZ;
+  // 更困的一版：眼睛是两条杠（= =），彻底断电
+  const SLEEP_FACE_BARS = DROWSY[2] + ZZZ;
+  const SLEEP_POOL = [SLEEP_FACE];
+  // 睡眠模式整机：两个小天线耷拉下来
+  const SLEEP_SVG = `<svg class="tv tv--nightsleep" viewBox="0 0 200 200" role="img" aria-label="睡着冒Z的小电视">
+    <g class="tv__antenna"><line x1="86" y1="40" x2="40" y2="24"/><line x1="114" y1="40" x2="160" y2="24"/></g>
+    ${BODY}
+    <rect class="tv__screen" x="44" y="60" width="112" height="90" rx="24"/>
+    <g class="tv__face" transform="translate(100 105)"><g class="face-follow">${SLEEP_FACE}</g></g>
+  </svg>`;
+
+  function tvFaceSVG(face, tvClass = 'tv--track'){
+    return `<svg class="tv ${tvClass}" viewBox="0 0 200 200" role="img" aria-label="小电视">
+      <g class="tv__antenna"><line x1="86" y1="40" x2="67" y2="14"/><line x1="114" y1="40" x2="133" y2="14"/></g>
+      ${BODY}
+      <rect class="tv__screen" x="44" y="60" width="112" height="90" rx="24"/>
+      <g class="tv__face" transform="translate(100 105)"><g class="face-follow">${face}</g></g>
+    </svg>`;
+  }
+
+  function eyesSVG(){
+    return `<svg class="tv tv--peek" viewBox="0 0 200 200" role="img" aria-label="只露出两只眼睛的小电视">
+      <g class="tv__face" transform="translate(100 105)"><g class="face-follow">${BARS_A}</g></g>
+    </svg>`;
+  }
+
+  // ── 页眉 logo：默认竖条眼 ──
+  document.getElementById('logo').innerHTML = tvFaceSVG(BARS_A);
+
+  // ── 表情全量清单：每一个颜文字一张卡，不合并 ──
+  const GALLERY = [
+    { name:'开心 · 喜欢的内容', note:'看到喜欢的内容、被夸、名场面', items:[
+      { face:KAO('≧▽≦'), label:'哈哈大笑', desc:'哈哈大笑、看到名场面' },
+      { face:KAO('≧ω≦'), label:'眯眼偷乐', desc:'眯眼窃喜：笑到眼睛弯成两道缝' },
+      { face:STAR_FACE, label:'两眼冒星星', desc:'眼睛里都是星星：超喜欢；星星会一鼓一鼓变大变小' },
+      { face:KAO('´▽｀'), label:'痴痴的看', desc:'抿着嘴，痴痴地看着画面' },
+      { face:KAO('￣ω￣'), label:'放松惬意', desc:'看得挺舒服，嘴角微微上扬' },
+      { face:HEART_FACE, label:'满眼爱心', desc:'眼睛里都是爱心：比星星还喜欢，爱心也在变大变小' },
+      { face:KAO('⁄⁄⁄﹃⁄⁄⁄'), label:'馋得不好意思', desc:'斜杠红晕配张嘴：馋得脸红，又不好意思' },
+    ]},
+    { name:'害羞 · 不好意思', note:'被夸、被戳中、被看穿心思', items:[
+      { face:KAO('*/ω＼*'), label:'捂脸脸红', desc:'你给的那只：脸红捂脸，不敢看你' },
+      { face:KAO('⁄⁄⁄ω⁄⁄⁄'), label:'红晕满脸', desc:'满脸通红，斜线就是红晕' },
+      { face:KAO('///ω///'), label:'偷偷脸红', desc:'简化版红晕，偷偷害羞' },
+    ]},
+    { name:'哭哭 · 伤心', note:'催泪剧情、委屈、难过', items:[
+      { face:KAO('╥﹏╥'), label:'哭成一条河', desc:'你给的那只：泪流成河' },
+      { face:KAO('T_T'), label:'默默流泪', desc:'两行清泪' },
+      { face:KAO('QAQ'), label:'委屈巴巴', desc:'委屈巴巴，说不出话' },
+    ]},
+    { name:'害怕 · 吓到！', note:'恐怖片、突然的高能', items:[
+      { face:SHOCK_FACE, label:'吓一跳', desc:'瞳孔地震：突然吓一跳！！' },
+      { face:SCREAM_FACE, label:'吓得尖叫', desc:'闭眼尖叫型' },
+      { face:KAO('꒪Д꒪'), label:'目瞪口呆', desc:'瞪圆了眼' },
+      { face:SWEAT_FACE, label:'直冒冷汗', desc:'吓得出冷汗' },
+    ]},
+    { name:'无聊 · 不感兴趣', note:'内容不合口味；走之前说"无聊，逛逛"', items:[
+      { face:KAO('-_-'), label:'面无表情', desc:'面无表情地走神' },
+      { face:KAO('￣_￣'), label:'懒得开口', desc:'无话可说' },
+      { face:KAO('´_`'), label:'提不起劲', desc:'兴致缺缺' },
+    ]},
+    { name:'生气 · 小脾气', note:'它有自己的态度，不是永远讨好', items:[
+      { face:KAO('｀Д´💢'), label:'火冒三丈', desc:'标准的怒' },
+      { face:KAO('｀⌒´💢'), label:'眉头一皱', desc:'眉毛拧起来' },
+      { face:KAO('＞＜💢'), label:'气得咬牙', desc:'气到眯眼' },
+      { face:KAO('｀Δ´💢'), label:'张嘴就吼', desc:'张大嘴吼' },
+      { face:MILD_ANGER_FACE, label:'有点小情绪', desc:'只有一点点生气的样子' },
+    ]},
+    { name:'困倦 · 深夜', note:'23:00 后：回应变短、气泡变少', items:[
+      { face:DROWSY[0], label:'眼皮打架', desc:'眼皮打架：竖线眼下面压出一条小困纹' },
+      { face:DROWSY[1], label:'快要睡着', desc:'马上就要睡着了：双眼闭上' },
+      { face:DROWSY[2], label:'困成两条杠', desc:'= =：困到无话可说，就剩两条杠' },
+      { face:DROWSY[3], label:'困到张嘴', desc:'疲倦：¯﹃¯ 困得张着嘴' },
+      { face:KAO('＝﹃＝'), label:'困到失神', desc:'疲倦：＝﹃＝ 眼睛困成两条等号，嘴还张着' },
+    ]},
+    { name:'睡着 · 非颜文字', note:'在场强度最低，不是情绪', items:[
+      { svg:SLEEP_SVG, label:'睡熟冒 Zzz', desc:'天线耷拉，Z 一直从嘴里往外冒；有快速动眼期/平稳期/深睡期三种节奏' },
+      { face:SLEEP_FACE_BARS, label:'睡得更沉 · 两条杠', desc:'眼睛彻底断电成两条杠（= =），Zzz 还在冒——比闭眼那版更困' },
+    ]},
+  ];
+
+  // ── 离开态脸层：提前定义，状态预览卡与两屏 BOT 共用，避免初始化顺序报错 ──
+  const EYES_BARS = BARS_A;
+  // 离开态：两条更厚的横眼（像眯眼看自己的内容）。仍放进 island-player 层，复用 away/checking/returning 的显隐切换。
+  const AWAY_EYES = `
+    <g class="island-watch-eyes">
+      <line class="island-watch-eye" x1="-35" y1="0" x2="-15" y2="0"/>
+      <line class="island-watch-eye" x1="15" y1="0" x2="35" y2="0"/>
+    </g>`;
+  function islandFaceLayers(eyes){
+    return `<g class="island-look">${eyes}</g><g class="island-player">${AWAY_EYES}</g>`;
+  }
+  const AWAY_FACE = islandFaceLayers(EYES_BARS);
+
+  // ── 三大基础状态 ──
+  const STATES = [
+    { label:'① 陪你看', desc:'默认状态：你看什么它就看什么，眼珠跟着画面主体走，情绪随内容变化。', body: tvFaceSVG(BARS_A,'tv--track') },
+    { label:'② 外出模式', desc:'透明玻璃原地变成磨砂玻璃，眼睛变成居中的播放组件，没有远近或缩小。暂停时只有中央播放键；播放后播放键淡出，只留两端的快退、快进和底部长进度条。点一下会先停在播放键一拍，再恢复眼睛；没人吩咐，就重新按播放。', body:'<div class="away-preview away-playing">' + awayWorldHTML() + '<svg class="island__face tv" viewBox="0 0 200 200" style="width:100px;height:100px"><g class="tv__face" transform="translate(100 105)"><g class="face-follow">' + AWAY_FACE + '</g></g></svg></div>' },
+    { label:'③ 睡眠模式', desc:'到点自己先睡：两个小天线耷拉下来，嘴里一直往外冒 Zzz（主演示里可看快速动眼期/平稳期/深度睡眠三种节奏）；不再跟鼠标。', body: SLEEP_SVG },
+  ];
+  document.getElementById('states').innerHTML = STATES.map(s => `
+    <div class="card"><div class="tv-wrap">${s.body}</div><h3>${s.label}</h3><p>${s.desc}</p></div>`).join('');
+
+  // 视频播放框里的"只有表情"：从整机的 tv__face 里取表情内容，放进一个限定空间框；不然用 face / 睡脸
+  function frameFace(it){
+    let f = it.face || '', sleep = false;
+    if (f === SLEEP_FACE_BARS) sleep = true;                          // 两条杠睡脸：同样不眨眼
+    if (!f && it.svg === SLEEP_SVG){ f = SLEEP_FACE; sleep = true; }   // 睡着卡
+    if (!f && it.tvClass === 'tv--quiet') f = BARS_A;         // 收敛卡
+    if (!f && it.peek) f = BARS_A;                            // 半可见卡
+    // 睡脸预览：整张脸下移到框内更低处（眼睛更低），Z 靠上浮动画不溢出框底
+    const gy = sleep ? 40 : 35;   /* 预览卡睡觉眼比普通表情低一截 */
+    return `<div class="frame-view"><svg class="frame-face" viewBox="0 0 200 70" role="img" aria-label="播放框里的表情">
+      <g class="tv__face" transform="translate(100 ${gy})"><g class="face-follow${sleep ? ' face--sleep' : ''}">${f}</g></g>
+    </svg></div>`;
+  }
+  const gallery = document.getElementById('gallery');
+  gallery.innerHTML = GALLERY.map(g => `
+    <h2>${g.name}</h2>
+    ${g.note ? `<p class="h2note">${g.note}</p>` : ''}
+    <section class="grid">
+      ${g.items.map(it => `
+        <div class="card">
+          <div class="tv-wrap">${frameFace(it)}</div>
+          <h3>${it.label}</h3><p>${it.desc}</p>
+        </div>`).join('')}
+    </section>`).join('');
+  // 模式切换：整机 / 播放框（事件委托）
+  function applyModeToAll(frame){
+    document.querySelectorAll('#gallery .card').forEach(card => {
+      card.classList.toggle('mode-frame', frame);
+      card.querySelectorAll('.card-modes button').forEach(b => b.classList.toggle('active', b.dataset.m === (frame ? 'frame' : 'tv')));
+    });
+    document.querySelectorAll('#galleryBar button').forEach(b => b.classList.toggle('active', (b.dataset.all === 'frame') === frame));
+  }
+  gallery.addEventListener('click', e => {
+    const btn = e.target.closest('.card-modes button');
+    if (!btn) return;
+    const card = btn.closest('.card');
+    const frame = btn.dataset.m === 'frame';
+    card.classList.toggle('mode-frame', frame);
+    btn.parentElement.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+    // 单卡改动后取消全局栏的选中态（不再是"全部"）
+    document.querySelectorAll('#galleryBar button').forEach(b => b.classList.remove('active'));
+  });
+  document.getElementById('galleryBar').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-all]');
+    if (btn) applyModeToAll(btn.dataset.all === 'frame');
+  });
+
+  // ════ 灵动岛形态：岛＝手机里那块黑屏，里面只画眼睛 ════
+  // 岛上只画竖条眼·素颜（陪看）——和 gallery 那张卡是同一个表情
+  // 岛＝真机尺寸 125×36.67pt；外面一圈极淡的白光表示它正在运行
+  const ISLAND = { w:125, h:36.67, fs:100 };
+  // 离开模式的屏幕层：一层自动明暗闪烁的光，代表 BOT 沉进自己的小屏幕看内容。
+  // 不依赖外部资源；同一 markup 同时用于竖屏、横屏和基础状态预览。
+  function awayWorldHTML(){
+    return `<div class="away-world" aria-hidden="true"><span class="away-screen"></span></div>`;
+  }
+  const islandSVG = (eyes) => `
+    <div class="island" style="width:${ISLAND.w}px;height:${ISLAND.h}px">
+      <span class="signal-orbit" aria-hidden="true"></span>
+      ${awayWorldHTML()}
+      <svg class="island__face tv" viewBox="0 0 200 200" style="width:${ISLAND.fs}px;height:${ISLAND.fs}px">
+        <g class="tv__face" transform="translate(100 105)"><g class="face-follow">${islandFaceLayers(eyes)}</g></g>
+      </svg>
+    </div>`;
+  // 画面视觉焦点：坐标＝相对原截图的百分比（截图与容器等比例，直接对应）
+  // 每个屏幕只有一个光圈：透明热区（响应鼠标指定）+ 一个共用光圈（平滑挪动、维持锁定）
+  const FOCI = {
+    phone1: [
+      // BOT 语言：像人一样脱口而出的短念头，不堆主语、不堆描述；逐词吐但不加分隔符。
+      // 每句必须有情绪落点（怕、馋、偏心、想念），不是给画面贴标签；同一主体两句轮着说。
+      { x:10, y:37.5, label:'马',   lines:[['想','骑白马'], ['白马','好乖']] },
+      { x:45, y:41.7, label:'悟空', lines:[['猴哥','有点帅'], ['想','跟猴哥走']] },
+      { x:58, y:45.6, label:'八戒', lines:[['还是','八戒','可爱'], ['八戒','在就好了']] },
+    ],
+  };
+  const RETICLE = `<div class="reticle"></div>`;
+  const THOUGHT = `<div class="think-dots"><i></i><i></i><i></i><i></i></div><div class="thought"></div>`;
+  const focusLayer = (pid) => FOCI[pid].map((f,i) =>
+    `<span class="focus-hit" data-i="${i}" title="${f.label}" style="left:${f.x}%;top:${f.y}%"></span>`
+  ).join('') + RETICLE + (pid === 'phone1' ? THOUGHT : '');
+
+  // 底图＝手机原截图（竖屏原比例）；岛按真实位置摆：上边距 11pt、水平居中
+  document.getElementById('phone1').innerHTML =
+    `<img src="ref_shortplay.jpg" alt="竖屏视频播放页 · 手机原截图">${focusLayer('phone1')}${islandSVG(EYES_BARS)}`;
+
+  // ── 沉浸式横屏：玻璃 BOT 在右下角；画面里一套"看→思考→说话"演示，鼠标在画面上则干脆跟随 ──
+  const land = document.getElementById('landscape');
+  const landBot = document.getElementById('landBot');
+  landBot.innerHTML = islandSVG(EYES_BARS);
+  // 惊醒时的打字气泡（两屏各一套，独立于睡眠/困倦的隐藏规则）
+  document.getElementById('phone1').insertAdjacentHTML('beforeend', `<div class="wake-say"></div>`);
+  land.insertAdjacentHTML('beforeend', `<div class="wake-say"></div>`);
+  // 离开模式片名小条：只做入口，不在本页假装完成视频跳转。
+  const AWAY_VIDEO = { id:'three-body', title:'三体' };
+  const awayTitleHTML = `<button type="button" class="away-title" data-video-id="${AWAY_VIDEO.id}" title="点击跳转到 BOT 正在看的视频（本页暂不演示跳转）"><span class="away-title__dot"></span><span>正在看《${AWAY_VIDEO.title}》</span><span class="away-title__arrow">›</span></button>`;
+  document.getElementById('phone1').insertAdjacentHTML('beforeend', awayTitleHTML);
+  land.insertAdjacentHTML('beforeend', awayTitleHTML);
+  // 两个视窗的"正在看"标签：标题一行放不下才滚动；短标题（如《三体》）保持单行静止。
+  (function enableAwayMarquee(){
+    const text = `正在看《${AWAY_VIDEO.title}》 ›`;
+    const probe = document.createElement('span');
+    probe.textContent = text;
+    probe.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:600 11px "PingFang SC","Microsoft YaHei",system-ui,sans-serif';
+    document.body.appendChild(probe);
+    const natural = probe.getBoundingClientRect().width;
+    probe.remove();
+    const dur = Math.max(6, natural / 22).toFixed(1) + 's';
+    document.querySelectorAll('.away-title').forEach(btn => {
+      const maxW = parseFloat(getComputedStyle(btn).maxWidth) || 190;
+      if (natural > maxW - 4){
+        btn.classList.add('is-scrolling');
+        btn.style.setProperty('--marquee-dur', dur);
+        btn.innerHTML = `<span class="away-marquee"><span>${text}</span><span aria-hidden="true">${text}</span></span>`;
+      }
+    });
+  })();
+  const landFace = landBot.querySelector('.face-follow');
+  const landIsland = landBot.querySelector('.island__face');
+  // 值得捕捉的主体（占整张截图百分比）
+  // BOT 认得出这是 GTA6 预告，说的不是画面标注，而是"挂在飞机外"这件事给它的反应：怕、贪、犯馋
+  const LAND_FOCI = [
+    { x:18, y:70, label:'城市', lines:[['亮得','睡不着'], ['想','搬去','迈阿密']] },
+    { x:43, y:45, label:'男人', lines:[['别','松手啊'], ['不敢','看了']] },
+    { x:54, y:64, label:'驾驶舱', lines:[['换我','坐坐'], ['想','坐进去']] },
+    { x:83, y:79, label:'机身', lines:[['想','摸一下'], ['想','敲一敲']] },
+  ];
+  land.insertAdjacentHTML('beforeend', `
+    ${LAND_FOCI.map((f,i)=>`<span class="land-hit" data-i="${i}" title="${f.label}" style="left:${f.x}%;top:${f.y}%"></span>`).join('')}
+    <div class="land-reticle"></div>
+    <div class="land-think"><div class="think-dots"><i></i><i></i><i></i><i></i></div></div>
+    <div class="land-speech"><div class="thought"></div></div>`);
+  const landReticle = land.querySelector('.land-reticle');
+  const landThink = land.querySelector('.land-think .think-dots');
+  const landSpeech = land.querySelector('.land-speech .thought');
+  let landLookTimer = null, landTypedTimer = null, landIdx = -1, landMouse = false;
+  let thoughtTimer = null, typedTimer = null;   // 竖屏台词计时器（演出切换也要清）
+  // 视线：目标点在画面里的位置 → 岛内位移（范围比竖屏大）
+  function landGazePoint(px, py){
+    const r = landIsland.getBoundingClientRect();
+    const sr = land.getBoundingClientRect();
+    const dx = clamp(((px/100*sr.width + sr.left) - (r.left + r.width/2)) / 14, -16, 16);
+    const dy = clamp(((py/100*sr.height + sr.top) - (r.top + r.height/2)) / 18, -10, 10);
+    setFaceOffset(landFace, dx, dy, landFace.closest('.island'));
+  }
+  // 台词轮换：同一主体有两句就换着说，不连着重复同一句（没写 lines 的退回 words）
+  function pickLine(f){
+    const list = f.lines && f.lines.length ? f.lines : (f.words ? [f.words] : []);
+    if (!list.length) return null;
+    if (list.length === 1) return list[0];
+    let i = Math.floor(Math.random() * list.length);
+    if (i === f._last) i = (i + 1) % list.length;
+    f._last = i;
+    return list[i];
+  }
+  function landSay(words){
+    if (!words) return;
+    clearTimeout(landLookTimer); clearInterval(landTypedTimer);
+    landThink.classList.add('is-on');
+    landSpeech.className = 'thought'; landSpeech.innerHTML = '';
+    landLookTimer = setTimeout(() => {
+      landThink.classList.remove('is-on');
+      landSpeech.className = 'thought is-on';
+      landSpeech.innerHTML = `<span class="thought__say"></span>`;
+      landTypedTimer = typeWords(landSpeech.firstElementChild, words);   // 同一套 BOT 语言规则
+    }, 1500);
+  }
+  function landFocus(i){
+    if (!isAwake()) return;   // 只有陪我们一起看视频时才捕捉主体、移动眼睛
+    landIdx = (i + LAND_FOCI.length) % LAND_FOCI.length;
+    const f = LAND_FOCI[landIdx];
+    landReticle.style.left = f.x + '%'; landReticle.style.top = f.y + '%';
+    landReticle.classList.add('is-on');
+    landGazePoint(f.x, f.y);          // 看东西
+    landSay(pickLine(f));             // 思考 → 说话（同一主体轮换台词）
+  }
+  land.querySelectorAll('.land-hit').forEach((h,i)=>h.addEventListener('pointerenter',()=>{ landMouse=true; landFocus(i); }));
+  land.addEventListener('pointermove', e => {
+    if (!isAwake()) return;   // 离开 / 睡眠 / 断网：不跟随鼠标或画面
+    const sr = land.getBoundingClientRect();
+    const dx = clamp((e.clientX - (sr.left + sr.width/2)) / 14, -16, 16);
+    const dy = clamp((e.clientY - (sr.top + sr.height/2)) / 18, -10, 10);
+    setFaceOffset(landFace, dx, dy, landFace.closest('.island'));
+  });
+  land.addEventListener('pointerleave', () => {
+    landMouse = false;
+    if (showState !== 'error') landFace.style.transform = '';   // 断网中保持定格
+  });
+  // 换主体 4.2s：思考 1.5s + 吐词约 0.8s，留 2s 让这句话停住被读完（原来 3.2s，刚吐完就被下一句顶掉）
+  setInterval(() => { if (isAwake() && !landMouse) landFocus(landIdx + 1); }, 4200);
+  setTimeout(() => landFocus(0), 0);   // 等 clamp 定义完成再初始化，避免 TDZ
+
+  // ── 眼珠跟踪 ──
+  // 岛里的眼睛只看自己的画面主体（鼠标移上去＝指定目标，光圈锁过去；不动＝自动逐个换）；
+  // 其余醒着的小电视仍跟着鼠标走，睡着/专注自己内容的除外。
+  const trackers = [...document.querySelectorAll('.face-follow')]
+    .map(el => ({ el, tv: el.closest('.tv'), frame: el.closest('.frame-view') }))
+    // 整机 + 播放框里的表情都跟鼠标；岛内交给注视逻辑；睡脸不跟鼠标
+    .filter(t => (t.tv || t.frame) && !t.tv?.closest('.island') && !t.el.classList.contains('face--sleep'));
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  // 眼睛位移的硬边界：先试放目标位移，再按实际渲染矩形把超出框的部分减回去。
+  // getBoundingClientRect 包含描边与表情附属元素，因此眨眼/尾巴等状态也不会越框。
+  function setFaceOffset(face, dx, dy, frame){
+    if (!face || !frame) return;
+    if (face.closest('#islandStage') && !isAwake()) return;  // 两屏 BOT 仅苏醒时允许视线位移
+    const prevTransition = face.style.transition;
+    face.style.transition = 'none';                         // 测量时不要让过渡动画干扰实际位置
+    face.style.transform = `translate(${dx}px, ${dy}px)`;
+    const eye = face.getBoundingClientRect();
+    const box = frame.getBoundingClientRect();
+    const pad = 1;
+    let fixX = 0, fixY = 0;
+    if (eye.left < box.left + pad) fixX = box.left + pad - eye.left;
+    else if (eye.right > box.right - pad) fixX = box.right - pad - eye.right;
+    if (eye.top < box.top + pad) fixY = box.top + pad - eye.top;
+    else if (eye.bottom > box.bottom - pad) fixY = box.bottom - pad - eye.bottom;
+    if (fixX || fixY){
+      // 直接测出一个位移单位对应多少屏幕像素，避免依赖 SVG viewBox 换算假设。
+      face.style.transform = `translate(${dx + 1}px, ${dy}px)`;
+      const unitX = face.getBoundingClientRect().left - eye.left || 1;
+      face.style.transform = `translate(${dx}px, ${dy + 1}px)`;
+      const unitY = face.getBoundingClientRect().top - eye.top || 1;
+      dx += fixX / unitX; dy += fixY / unitY;
+    }
+    face.style.transform = `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px)`;
+    face.style.transition = prevTransition;
+  }
+
+  let lastMove = Date.now();
+  let mouseActive = false;
+  addEventListener('pointermove', e => {
+    lastMove = Date.now();
+    if (!isAwake()) return;   // 全局硬限制：非陪看状态不执行任何眼睛跟踪
+    if (!mouseActive){
+      mouseActive = true;
+      trackers.forEach(t => t.el.classList.remove('gazing'));
+    }
+    for (const t of trackers){
+      if ((showState === 'sleep' || showState === 'away' || showState === 'error') && t.tv?.closest('#islandStage')) continue;   // 睡眠/离开/断网：两屏不跟
+      if (t.tv && (t.tv.classList.contains('tv--nightsleep') || t.tv.classList.contains('tv--nolook'))) continue;
+      const r = (t.frame || t.tv).getBoundingClientRect();   // 播放框用它自己的框算中心，保证框内也跟着鼠标
+      const span = t.frame ? 12 : 18;                         // 框更小，位移系数收紧，眼珠不出框
+      const dx = clamp((e.clientX - (r.left + r.width / 2)) / span, -9, 9);
+      const dy = clamp((e.clientY - (r.top + r.height / 2)) / (t.frame ? 16 : 24), -5, 5);
+      const frame = t.frame || t.tv.querySelector('.tv__screen') || t.tv;
+      setFaceOffset(t.el, dx, dy, frame);
+    }
+    // 左图：鼠标在手机附近时，岛上眼睛实时跟着鼠标在整个岛内移动
+    const g = ISLAND_GAZE[0];
+    if (g && isAwake()){
+      const sr = g.host.getBoundingClientRect();
+      const near = e.clientX >= sr.left - 80 && e.clientX <= sr.right + 80 &&
+                   e.clientY >= sr.top - 80 && e.clientY <= sr.bottom + 80;
+      if (near){
+        g.mouseNear = true;
+        g.face.classList.remove('gazing');
+        lookAtPoint(g, e.clientX, e.clientY);
+      } else if (g.mouseNear){
+        g.mouseNear = false;
+        g.face.classList.add('gazing');
+      }
+    }
+  });
+
+  // 视线映射：画面内容区域 → 岛内位移。MAX_X/Y 只是期望的目标幅度；
+  // 真正写入前统一由 setFaceOffset 按眼睛实际渲染矩形收紧，任何状态下都不越框。
+  const CONTENT = {
+    phone1: { x0:3, x1:97, y0:29, y1:53 },   // 西游记视频在竖屏截图里的位置
+  };
+  const MAX_X = 96, MAX_Y = 27;
+  function gazeTo(g, px, py){                 // px/py＝相对手机屏幕的百分比
+    const box = CONTENT[g.host.id];
+    const nx = clamp((px - box.x0) / (box.x1 - box.x0), 0, 1);
+    const ny = clamp((py - box.y0) / (box.y1 - box.y0), 0, 1);
+    setFaceOffset(g.face, (nx*2-1)*MAX_X, (ny*2-1)*MAX_Y, g.face.closest('.island'));
+  }
+  function lookAtPoint(g, cx, cy){            // 鼠标客户端坐标 → 屏幕百分比
+    const sr = g.host.getBoundingClientRect();
+    gazeTo(g, (cx - sr.left) / sr.width * 100, (cy - sr.top) / sr.height * 100);
+  }
+
+  // 每个屏幕只有一个光圈：平滑挪到目标 → 维持锁定；眼睛同步看向该目标
+  const ISLAND_GAZE = ['phone1'].map(pid => {
+    const host = document.getElementById(pid);
+    const g = {
+      host,
+      foci: FOCI[pid],
+      hits: [...host.querySelectorAll('.focus-hit')],
+      reticle: host.querySelector('.reticle'),
+      thought: host.querySelector('.thought'),
+      thinkDots: host.querySelector('.think-dots'),
+      face: host.querySelector('.face-follow'),
+      island: host.querySelector('.island__face'),
+      idx: -1,
+      held: false,          // 鼠标是否正停在某个主体上
+      mouseNear: false,     // 鼠标是否在这台手机附近（左图：实时跟随）
+    };
+    g.hits.forEach((hit, i) => {
+      hit.addEventListener('pointerenter', () => { g.held = true; if (isAwake()) lockFocus(g, i); });
+      hit.addEventListener('pointerleave', () => { g.held = false; });
+    });
+    return g;
+  });
+  // BOT 语言规则：台词＝基于画面说的短念头（观感/愿望），像人脱口而出——不堆主语、不用代词指代画面；
+  // 逐词吐出但词直接连成句、不加任何分隔符；思考阶段只有岛下 4 个白点依次亮。
+  const TYPED_MS = 280;   // 吐词快一点，句子才来得及在换主体前读完（原来 320 吐完只剩不到 1 秒）
+  // 逐词吐：我 → 我喜欢 → 我喜欢八戒（无分隔符）
+  function typeWords(span, words){
+    let k = 0, timer;
+    timer = setInterval(() => {
+      span.textContent = words.slice(0, ++k).join('');
+      if (k >= words.length) clearInterval(timer);
+    }, TYPED_MS);
+    return timer;
+  }
+  function showThought(g, words){
+    if (!g.thought) return;
+    clearTimeout(thoughtTimer); clearInterval(typedTimer);
+    const dots = g.thinkDots, bubble = g.thought;
+    dots.classList.add('is-on');                              // 四个白点依次亮起
+    bubble.className = 'thought';                             // 先不显示气泡
+    bubble.innerHTML = '';
+    thoughtTimer = setTimeout(() => {
+      dots.classList.remove('is-on');
+      bubble.className = 'thought is-on';
+      bubble.innerHTML = `<span class="thought__say"></span>`;
+      typedTimer = typeWords(bubble.firstElementChild, words);
+    }, 1500);
+  }
+  function lockFocus(g, i){
+    if (!isAwake()) return;   // 内容焦点跟随同样只属于陪看状态
+    g.idx = (i + g.foci.length) % g.foci.length;
+    const f = g.foci[g.idx];
+    // 光圈按百分比定位（相对手机屏幕），并亮起维持
+    g.reticle.style.left = f.x + '%';
+    g.reticle.style.top  = f.y + '%';
+    g.reticle.classList.add('is-on');
+    // 视线：焦点在画面里的位置 → 岛内对应位置（画面左→岛左，画面右下→岛右下）
+    gazeTo(g, f.x, f.y);
+    g.face.classList.add('gazing');
+    if (f.lines || f.words) {                                          // 左图：角色触发想法
+      const line = pickLine(f);
+      if (line) showThought(g, line);
+    }
+  }
+  // ── 演出状态：陪伴 / 睡眠（离开先占位）；切换两屏 BOT 的脸与行为 ──
+  let showState = 'company';
+  // 三模式只有 company/sleep/away；drowsy 不是并列模式，是 sleep 被双击叫醒后的过渡态，行为完全等同 company。
+  const isAwake = () => showState === 'company' || showState === 'drowsy';
+  const islandStage = document.getElementById('islandStage');
+  const portraitFace = ISLAND_GAZE[0].face;                 // 竖屏岛里的 face-follow
+  const companyPortrait = portraitFace.innerHTML;           // 陪伴态：竖条眼
+  const companyLand = landFace.innerHTML;                   // 陪伴态：横屏 BOT 的竖条眼
+  // 换脸过渡：旧脸淡出 → 换 innerHTML → 新脸淡入。快速连切时取消上一次，最终只显示最新态。
+  let morphTimer = null;
+  function clearMorph(){
+    clearTimeout(morphTimer); morphTimer = null;
+    [portraitFace, landFace].forEach(f => f && f.classList.remove('face-morphing'));
+  }
+  function morphFaces(pHTML, lHTML){
+    clearMorph();
+    [portraitFace, landFace].forEach(f => f && f.classList.add('face-morphing'));
+    morphTimer = setTimeout(() => {
+      if (portraitFace) portraitFace.innerHTML = pHTML;
+      if (landFace) landFace.innerHTML = lHTML;
+      [portraitFace, landFace].forEach(f => f && f.classList.remove('face-morphing'));
+      morphTimer = null;
+    }, 190);
+  }
+  // 困倦脸＝那张 = =（两只眼各两条横线），两屏同步固定一张，不轮换
+  const DROWSY_FACE = islandFaceLayers(DROWSY[2]);
+  let backToSleepTimer = null;
+  // 被惊醒：气泡里逐字打字——先打出"？？"，停一下，再打出"干嘛"；两屏同款
+  const wakeSays = [...document.querySelectorAll('.wake-say')];
+  let followUpTimer = null, wakeTypeTimer = null, wakeDelayTimer = null, wakeHideTimer = null;
+  const WAKE_MS = 200;                         // 每字间隔
+  function hideWake(){ wakeSays.forEach(el => el.classList.remove('is-on')); }
+  function typeWake(text, done){               // 逐字打字，两屏同步；打完停留一会儿再隐去
+    clearInterval(wakeTypeTimer); clearTimeout(wakeDelayTimer); clearTimeout(wakeHideTimer);
+    wakeSays.forEach(el => { el.textContent = ''; el.classList.add('is-on'); });
+    let i = 0;
+    wakeTypeTimer = setInterval(() => {
+      i++;
+      wakeSays.forEach(el => el.textContent = text.slice(0, i));
+      if (i >= text.length){
+        clearInterval(wakeTypeTimer);
+        wakeHideTimer = setTimeout(hideWake, 2600);
+        done && done();
+      }
+    }, WAKE_MS);
+  }
+  function playWake(){
+    typeWake('？？', () => {                    // 先打字打出问号
+      wakeDelayTimer = setTimeout(() => typeWake('干嘛？'), 500);   // 停一下再打"干嘛？"
+    });
+    clearTimeout(followUpTimer);
+    followUpTimer = setTimeout(() => {         // 6 秒没人搭话 → 追问（也逐字打）
+      if (showState === 'drowsy') typeWake('需要我陪你一会儿吗？');
+    }, 6000);
+  }
+  function armBackToSleep(){                                  // 困倦时 30 秒没互动 → 重新睡着
+    clearTimeout(backToSleepTimer);
+    backToSleepTimer = setTimeout(() => { if (showState === 'drowsy') setShowState('sleep'); }, 30000);
+  }
+  let reconnectTimer = null, isReconnecting = false;
+  // ── 离开交互：0=播放中；1=回来查看；2=正式返回；3=正在过场（忽略重复点击） ──
+  const awayTitles = [...document.querySelectorAll('.away-title')];
+  let awayStep = 0, awayTitleTimer = null, awayCheckTimer = null, awayReturnTimer = null;
+  let awayActionTimer = null, awayPhaseTimer = null;
+  function hideAwayTitles(){ awayTitles.forEach(el => el.classList.remove('is-on')); }
+  function resetAwayInteraction(){
+    clearTimeout(awayTitleTimer); clearTimeout(awayCheckTimer); clearTimeout(awayReturnTimer);
+    clearTimeout(awayActionTimer); clearTimeout(awayPhaseTimer);
+    awayStep = 0;
+    islandStage.classList.remove('away-checking', 'away-returning', 'away-playing');
+    hideAwayTitles();
+  }
+  function startAwayPlayback(delay = 720){
+    clearTimeout(awayActionTimer); clearTimeout(awayPhaseTimer);
+    awayStep = 3;
+    islandStage.classList.remove('away-playing');
+    awayActionTimer = setTimeout(() => {
+      if (showState !== 'away') return;
+      islandStage.classList.add('away-playing');  // 厚横眼开始像电视一样柔和闪烁
+      awayStep = 0;
+    }, delay);
+  }
+  function driftBackToAway(){
+    if (showState !== 'away' || awayStep !== 1) return;
+    clearTimeout(awayTitleTimer); clearTimeout(awayCheckTimer);
+    hideAwayTitles();
+    islandStage.classList.remove('away-checking'); // 先切回暂停态的单个 ▶，不做远近移动
+    startAwayPlayback(650);                        // 再按播放，屏幕才接着闪
+  }
+  function checkFromAway(){
+    if (awayStep !== 0) return;
+    awayStep = 3;
+    clearTimeout(awayTitleTimer); clearTimeout(awayCheckTimer);
+    clearTimeout(awayActionTimer); clearTimeout(awayPhaseTimer);
+    hideAwayTitles();
+    islandStage.classList.remove('away-playing');  // ① 两侧键先收起，中央 ▶ 淡入并停留
+    awayPhaseTimer = setTimeout(() => {
+      if (showState !== 'away' || awayStep !== 3) return;
+      awayStep = 1;
+      islandStage.classList.add('away-checking');  // ② 约 0.9 秒后，▶ 再淡出、常态眼睛淡入
+      awayTitles.forEach(el => el.classList.add('is-on'));
+      awayTitleTimer = setTimeout(hideAwayTitles, 4200);
+      awayCheckTimer = setTimeout(driftBackToAway, 5000);
+    }, 900);
+  }
+  function returnFromAway(){
+    if (awayStep !== 1) return;
+    awayStep = 2;
+    clearTimeout(awayTitleTimer); clearTimeout(awayCheckTimer);
+    clearTimeout(awayActionTimer); clearTimeout(awayPhaseTimer);
+    hideAwayTitles();
+    islandStage.classList.remove('away-checking', 'away-playing');
+    islandStage.classList.add('away-returning');
+    awayReturnTimer = setTimeout(() => { if (showState === 'away') setShowState('company'); }, 520);
+  }
+  function tapAwayBot(){
+    if (showState !== 'away') return;
+    if (awayStep === 0) checkFromAway();
+    else if (awayStep === 1) returnFromAway();
+  }
+  awayTitles.forEach(title => title.addEventListener('click', e => {
+    e.stopPropagation();
+    // 后续接跳转时监听 bot-away-video；当前只抛事件，不改变本页视频。
+    title.dispatchEvent(new CustomEvent('bot-away-video', {
+      bubbles:true, detail:{ videoId:AWAY_VIDEO.id, title:AWAY_VIDEO.title }
+    }));
+  }));
+  function setShowState(mode){
+    showState = mode;
+    isReconnecting = false;
+    resetAwayInteraction();
+    clearMorph();                                           // 取消上一次未完成的换脸，避免旧态覆盖新态
+    clearTimeout(backToSleepTimer); clearTimeout(followUpTimer); clearTimeout(reconnectTimer);
+    clearInterval(wakeTypeTimer); clearTimeout(wakeDelayTimer); clearTimeout(wakeHideTimer);
+    if (mode !== 'drowsy') wakeSays.forEach(el => { el.classList.remove('is-on'); el.textContent = ''; });
+    document.querySelectorAll('#showCtrl button').forEach(b => {
+      b.classList.toggle('active', b.dataset.show === mode);
+      if (b.dataset.show === 'error') b.textContent = mode === 'error' ? '恢复连接' : '异常 · 断网（覆盖）';
+    });
+    islandStage.classList.toggle('state-sleep', mode === 'sleep');
+    islandStage.classList.toggle('state-drowsy', mode === 'drowsy');
+    islandStage.classList.toggle('state-away', mode === 'away');
+    islandStage.classList.toggle('state-error', mode === 'error');
+    islandStage.classList.remove('reconnecting');
+    clearTimeout(thoughtTimer); clearInterval(typedTimer);   // 清掉进行中的台词/思考
+    clearTimeout(landLookTimer); clearInterval(landTypedTimer);
+    if (mode !== 'error'){                                  // 断网时保留当前的视线位移，原地定格
+      portraitFace.style.transform = ''; landFace.style.transform = '';
+    }
+    portraitFace.classList.remove('gazing');
+    if (mode === 'sleep'){
+      morphFaces(islandFaceLayers(SLEEP_FACE), islandFaceLayers(SLEEP_FACE));
+    } else if (mode === 'drowsy'){
+      // drowsy 仅作过渡标记：30s 无互动回 sleep；用户说话/双击 → 切回 company
+      morphFaces(DROWSY_FACE, DROWSY_FACE);                  // 固定 = =，不轮换
+      armBackToSleep();
+    } else if (mode === 'away'){
+      // 刚离开：透明玻璃变磨砂，原地露出单个 ▶；稍后自动按下，展开完整播放控件。
+      // 保留双层 DOM，让眼睛与播放组件原地交叉淡化；只把回看用的脸恢复成常态眼睛。
+      clearMorph();
+      [portraitFace, landFace].forEach(f => {
+        const look = f.querySelector('.island-look');
+        if (look && f.querySelector('.island-player')) look.innerHTML = EYES_BARS;
+        else f.innerHTML = AWAY_FACE;
+      });
+      startAwayPlayback(620);
+    } else if (mode === 'error'){
+      // 断网：保留当前位置，只把竖条眼变灰定格
+      morphFaces(islandFaceLayers(EYES_BARS), islandFaceLayers(EYES_BARS));
+    } else {                                                // 醒着：恢复竖条眼
+      morphFaces(companyPortrait, companyLand);
+    }
+  }
+  function reconnect(){                                     // 原地把空心眼变回实心，再恢复跟随
+    if (isReconnecting) return;
+    isReconnecting = true;
+    const errorBtn = document.querySelector('#showCtrl button[data-show="error"]');
+    if (errorBtn) errorBtn.textContent = '恢复中…';
+    morphFaces(companyPortrait, companyLand);
+    reconnectTimer = setTimeout(() => setShowState('company'), 400);
+  }
+  document.getElementById('showCtrl').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-show]');
+    if (!btn || btn.disabled) return;
+    if (btn.dataset.show === 'error'){
+      if (showState === 'error') reconnect();                // 断网态再点＝像素聚合、重新开机
+      else setShowState('error');
+    } else setShowState(btn.dataset.show);
+  });
+  // 两屏任一 BOT 都可操作：离开时单击；睡眠时双击惊醒。
+  const botTapTargets = [portraitFace.closest('.island'), landBot];
+  botTapTargets.forEach(el => {
+    el && el.addEventListener('click', tapAwayBot);
+    el && el.addEventListener('dblclick', () => {
+      if (showState === 'sleep'){ setShowState('drowsy'); playWake(); }   // 惊醒：问号 + "干嘛？"
+      else if (showState === 'drowsy'){ clearTimeout(followUpTimer); clearTimeout(wakeHideTimer); hideWake(); armBackToSleep(); }  // 有互动＝已回话，撤掉追问
+    });
+  });
+  // 困倦时鼠标在手机上互动 → 续时；同时算"回话"，撤掉追问
+  islandStage.addEventListener('pointermove', () => {
+    if (showState === 'drowsy'){ clearTimeout(followUpTimer); clearTimeout(wakeHideTimer); hideWake(); armBackToSleep(); }
+  });
+
+  function idleTick(){
+    if (!isAwake()) return;                                     // 睡眠：停掉焦点环/思考/台词轮播
+    if (Date.now() - lastMove < 1400) return;                 // 鼠标还热着 → 先不动
+    if (mouseActive){
+      mouseActive = false;
+      trackers.forEach(t => { t.el.style.transform = ''; t.el.classList.remove('gazing'); });
+    }
+    ISLAND_GAZE.forEach(g => {
+      if (g.held || g.mouseNear) return;                      // 鼠标停在主体上 / 在手机附近 → 保持
+      lockFocus(g, g.idx + 1);                                // 否则换下一个主体，光圈跟着挪
+    });
+  }
+  ISLAND_GAZE.forEach(g => lockFocus(g, 0));                  // 初始就锁住第一个主体
+  setInterval(idleTick, 2600);
+
+  // ── 表情选择器：选情绪 → 点表情 → 两屏 BOT 同步换脸 ──
+  const PICKER_CATS = [
+    { key:'excited',    name:'开心',   items:GALLERY[0].items },
+    { key:'shy',        name:'害羞',   items:GALLERY[1].items },
+    { key:'cry',        name:'哭哭',   items:GALLERY[2].items },
+    { key:'scared',     name:'害怕',   items:GALLERY[3].items },
+    { key:'bored',      name:'无聊',   items:GALLERY[4].items },
+    { key:'angry',      name:'生气',   items:GALLERY[5].items },
+    { key:'drowsy',     name:'困倦',   items:GALLERY[6].items },
+    { key:'nightsleep', name:'睡着',   items:GALLERY[7].items },
+  ];
+  const pickerBar = document.getElementById('pickerBar');
+  const pickerGrid = document.getElementById('pickerGrid');
+  pickerBar.innerHTML = PICKER_CATS.map((c, i) =>
+    `<button data-cat="${c.key}" class="${i === 0 ? 'active' : ''}">${c.name}</button>`).join('');
+
+  function itemRawFace(it){
+    if (it.face) return it.face;
+    if (it.svg === SLEEP_SVG) return SLEEP_FACE;
+    return BARS_A;   // 收敛 / 半可见：竖条眼·素颜
+  }
+  function renderPicker(key){
+    const cat = PICKER_CATS.find(c => c.key === key);
+    pickerGrid.innerHTML = cat.items.map((it, i) => {
+      return `<div class="picker-card" data-i="${i}">
+        <div class="tv-wrap">${frameFace(it)}</div>
+        <span>${it.label}</span>
+      </div>`;
+    }).join('');
+  }
+  // 演出状态跟随表情类别：睡着的两个表情 → 睡眠演出；其余情绪脸 → 醒着陪看
+  function applyFaceToPhones(face, targetState){
+    const want = targetState || 'company';
+    if (showState !== want) setShowState(want);
+    [portraitFace, landFace].forEach(f => {
+      f.style.transform = '';
+      f.classList.remove('gazing');
+    });
+    const html = islandFaceLayers(face);
+    morphFaces(html, html);   // setShowState 若已 morph，这里覆盖成选中的具体脸（clearMorph 会取消前一次）
+  }
+  pickerBar.addEventListener('click', e => {
+    const b = e.target.closest('button[data-cat]');
+    if (!b) return;
+    pickerBar.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+    renderPicker(b.dataset.cat);
+  });
+  pickerGrid.addEventListener('click', e => {
+    const card = e.target.closest('.picker-card');
+    if (!card) return;
+    const key = pickerBar.querySelector('button.active').dataset.cat;
+    const cat = PICKER_CATS.find(c => c.key === key);
+    const it = cat.items[+card.dataset.i];
+    applyFaceToPhones(itemRawFace(it), key === 'nightsleep' ? 'sleep' : 'company');
+    pickerGrid.querySelectorAll('.picker-card').forEach(x => x.classList.toggle('active', x === card));
+  });
+  renderPicker(PICKER_CATS[0].key);
+</script>
+<script>
+(function(){
+  if(!document.documentElement.classList.contains('embed-landscape')) return;
+  var fitTimer = null;
+  function postHeight(){
+    if(window.parent === window) return;
+    var page = document.querySelector('.page');
+    var style = getComputedStyle(document.body);
+    var contentHeight = page ? page.getBoundingClientRect().height : document.body.getBoundingClientRect().height;
+    window.parent.postMessage({
+      type:'video-demo-height',
+      height:Math.ceil(contentHeight + parseFloat(style.paddingTop) + parseFloat(style.paddingBottom))
+    }, '*');
+  }
+  function fit(){
+    var available = Math.max(240, document.documentElement.clientWidth);
+    document.documentElement.style.setProperty('--land-fit', (available / 980).toFixed(4));
+    clearTimeout(fitTimer);
+    fitTimer = setTimeout(postHeight, 60);
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('load', fit);
+  if(window.ResizeObserver) new ResizeObserver(fit).observe(document.body);
+  fit();
+  setTimeout(fit, 500);
+})();
+</script>
+</body>
+</html>

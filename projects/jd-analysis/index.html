@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>智能JD分析 · 静态演示</title>
+  <script>
+    (function () {
+      if (/[?&]embed=demo(?:&|$)/.test(location.search)) {
+        document.documentElement.classList.add('embed-demo');
+      }
+    })();
+  </script>
+  <!-- 站点图标：直接内联那个品牌折线（深底白线），省一个文件也省一次 404。
+       之前浏览器会自动去要 /favicon.ico，项目里没这个文件，控制台每开一次就冒一条 404。 -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' rx='4' fill='%23191919'/%3E%3Cpath d='M4 13.5L8 8.5L11 11.5L16 5.5' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cpath d='M13 5.5H16V8.5' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- 顶部导航：四个视图上方都可见，左品牌、右四个入口 -->
+  <header class="topnav">
+    <div class="topnav-inner">
+      <button class="brand" id="brandHome" type="button">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+            <path d="M4 13.5L8 8.5L11 11.5L16 5.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M13 5.5H16V8.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-name">智能JD分析</span>
+      </button>
+
+      <nav class="nav" aria-label="主导航">
+        <a class="nav-item nav-back" href="../../index.html#work-jd" title="返回简历">← 返回简历</a>
+        <button class="nav-item" id="btnAnalysisTop" type="button">职位对比</button>
+        <button class="nav-item" id="btnHistoryTop" type="button">历史档案</button>
+        <button class="nav-item" id="btnMine" type="button">我的简历</button>
+        <button class="nav-item" id="btnSettings" type="button">设置</button>
+        <span class="demo-tag" title="静态演示：不连任何后端，数据为项目自带示例">静态演示 · 示例数据</span>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <!-- 首页 -->
+    <section class="view view-home" id="viewHome">
+      <h1 class="hero-title">输入JD，快速获得<br>全面可靠的分析报告</h1>
+      <p class="hero-sub">支持上传BOSS直聘、脉脉等JD链接、截图；没有JD？也可以通过简单问答快速建立分析档案</p>
+      <p class="hero-proof">演示库内 <b id="proofNum">26</b> 份分析记录</p>
+
+      <!-- 四个入口按「要不要装扩展」拆成两行，中间夹着扩展说明那一行；
+           三块一起放进 #inputActions，输入就绪时整体收起，帮助行不用再单独管 -->
+      <div class="fold-row" id="inputActions">
+        <!-- 第一行：这两条路都要靠浏览器扩展（中间那行说明讲的就是它们） -->
+        <div class="actions">
+          <button class="btn btn-outline" id="btnPaste" type="button">
+            <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <rect x="4.5" y="3.5" width="9" height="12" rx="1" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M7 8.5H11M7 11.5H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span>粘贴链接</span>
+            <svg class="check" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3.5 8.5L6.5 11.5L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          <button class="btn btn-outline" id="btnQr" type="button">
+            <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <rect x="2.5" y="2.5" width="5" height="5" rx="0.5" stroke="currentColor" stroke-width="1.5"/>
+              <rect x="10.5" y="2.5" width="5" height="5" rx="0.5" stroke="currentColor" stroke-width="1.5"/>
+              <rect x="2.5" y="10.5" width="5" height="5" rx="0.5" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M10.5 10.5H13V13M15.5 13V15.5H13M13 15.5H10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span>上传二维码</span>
+            <svg class="check" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3.5 8.5L6.5 11.5L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <input type="file" id="qrInput" accept="image/*" hidden>
+        </div>
+
+        <!-- 「粘贴链接」「上传二维码」这两条路要走浏览器扩展：就放在第一行下面，整行可点，
+             点开就是同一份安装教程（检测状态只改文案，不改颜色） -->
+        <p class="ext-need fold-row" id="extNeedLine">
+          <button type="button" class="ext-need-q" id="extHelpBtn" aria-label="「粘贴链接」「上传二维码」需安装浏览器扩展：点这里看安装步骤">?</button>
+          <button type="button" class="ext-need-txt" id="extHelpMore">「粘贴链接」「上传二维码」需安装浏览器扩展 —— 点这里看安装步骤</button>
+        </p>
+
+        <!-- 第二行：不需要扩展的两条路。没有 JD 链接、也没截图时，用 20 道自述题回答「我现在的工作」（问卷在 _self_survey.html） -->
+        <div class="actions">
+          <button class="btn btn-outline" id="btnShots" type="button">
+            <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <rect x="2.5" y="3.5" width="13" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="6.6" cy="7.2" r="1.2" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M2.5 12.6L6.4 9.2L9.4 12L11.9 9.6L15.5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>上传截图</span>
+            <svg class="check" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3.5 8.5L6.5 11.5L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <input type="file" id="shotInput" accept="image/*" multiple hidden>
+
+          <button class="btn btn-outline" id="btnSelfSurvey" type="button">
+            <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M2.6 4.5L3.7 5.6L5.6 3.6M2.6 9.5L3.7 10.6L5.6 8.6M2.6 14.5L3.7 15.6L5.6 13.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M8 4.5H15.5M8 9.5H15.5M8 14.5H14.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span>20 题分析我现在的工作</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 简历：还没有简历时提示上传，已有简历时这一行隐藏 -->
+      <p class="resume-hint" id="resumeHint" hidden>
+        上传简历，以获得更详细的分析报告。
+        <button class="link-btn" id="btnResumeUpload" type="button">上传简历</button>
+      </p>
+      <input type="file" id="resumeInput" accept=".pdf,.docx,.md,.markdown,.txt" hidden>
+
+
+      <!-- 输入就绪后：两行入口（含中间的扩展说明）整体收起（.fold-row），这一行展开 -->
+      <div class="cta-wrap fold-row collapsed" id="ctaWrap">
+        <button class="btn btn-solid" id="btnAnalyze" type="button">生成深度分析</button>
+        <button class="link-btn" id="btnReupload" type="button">重新上传</button>
+      </div>
+
+      <!-- 示例报告：按报告页的顺序轮播播放几屏（雷达图生成 → 逐维分析 → JD 解读 → 三张分析图），
+           「查看完整示例」进完整报告。样式与报告页共用同一套类名，不做另一版本。 -->
+      <!-- 最近报告：默认展开（放最近 3 条），点标题行可折叠（分页、排序都在历史档案页），点行进报告 -->
+      <section class="recent-block" id="recentBlock">
+        <div class="block-head" id="recentHead" role="button" tabindex="0" aria-expanded="true" aria-controls="recentBody">
+          <h2 class="block-title">最近报告<span class="fold-caret" aria-hidden="true"></span></h2>
+          <button class="block-more" id="btnAllHistory" type="button">查看全部<span class="case-arrow">→</span></button>
+        </div>
+        <div class="fold-body" id="recentBody">
+          <div class="fold-inner">
+            <div class="history-list" id="recentList"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 产品演示：按真实报告的顺序把完整流程演一遍（雷达图 → 总分 → 点维度 → 分析图 → 更多分析图 → logo） -->
+      <section class="block demo-block" id="demoBlock">
+        <div class="block-head">
+          <h2 class="block-title">产品演示<span class="block-note">演示数据</span></h2>
+          <button class="block-more" id="demoOpen" type="button">查看完整案例<span class="case-arrow">→</span></button>
+        </div>
+        <div class="demo-stage" id="demoStage"></div>
+      </section>
+
+    </section>
+
+    <!-- 解析页 -->
+    <section class="view view-report" id="viewReport" hidden>
+
+      <!-- 解析中：只有居中的进度圈，雷达图模块等第一个维度算出来再出现 -->
+      <section class="report-loading" id="reportLoading" hidden>
+        <span class="progress-ring loading-ring" id="loadingRing" aria-hidden="true">
+          <svg viewBox="0 0 20 20" width="30" height="30">
+            <circle cx="10" cy="10" r="7.5" fill="none" stroke="#f1f1ef" stroke-width="2"/>
+            <circle id="loadingArc" cx="10" cy="10" r="7.5" fill="none" stroke="#191919" stroke-width="2"
+              stroke-dasharray="47.12" stroke-dashoffset="47.12" transform="rotate(-90 10 10)"/>
+            <circle id="loadingDot" cx="10" cy="2.5" r="1.6" fill="#191919" opacity="1">
+              <animate attributeName="opacity" values="1;0.25;1" dur="1.1s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+        </span>
+        <p class="progress-label loading-label" id="loadingLabel">正在打开职位页面…</p>
+      </section>
+
+      <!-- 总分区：生成前完全不可见；生成时从零高度展开，雷达随之丝滑下移 -->
+      <section class="verdict-section" id="verdictSection" hidden>
+        <div class="verdict-inner">
+          <div class="verdict">
+            <div class="verdict-left">
+              <p class="score-label" id="scoreLabel">总分 / 原始分<span class="demo-tag" id="demoTag" hidden>演示数据</span><span class="mini-ring" id="miniScore" aria-hidden="true"></span></p>
+              <p class="score-value pending" id="scoreValue"><span id="overallScore">—</span><span class="score-unit" id="overallMax"> /100</span></p>
+            </div>
+            <div class="verdict-right">
+              <p class="verdict-job" id="verdictJob"></p>
+              <p class="verdict-line" id="verdictLine"><span id="verdictText"></span><span id="verdictPersonalText"></span><span class="mini-ring" id="miniVerdict" aria-hidden="true"></span></p>
+            </div>
+            <div class="verdict-hints" id="verdictHints" hidden>
+              <p class="verdict-hint" id="hintSalary" hidden></p>
+              <p class="verdict-hint" id="hintResume" hidden></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 雷达图（分析开始时先隐藏，第一个维度算出后再出现） -->
+      <section class="section" id="radarSection">
+        <div class="section-head">
+          <h2 class="section-title">雷达图</h2>
+          <span class="progress-ring" id="progressRing" aria-hidden="true">
+            <svg viewBox="0 0 20 20" width="18" height="18">
+              <circle cx="10" cy="10" r="7.5" fill="none" stroke="#f1f1ef" stroke-width="2"/>
+              <circle id="progressArc" cx="10" cy="10" r="7.5" fill="none" stroke="#191919" stroke-width="2"
+                stroke-dasharray="47.12" stroke-dashoffset="47.12"
+                transform="rotate(-90 10 10)"/>
+              <circle id="progressDot" cx="10" cy="2.5" r="1.6" fill="#191919" opacity="1">
+                <animate attributeName="opacity" values="1;0.25;1" dur="1.1s" repeatCount="indefinite"/>
+              </circle>
+            </svg>
+          </span>
+          <span class="progress-label" id="progressLabel">正在准备评估维度…</span>
+        </div>
+
+        <div class="radar-wrap">
+          <svg id="radar" viewBox="0 0 400 340" role="img" aria-label="六维评分雷达图"></svg>
+        </div>
+        <p class="radar-hint">同心环从内到外每 2 分一环：圆心 0 分、最外圈 10 分。点雷达图上的维度，看这一维的评分规则和举例</p>
+
+        <!-- 维度分析：点击雷达图上的维度标签展开 -->
+        <div class="dim-panel" id="dimPanel" hidden>
+          <div class="dim-panel-head">
+            <span class="dim-panel-name" id="dimPanelName"></span>
+            <span class="dim-meter" id="dimMeter"></span>
+            <span class="dim-panel-score" id="dimPanelScore"></span>
+          </div>
+          <div class="dim-panel-text" id="dimPanelText"></div>
+        </div>
+      </section>
+
+      <!-- 本次 JD 的职位对比图：标题固定「职位对比」，下面一行是可点的图名，点图名换图 -->
+      <section class="chart-slot" id="reportChartSlot" hidden></section>
+
+      <!-- 职位描述解读：对比图出现之后才生长出现 -->
+      <section class="section jd-section" id="jdSection" hidden>
+        <div class="section-head">
+          <h2 class="section-title jd-title" id="jdTitle" role="button" tabindex="0">职位描述解读<span class="jd-caret jd-title-caret" aria-hidden="true"></span></h2>
+          <span class="progress-ring" id="jdRing" aria-hidden="true">
+            <svg viewBox="0 0 20 20" width="18" height="18">
+              <circle cx="10" cy="10" r="7.5" fill="none" stroke="#f1f1ef" stroke-width="2"/>
+              <circle id="jdArc" cx="10" cy="10" r="7.5" fill="none" stroke="#191919" stroke-width="2"
+                stroke-dasharray="47.12" stroke-dashoffset="47.12"
+                transform="rotate(-90 10 10)"/>
+              <circle id="jdDot" cx="10" cy="2.5" r="1.6" fill="#191919" opacity="1">
+                <animate attributeName="opacity" values="1;0.25;1" dur="1.1s" repeatCount="indefinite"/>
+              </circle>
+            </svg>
+          </span>
+          <span class="progress-label" id="jdLabel">正在读取职位描述</span>
+        </div>
+        <div class="jd-body" id="jdBody"></div>
+      </section>
+      <section class="section audit-section" id="auditSection" hidden>
+        <details class="audit-details">
+          <summary class="audit-summary" id="auditSummary">分析过程</summary>
+          <div class="audit-body" id="auditBody"></div>
+        </details>
+      </section>
+      <p class="page-ai-note">由 AI 按 JD 与你已分析的岗位估算生成，仅供参考</p>
+    </section>
+
+    <!-- 职位对比（原「数据分析」）：各张对比图都在这一页 -->
+    <section class="view view-analysis" id="viewAnalysis" hidden>
+      <h1 class="page-title">快速进行<br>跨城市、多行业、多维度<br>职位量化分析、对比</h1>
+      <!-- 分析图槽位：一张图；进页面默认展开图名列表，点空白处收起 -->
+      <section class="chart-slot" id="chartSlot0"></section>
+      <template id="compareTpl">
+      <!-- 雷达图对比（标题由外层槽位提供；选择岗位按钮放在雷达图下方） -->
+      <p class="analysis-sub">选 2~3 个岗位，用同一张六维雷达图横向对比。</p>
+      <div class="compare-radar-wrap">
+        <svg class="compare-radar" id="compareRadar" viewBox="0 0 400 340" role="img" aria-label="岗位雷达图对比"></svg>
+        <div class="compare-empty" id="compareEmpty">点击下方「选择岗位」开始对比</div>
+      </div>
+      <div class="compare-head">
+        <button class="compare-toggle" id="compareToggle" type="button" aria-expanded="true">选择岗位<span class="jd-caret" aria-hidden="true"></span></button>
+      </div>
+      <div class="compare-list" id="compareList" hidden></div>
+      <div class="compare-table" id="compareTable"></div>
+      </template>
+      <p class="page-ai-note">由 AI 按 JD 与你已分析的岗位估算生成，仅供参考</p>
+    </section>
+
+    <!-- 我的简历 -->
+    <section class="view view-resume" id="viewResume" hidden>
+      <h1 class="page-title">我的简历</h1>
+      <p class="page-sub">只保存在本地浏览器，不会上传。</p>
+      <!-- 解析进度：一整行，平时收起；上传后由脚本点亮（圆环 + 分段文案） -->
+      <p class="resume-progress" id="resumeProgress" hidden>
+        <span class="progress-ring" id="resumeRing" aria-hidden="true">
+          <svg viewBox="0 0 20 20" width="18" height="18">
+            <circle cx="10" cy="10" r="7.5" fill="none" stroke="#f1f1ef" stroke-width="2"/>
+            <circle id="resumeArc" cx="10" cy="10" r="7.5" fill="none" stroke="#191919" stroke-width="2"
+              stroke-dasharray="47.12" stroke-dashoffset="47.12" transform="rotate(-90 10 10)"/>
+            <circle id="resumeDot" cx="10" cy="2.5" r="1.6" fill="#191919" opacity="1">
+              <animate attributeName="opacity" values="1;0.25;1" dur="1.1s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+        </span>
+        <span class="progress-label" id="resumeLabel">正在解析简历</span>
+      </p>
+      <div class="resume-body" id="resumeBody"></div>
+      <!-- 有简历时才出现：句内的两个动作，样式与 V2 的 resume-actions 对齐 -->
+      <div class="resume-actions" id="resumeActions" hidden>
+        <button class="link-btn" id="btnResumeMore" type="button">上传 / 更换</button>
+        <button class="link-btn" id="btnResumeClear" type="button">清空</button>
+      </div>
+    </section>
+
+    <!-- 历史档案：独立页面（排序、分页、删除都在这里） -->
+    <section class="view view-history" id="viewHistory" hidden>
+      <h1 class="page-title">历史档案</h1>
+      <p class="page-sub">只保存在本地浏览器，不会上传。</p>
+      <div class="history-sort" id="historySort" role="group" aria-label="排序方式">
+        <button type="button" class="history-sort-btn on" data-sort="recent">最新</button>
+        <button type="button" class="history-sort-btn" data-sort="salary">薪资</button>
+        <button type="button" class="history-sort-btn" data-sort="score">总分</button>
+        <button type="button" class="history-sort-btn" data-sort="base">原始分</button>
+        <button type="button" class="history-sort-btn" data-sort="growth">发展潜力</button>
+        <button type="button" class="history-sort-btn" data-sort="stable">稳定性</button>
+        <button type="button" class="history-sort-btn" data-sort="rest">休息时间</button>
+        <button type="button" class="history-dir-btn" id="historyDirBtn" data-dir="desc">反序 ↓</button>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </section>
+
+    <!-- 设置：独立一页（与「职位对比」「历史档案」同一条路径）。两块设置各配一张小图，
+         话说得少、图把关系讲清；改动立刻生效 -->
+    <section class="view view-settings" id="viewSettings" hidden>
+      <h1 class="page-title">设置</h1>
+      <p class="page-sub">只保存在本地浏览器，不会上传。</p>
+
+      <!-- 分数：大数字给谁。图＝两个分数的关系（原始分 × 匹配度 → 加权分） -->
+      <section class="set-block">
+        <div class="set-head">
+          <h2 class="set-title">分数</h2>
+          <!-- 胶囊里是两个词：前一个＝大数字给谁（深色加粗），后一个＝另一档；点一下对调 -->
+          <button type="button" class="settings-pill" id="scoreModeToggle" aria-pressed="false">
+            <span class="settings-pill-on" id="scoreModeOn">加权分</span>
+            <span class="settings-pill-off" id="scoreModeOff">原始分</span>
+          </button>
+        </div>
+        <figure class="set-fig">
+          <svg viewBox="0 0 640 116" role="img" aria-label="原始分乘以匹配度得到加权分">
+            <g class="set-fig-part" id="setFigBase">
+              <rect class="set-fig-box" x="0" y="26" width="180" height="64" rx="6"/>
+              <text class="set-fig-cap" x="90" y="54" text-anchor="middle">岗位本身值多少</text>
+              <text class="set-fig-num" x="90" y="78" text-anchor="middle">原始分 78</text>
+            </g>
+
+            <line class="set-fig-arrow" x1="196" y1="58" x2="404" y2="58"/>
+            <polygon class="set-fig-head" points="404,53 404,63 416,58"/>
+            <text class="set-fig-mul" x="300" y="44" text-anchor="middle">× 匹配度 0.8~1.2</text>
+            <text class="set-fig-mul2" x="300" y="80" text-anchor="middle">（按你的简历算）</text>
+
+            <g class="set-fig-part" id="setFigWeighted">
+              <rect class="set-fig-box" x="428" y="26" width="212" height="64" rx="6"/>
+              <text class="set-fig-cap" x="534" y="54" text-anchor="middle">按你的条件修正后</text>
+              <text class="set-fig-num" x="534" y="78" text-anchor="middle">加权分 82</text>
+            </g>
+          </svg>
+        </figure>
+        <p class="set-note" id="setScoreNote">大数字显示「加权分」。点上面的胶囊，两个词对调。</p>
+      </section>
+
+      <!-- 模型：本机 → 模型服务商。图＝发出去的是什么、留在本机的是什么 -->
+      <section class="set-block">
+        <div class="set-head">
+          <h2 class="set-title">模型</h2>
+          <button type="button" class="model-edit" id="btnModelEdit">更换</button>
+        </div>
+        <div class="set-head set-head-model" id="modelRow">
+          <span class="model-cur-name" id="modelCurName">读取中…</span>
+          <!-- 模型走哪儿：面板 / 环境 / 文件 / 默认；key 的来源在整行的 title 里 -->
+          <span class="model-cur-tag" id="modelCurTag" hidden></span>
+        </div>
+        <figure class="set-fig">
+          <svg viewBox="0 0 640 116" role="img" aria-label="分析时只把文本发给模型服务商">
+            <rect class="set-fig-box" x="0" y="26" width="180" height="64" rx="6"/>
+            <text class="set-fig-cap" x="90" y="54" text-anchor="middle">这台电脑</text>
+            <text class="set-fig-num" x="90" y="78" text-anchor="middle">key · 档案 · 截图</text>
+
+            <line class="set-fig-arrow" x1="196" y1="58" x2="404" y2="58"/>
+            <polygon class="set-fig-head" points="404,53 404,63 416,58"/>
+            <text class="set-fig-mul" x="300" y="48" text-anchor="middle">只发文本</text>
+            <text class="set-fig-mul2" x="300" y="80" text-anchor="middle">（JD，上传了简历才带简历）</text>
+
+            <rect class="set-fig-box" x="428" y="26" width="212" height="64" rx="6"/>
+            <text class="set-fig-cap" x="534" y="54" text-anchor="middle">模型服务商</text>
+            <text class="set-fig-num" id="setFigProvider" x="534" y="78" text-anchor="middle">读取中…</text>
+          </svg>
+        </figure>
+        <p class="set-note">key 只写在本机的 config.local.json，不上传；点右上「更换」换服务商或型号。</p>
+      </section>
+    </section>
+
+    <!-- 岗位自述：一份还没分析的自述草稿，答题成果先给用户看一眼；标题带大写数字序号 -->
+    <section class="view view-self" id="viewSelf" hidden>
+      <h1 class="page-title" id="selfTitle">已完成岗位自述档案</h1>
+      <div class="self-actions">
+        <button class="btn btn-solid" id="btnSelfAnalyze" type="button">现在进行分析</button>
+        <button class="btn btn-outline" id="btnSelfEdit" type="button">改一改，重新答题</button>
+        <button class="link-btn" id="btnSelfLater" type="button">暂不分析</button>
+      </div>
+      <p class="page-sub">这份自述还没分析——跑一遍六维评分，之后它就是一份普通档案。</p>
+      <div class="self-sum" id="selfSum"></div>
+      <div class="self-text" id="selfText"></div>
+    </section>
+  </main>
+
+  <!-- 长图预览浮层：入口按钮已按用户要求去掉，这套预览/导出先留着备用 -->
+  <div class="shot-modal" id="shotModal" hidden>
+    <div class="shot-backdrop" id="shotBackdrop"></div>
+    <div class="shot-panel" role="dialog" aria-modal="true" aria-label="长图预览">
+      <div class="shot-head">
+        <span>长图预览</span>
+        <button class="shot-close" id="shotClose" type="button" aria-label="关闭预览">×</button>
+      </div>
+      <div class="shot-body"><img id="shotImg" alt="岗位分析长图预览"></div>
+      <div class="shot-foot">
+        <button class="btn btn-outline" id="shotCancel" type="button">取消</button>
+        <button class="btn btn-solid" id="shotExport" type="button">导出图片</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模型接入：换服务商 / 填 key / 测连通。自己写的一层轻量 modal：点遮罩或 Esc 关掉 -->
+  <div class="model-modal" id="modelModal" hidden>
+    <div class="model-backdrop" id="modelBackdrop"></div>
+    <div class="model-panel" role="dialog" aria-modal="true" aria-label="模型接入">
+      <div class="model-head">
+        <span>模型接入</span>
+        <button class="shot-close" id="modelClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="model-body">
+        <p class="model-label">已保存的模型<span class="model-label-note">点任意一行即可切过去</span></p>
+        <div class="model-saved" id="modelSavedList"></div>
+        <p class="model-tip">保存过的模型都只存在你这台电脑的 config.local.json 里，换模型不用重新粘 key。</p>
+
+        <p class="model-label">服务商</p>
+        <div class="model-seg" id="modelSeg" role="group" aria-label="服务商">
+          <button type="button" class="model-seg-btn" data-provider="deepseek">DeepSeek</button>
+          <button type="button" class="model-seg-btn" data-provider="mimo">小米 MiMo</button>
+          <button type="button" class="model-seg-btn" data-provider="custom">自定义</button>
+        </div>
+
+        <p class="model-label">API Key</p>
+        <div class="model-key-row">
+          <input class="model-input" id="modelKeyInput" type="password" autocomplete="new-password" spellcheck="false" placeholder="sk-…">
+          <button class="model-paste" id="modelKeyPaste" type="button">粘贴</button>
+        </div>
+        <p class="model-tip">留空表示不修改已保存的 key</p>
+
+        <p class="model-label">接口地址</p>
+        <input class="model-input" id="modelEndpointInput" type="text" spellcheck="false" placeholder="https://…/v1/chat/completions">
+
+        <p class="model-label">模型名</p>
+        <select class="model-input model-select" id="modelModelSelect" aria-label="模型名"></select>
+        <input class="model-input model-other" id="modelModelInput" type="text" spellcheck="false" placeholder="手填型号，例如 deepseek-chat" hidden>
+        <p class="model-spec" id="modelSpecLine"></p>
+        <p class="model-tip" id="modelSpecNote"></p>
+
+        <p class="model-label">思考模式<span class="model-think-now" id="modelThinkNow"></span></p>
+        <div class="model-seg" id="modelThinkSeg" role="group" aria-label="思考模式">
+          <button type="button" class="model-seg-btn" data-thinking="off">更快（关）</button>
+          <button type="button" class="model-seg-btn" data-thinking="on">更准（开）</button>
+          <button type="button" class="model-seg-btn" data-thinking="auto">自动</button>
+        </div>
+        <p class="model-tip">关掉更快更省钱，开着通常更准；小米 MiMo 开着会明显变慢（实测一次调用能到 5 分钟）。</p>
+
+        <button class="model-adv-head" id="modelAdvToggle" type="button" aria-expanded="false" aria-controls="modelAdv">
+          <span>高级设置</span><span class="model-adv-caret" aria-hidden="true">⌄</span>
+        </button>
+        <div class="model-adv" id="modelAdv" hidden>
+          <p class="model-label">单次输出上限（token）</p>
+          <input class="model-input" id="modelMaxTokensInput" type="number" min="1" step="1000" placeholder="留空＝用默认">
+          <p class="model-tip">分析一条 JD 通常用不到 3 万，调小省钱，调大更稳</p>
+          <p class="model-label">温度（0–1.5）</p>
+          <input class="model-input" id="modelTempInput" type="number" min="0" max="1.5" step="0.1">
+        </div>
+
+        <p class="model-tip model-tip-sep">测试连接用的是已保存的配置——改了表单先点「保存」再测。</p>
+
+        <p class="model-source" id="modelSourceLine"></p>
+        <p class="model-result" id="modelResult"></p>
+
+        <p class="model-privacy">key 只保存在你自己的这台电脑（config.local.json / 环境变量），不会上传到任何地方；分析时才会随请求发给所选模型服务商。</p>
+      </div>
+      <div class="model-foot">
+        <button class="btn btn-outline" id="modelTest" type="button">测试连接</button>
+        <button class="btn btn-solid" id="modelSave" type="button">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 浏览器扩展引导：没装扩展的人点「粘贴链接 / 上传二维码」时弹出来。
+       做法与「模型接入」那层一样（遮罩 + 居中卡片 + × + Esc 关掉），类名走 ext-guide-*，两边不互相打架 -->
+  <div class="ext-guide-modal" id="extGuideModal" hidden>
+    <div class="ext-guide-backdrop" id="extGuideBackdrop"></div>
+    <div class="ext-guide-panel" role="dialog" aria-modal="true" aria-labelledby="extGuideTitle">
+      <div class="ext-guide-head">
+        <span id="extGuideTitle">「粘贴链接」需要浏览器扩展</span>
+        <button class="shot-close" id="extGuideClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="ext-guide-body">
+        <p class="ext-guide-why">招聘网站只认你自己的登录态，直接在后台去抓会被挡在风控页上。所以这一步交给浏览器扩展：它在你的浏览器里开一个隐藏标签页，把 JD 正文读回来。<b>不装扩展，「粘贴链接」和「上传二维码」都用不了</b>；「上传截图」和「20 题分析我现在的工作」不需要扩展。</p>
+        <ol class="ext-guide-steps">
+          <li>找到本工具文件夹（<code>启动.bat</code> 所在的那个文件夹），里面的 <code>extension</code> 就是要装的扩展目录。
+            <button class="ext-guide-copy" id="extGuideCopy" type="button">复制 extension 目录名</button>
+            <span class="ext-guide-tip">不知道文件夹在哪：先打开本工具文件夹，点一下窗口的地址栏把完整路径复制下来，再把 <code>extension</code> 接在末尾。</span>
+          </li>
+          <li>浏览器地址栏输入 <code>edge://extensions</code> 回车（Chrome 用 <code>chrome://extensions</code>）→ 打开左下角（有的版本在右下角）的「开发人员模式」。</li>
+          <li>点「加载解压缩的扩展」→ 选中刚复制的 <code>extension</code> 目录 → 回到本页按 <code>F5</code> 刷新。</li>
+        </ol>
+        <!-- 安装状态跟在「重新检测」旁边：一个标志（灰圈＝还没检测到 / 墨点＝已就绪）＋一句短话 -->
+        <p class="ext-guide-retest">
+          <span class="ext-guide-status" id="extGuideStatus">正在检测扩展…</span>
+          <button class="ext-guide-link" id="extGuideReset" type="button">重新检测</button>
+        </p>
+      </div>
+      <div class="ext-guide-foot">
+        <button class="btn btn-outline" id="extGuideSkip" type="button">先不装，改用上传截图</button>
+        <button class="btn btn-solid" id="extGuideContinue" type="button">我已安装，继续粘贴并分析</button>
+        <p class="ext-guide-err" id="extGuideErr" hidden>还是没检测到扩展：确认扩展列表里是「已启用」，然后按 F5 刷新本页再点一次</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="vendor/jsQR.js"></script>
+  <script src="score.js"></script>
+  <script src="archive.js"></script>
+  <script src="share.js"></script>
+  <!-- 访问口令：部署到公网时用（服务端设了 ACCESS_TOKEN 才生效）。必须排在 app.js 之前：
+       app.js 里的 postJson 会调 window.authHeaders 带头，没加载就会报错。
+       本机自用时它问一次 /api/auth-state 就跳过，全程无感。 -->
+  <script src="auth.js"></script>
+  <!-- 使用记录：只发使用事件（视图停留 / 关键动作），档案仍在 localStorage。
+       必须排在 app.js 之前：app.js 启动时就要调 Track.view / Track.event，加载失败也容错 -->
+  <script src="track.js"></script>
+  <!-- 静态演示专用：把前端原本发给 Express 的请求就地应答（数据取自项目自带样本）。
+       必须排在 app.js 之前。 -->
+  <script src="mock-data.js"></script>
+  <script src="mock.js"></script>
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      if (!document.documentElement.classList.contains('embed-demo')) return;
+      var stage = document.getElementById('demoStage');
+      var page = document.querySelector('.page');
+      if (!stage || !page) return;
+      var lastHeight = 0;
+
+      function reportHeight() {
+        var pageStyle = getComputedStyle(page);
+        var height = Math.ceil(
+          stage.getBoundingClientRect().height
+          + (parseFloat(pageStyle.paddingTop) || 0)
+          + (parseFloat(pageStyle.paddingBottom) || 0)
+        );
+        if (!height || Math.abs(height - lastHeight) < 1) return;
+        lastHeight = height;
+        parent.postMessage({ type: 'jd-demo-height', height: height }, '*');
+      }
+
+      if (window.ResizeObserver) new ResizeObserver(reportHeight).observe(stage);
+      window.addEventListener('load', reportHeight);
+      setTimeout(reportHeight, 100);
+    })();
+  </script>
+</body>
+</html>

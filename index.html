@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>林政豪 — AI 产品经理</title>
+<link rel="icon" href="data:,">
+<meta name="description" content="林政豪，AI 产品经理。建筑学出身，具备 Agent 0→1 与 Eval 0→1 完整经验。用作品证明：能把产品从想法做到落地。">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar" aria-hidden="true"></div>
+
+<header class="site-header" id="siteHeader">
+  <div class="wrap header-inner">
+    <a href="#top" class="brand">
+      <span class="brand-zh">林政豪</span>
+      <span class="brand-en">Lin Zhenghao</span>
+    </a>
+    <nav class="nav" id="nav">
+      <a href="#work"><span class="nav-idx">01</span>作品</a>
+      <a href="#experience"><span class="nav-idx">02</span>经历</a>
+      <a href="#about"><span class="nav-idx">03</span>能力</a>
+      <a href="#contact"><span class="nav-idx">04</span>联系</a>
+    </nav>
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle" aria-label="切换明暗主题">
+        <span class="tt-light">Light</span><span class="tt-sep">/</span><span class="tt-dark">Dark</span>
+      </button>
+      <button class="menu-btn" id="menuBtn" aria-label="菜单"><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap">
+    <h1 class="hero-display">
+      <span class="reveal-line"><span>Less is more<span class="accent">.</span></span></span>
+    </h1>
+
+    <div class="hero-grid">
+      <div class="hero-lead reveal">
+        <p class="hero-statement">我是林政豪，AI 产品经理。建筑学出身，做过商业项目运营，也从 0 到 1 设计、搭建过多个 Agent 和完整的运营、评测（Eval）体系。这些经历让我既关注业务是否成立，也在意产品的结构、体验和细节。</p>
+        <div class="hero-actions">
+          <a class="hero-cta hero-cta--primary" href="resume.pdf" download>下载完整简历 <span class="mono">PDF</span></a>
+          <a class="hero-cta" href="#work">查看 4 个项目 <span aria-hidden="true">↓</span></a>
+        </div>
+        <p class="hero-statement hero-statement--secondary">AI 缩短了需求到功能的距离——我希望通过克制的取舍，践行「少即是多」，搭建真正符合用户需求、想象的理想产品。</p>
+        <div class="capability-keywords" aria-label="能力关键词">
+          <span class="mono capability-label">CAPABILITY</span>
+          <div class="capability-list">
+            <span>需求洞察</span>
+            <span>产品规划</span>
+            <span>Agent 0→1</span>
+            <span>Workflow 编排</span>
+            <span>Prompt 工程</span>
+            <span>RAG / 知识库</span>
+            <span>工具调用</span>
+            <span>Eval 0→1</span>
+            <span>A/B Test</span>
+            <span>数据分析</span>
+            <span>Human-in-the-loop</span>
+            <span>权限边界</span>
+            <span>独立 Coding</span>
+            <span>用户研究</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="work-keywords reveal" aria-label="AI 作品快速导航">
+        <span class="mono capability-label">WORK</span>
+        <div class="capability-list">
+          <a href="#work-cs">智能客服 Agent</a>
+          <a href="#work-ecom">电商运营 Agent</a>
+          <a href="#work-jd">智能 JD 分析</a>
+          <a href="#work-video">视频平台陪伴 Bot</a>
+        </div>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WORK ============ -->
+<section class="section work-section" id="work">
+  <div class="wrap">
+    <div class="section-head work-section-head">
+      <h2 class="section-title serif">项目记录</h2>
+    </div>
+  </div>
+
+  <nav class="work-dots" id="workDots" aria-label="作品快速定位">
+    <a href="#work-cs" data-target="work-cs"><span class="wd-name">智能客服 Agent</span><span class="wd-num mono">01</span></a>
+    <a href="#work-ecom" data-target="work-ecom"><span class="wd-name">电商运营 Agent</span><span class="wd-num mono">02</span></a>
+    <a href="#work-jd" data-target="work-jd"><span class="wd-name">智能 JD 分析</span><span class="wd-num mono">03</span></a>
+    <a href="#work-video" data-target="work-video"><span class="wd-name">视频平台陪伴 Bot</span><span class="wd-num mono">04</span></a>
+  </nav>
+
+  <div class="wrap">
+
+    <!-- Project 01 -->
+    <article class="project-card project-card--pm reveal" id="work-cs">
+      <header class="pc-head">
+        <div class="pc-heading">
+          <div class="pc-kicker"><span class="mono pc-num">01</span><span class="mono pc-total">/ 04</span></div>
+          <h3 class="pc-title serif">智能客服 Agent</h3>
+          <p class="pc-tagline">让 Agent 承接高频简单咨询，让评测体系守住服务质量。</p>
+        </div>
+        <div class="pc-header-side">
+          <div class="pc-meta">
+            <span class="mono pc-date">2026.08 — 2026.09</span>
+            <span class="pc-role">项目发起人 &amp; 负责人</span>
+            <span class="pc-context">本地宝 · 平台商城｜内部项目（数据已脱敏）</span>
+            <span class="pc-scope">我的职责：问题定义、Agent 流程、Eval 与客服工作台方案；协作：客服、运营与开发</span>
+            <span class="badge-live"><span class="dot"></span>业务上线</span>
+          </div>
+          <a class="pc-btn" href="projects/cs-agent/index.html">体验静态演示 <span>↗</span></a>
+        </div>
+      </header>
+
+      <section class="cs-chat-showcase" aria-labelledby="csChatCaption">
+        <div class="cs-chat-showcase-head">
+          <div>
+            <span class="mono label">客户端体验 / CUSTOMER CHAT</span>
+            <p class="cs-chat-showcase-caption" id="csChatCaption">把一次退款咨询，从对话走到人工确认。</p>
+          </div>
+        </div>
+
+        <div class="cs-chat-showcase-grid">
+          <div class="cs-client-demo">
+            <div class="cs-client-head">
+              <div class="cs-client-title">
+                <strong>顾客会话</strong>
+                <span>在线 · 退款办理</span>
+              </div>
+              <div class="cs-client-head-actions">
+                <button class="cs-demo-btn" id="csDemoRun" type="button">演示</button>
+                <span class="cs-demo-tag mono">演示数据</span>
+                <button class="cs-new-chat" id="csNewChat" type="button">新对话</button>
+              </div>
+            </div>
+
+            <div class="cs-client-log" id="csChatLog" aria-live="polite">
+              <div class="cs-msg agent">您好，在的。需要查单、办理退款，还是找景点推荐？</div>
+            </div>
+
+            <div class="cs-client-footer">
+              <div class="cs-suggestions" aria-label="示例问题">
+                <button type="button" data-cs-suggest="refund">我想退款</button>
+                <button type="button" data-cs-suggest="recommend">行程推荐</button>
+              </div>
+              <form class="cs-client-composer" id="csChatForm">
+                <label for="csChatInput" hidden>输入咨询内容</label>
+                <button class="cs-icon-btn" id="csAttachBtn" type="button" aria-label="上传图片" title="上传图片">
+                  <svg width="15" height="15" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M7 9.8L11.8 5a2.5 2.5 0 0 1 3.5 3.5L8.7 15a4 4 0 0 1-5.7-5.7l6.3-6.3" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+                </button>
+                <input id="csImageInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+                <button class="cs-icon-btn" id="csVoiceBtn" type="button" aria-label="语音输入" title="语音输入" aria-pressed="false">
+                  <svg width="15" height="15" viewBox="0 0 18 18" fill="none" aria-hidden="true"><rect x="6.2" y="2.5" width="5.6" height="8.5" rx="2.8" stroke="currentColor" stroke-width="1.25"/><path d="M4.2 8.5V9a4.8 4.8 0 0 0 9.6 0V8.5M9 13.8V15.5M6.8 15.5H11.2" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+                </button>
+                <textarea id="csChatInput" rows="1" placeholder="以顾客身份试聊…" autocomplete="off"></textarea>
+                <button class="cs-send-btn" type="submit">发送</button>
+              </form>
+              <p class="cs-voice-hint" id="csVoiceHint" hidden></p>
+            </div>
+          </div>
+
+          <aside class="cs-trace" aria-label="退款链路节点记录">
+            <div class="cs-trace-head">
+              <div>
+                <span class="mono">执行轨迹 / TRACE</span>
+                <small>节点记录</small>
+              </div>
+              <span class="cs-trace-status" id="csTraceStatus">待运行</span>
+            </div>
+            <div class="cs-trace-overview">
+              <span>节点 <strong id="csNodeDone">0</strong>/7</span>
+              <span>工具 <strong id="csToolCount">0</strong></span>
+              <span>转人工 <strong id="csHandoffCount">0</strong></span>
+              <span>耗时 <strong id="csElapsed">—</strong></span>
+            </div>
+            <ol class="cs-node-list" id="csTraceList">
+              <li data-cs-node="safety" data-idle-result="判断风险与越权">
+                <button class="cs-node-row" type="button" aria-expanded="false">
+                  <span class="cs-node-index mono">01</span>
+                  <span class="cs-node-copy"><strong>安全筛查 <em>safety</em></strong><small class="cs-node-result">判断风险与越权</small></span>
+                  <span class="cs-node-meta"><span class="cs-node-ms mono">—</span><span class="cs-node-state">待运行</span></span>
+                </button>
+                <div class="cs-node-panel" hidden>
+                  <p><span>职责</span>先判断这句话有没有风险或越权，只输出放行 / 拦截 / 异常，不做业务判断。</p>
+                  <p><span>出口</span>放行 → 分流；拦截 → 组织回复；异常 → 转人工。</p>
+                  <p class="cs-node-output"><span>本轮记录</span><b>尚无执行记录</b></p>
+                </div>
+              </li>
+              <li data-cs-node="route" data-idle-result="选择处理路径">
+                <button class="cs-node-row" type="button" aria-expanded="false">
+                  <span class="cs-node-index mono">02</span>
+                  <span class="cs-node-copy"><strong>分流 <em>route</em></strong><small class="cs-node-result">选择处理路径</small></span>
+                  <span class="cs-node-meta"><span class="cs-node-ms mono">—</span><span class="cs-node-state">待运行</span></span>
+                </button>
+                <div class="cs-node-panel" hidden>
+                  <p><span>职责</span>只判断走快速处理还是完整处理，不选业务类型、不查后台。</p>
+                  <p><span>出口</span>完整处理 → 思考。</p>
+                  <p class="cs-node-output"><span>本轮记录</span><b>尚无执行记录</b></p>
+                </div>
+              </li>
+              <li data-cs-node="think" data-idle-result="理解意图与计划">
+                <button class="cs-node-row" type="button" aria-expanded="false">
+                  <span class="cs-node-index mono">03</span>
+                  <span class="cs-node-copy"><strong>思考 <em>think</em></strong><small class="cs-node-result">理解意图与计划</small></span>
+                  <span class="cs-node-meta"><span class="cs-node-ms mono">—</span><span class="cs-node-state">待运行</span></span>
+                </button>
+                <div class="cs-node-panel" hidden>
+                  <p><span>职责</span>理解顾客意图，决定调工具、追问、回复还是转人工。</p>
+                  <p><span>出口</span>调工具 → 执行工具；追问 → 组织回复；转人工 → 转人工。</p>
+                  <p class="cs-node-output"><span>本轮记录</span><b>尚无执行记录</b></p>
+                </div>
+              </li>
+              <li data-cs-node="act" data-idle-result="按需执行查询与操作">
+                <button class="cs-node-row" type="button" aria-expanded="false">
+                  <span class="cs-node-index mono">04</span>
+                  <span class="cs-node-copy"><strong>执行工具 <i>分支</i> <em>act</em></strong><small class="cs-node-result">按需执行查询与操作</small></span>
+                  <span class="cs-node-meta"><span class="cs-node-ms mono">—</span><span class="cs-node-state">待运行</span></span>
+                </button>
+                <div class="cs-node-panel" hidden>
+                  <p><span>职责</span>每轮只执行一步查询或操作，结果交回思考，最多 5 次。</p>
+                  <p><span>记录</span>订单查询、规则查询、替代产品查询。</p>
+                  <p class="cs-node-output"><span>本轮记录</span><b>尚无执行记录</b></p>
+                </div>
+              </li>
+              <li data-cs-node="verify" data-idle-result="发送前核对事实">
+                <button class="cs-node-row" type="button" aria-expanded="false">
+                  <span class="cs-node-index mono">05</span>
+                  <span class="cs-node-copy"><strong>核对 <em>verify</em></strong><small class="cs-node-result">发送前核对事实</small></span>
+                  <span class="cs-node-meta"><span class="cs-node-ms mono">—</span><span class="cs-node-state">待运行</span></span>
+                </button>
+                <div class="cs-node-panel" hidden>
+                  <p><span>职责</span>发最终回复前核对事实，不通过就带着原因回到思考。</p>
+                  <p><span>出口</span>通过 → 组织回复；打回 → 思考，同轮最多 2 次。</p>
+                  <p class="cs-node-output"><span>本轮记录</span><b>尚无执行记录</b></p>
+                </div>
+              </li>
+              <li data-cs-node="respond" data-idle-result="生成对客话术">
+                <button class="cs-node-row" type="button" aria-expanded="false">
+                  <span class="cs-node-index mono">06</span>
+                  <span class="cs-node-copy"><strong>组织回复 <em>respond</em></strong><small class="cs-node-result">生成对客话术</small></span>
+                  <span class="cs-node-meta"><span class="cs-node-ms mono">—</span><span class="cs-node-state">待运行</span></span>
+                </button>
+                <div class="cs-node-panel" hidden>
+                  <p><span>职责</span>按核对好的事实组织对客话术，不查后台、不编造事实。</p>
+                  <p><span>出口</span>发出。</p>
+                  <p class="cs-node-output"><span>本轮记录</span><b>尚无执行记录</b></p>
+                </div>
+              </li>
+              <li data-cs-node="handoff" data-idle-result="需要时整理交人工">
+                <button class="cs-node-row" type="button" aria-expanded="false">
+                  <span class="cs-node-index mono">07</span>
+                  <span class="cs-node-copy"><strong>转人工 <i>分支</i> <em>handoff</em></strong><small class="cs-node-result">需要时整理交人工</small></span>
+                  <span class="cs-node-meta"><span class="cs-node-ms mono">—</span><span class="cs-node-state">待运行</span></span>
+                </button>
+                <div class="cs-node-panel" hidden>
+                  <p><span>职责</span>把当前对话、已查到的信息和卡点整理好交给人工。</p>
+                  <p><span>出口</span>客服处理，不向顾客说明内部角色。</p>
+                  <p class="cs-node-output"><span>本轮记录</span><b>尚无执行记录</b></p>
+                </div>
+              </li>
+            </ol>
+            <div class="cs-trace-foot">
+              <span id="csTaskStatus">任务未创建</span>
+              <span class="mono">退款链路</span>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <div class="pc-layout">
+        <div class="pc-main">
+          <section class="pc-section">
+            <span class="mono label">01 / 业务问题与目标</span>
+            <p class="pc-text">节假日后投诉量上升，顾客集中反映「客服响应慢、售后处理时间长」。我判断核心不是单纯缺人，而是重复简单咨询挤占了人力：用 Agent 承接简单咨询，人工专注复杂问题与兜底，同时提升响应速度与服务质量。</p>
+          </section>
+
+          <section class="pc-section">
+            <span class="mono label">02 / 我的方案与关键决策</span>
+            <div class="pc-decisions">
+              <div class="pc-decision"><span class="mono pc-decision-idx">D.01</span><div><h4>快慢分流，而不是所有问题都走重推理</h4><p>简单 FAQ 基于内部知识库直答，复杂任务进入深度推理；推理节点选用 flash 模型，在准确率不降的前提下压缩响应时间。</p></div></div>
+              <div class="pc-decision"><span class="mono pc-decision-idx">D.02</span><div><h4>从「能回答」做到「能办事」，但不越过权限边界</h4><p>串起售前、查单、退款、换票与工单流转；订单和金额以工具事实为准，资金执行、投诉及规则外诉求转人工。</p></div></div>
+              <div class="pc-decision"><span class="mono pc-decision-idx">D.03</span><div><h4>把评测做成迭代机制，而不是上线前的一次验收</h4><p>建立 30 例评测集、配置快照与逐用例报告；用 10 条经典样本和 A/B 对比调优提示词，并通过客服工作台形成配置—运行—回流—标注—评测闭环。</p></div></div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="pc-proof">
+          <section class="pc-section">
+            <span class="mono label">03 / 结果与验证</span>
+            <div class="pc-stats">
+              <div class="pc-stat"><span class="pc-stat-num serif">90<span class="unit">%</span></span><span class="pc-stat-label">30 例评测集通过率<small class="mono">售前 15/15 · 售后 7/10 · 边界 5/5</small></span></div>
+              <div class="pc-stat"><span class="pc-stat-num serif">23.4<span class="unit">s</span></span><span class="pc-stat-label">简单 FAQ 首次响应<small class="mono">人工高峰基线 2–4min（估算）</small></span></div>
+              <div class="pc-stat"><span class="pc-stat-num serif">0.21<span class="unit">元</span></span><span class="pc-stat-label">单会话运行成本<small class="mono">较人工基线低 81%</small></span></div>
+            </div>
+            <p class="pc-evidence">验证不只看回复质量：用固定评测集回归配置变更，同时对照人工基线观察响应速度与单会话成本。</p>
+          </section>
+          <section class="pc-section pc-stack">
+            <span class="mono label">技术栈 / STACK</span>
+            <p class="pc-stack-line mono">ReAct · LangGraph · LangSmith<br>TypeScript · FastAPI · MySQL</p>
+          </section>
+        </aside>
+      </div>
+    </article>
+
+    <!-- Project 02 -->
+    <article class="project-card project-card--pm reveal" id="work-ecom">
+      <header class="pc-head">
+        <div class="pc-heading">
+          <div class="pc-kicker"><span class="mono pc-num">02</span><span class="mono pc-total">/ 04</span></div>
+          <h3 class="pc-title serif">电商运营 Agent</h3>
+          <p class="pc-tagline">把运营指令变成可审批、可执行、可追溯的任务。</p>
+        </div>
+        <div class="pc-header-side">
+          <div class="pc-meta">
+            <span class="mono pc-date">2025.11 — 2026.09</span>
+            <span class="pc-role">项目主导</span>
+            <span class="pc-context">本地宝 · 平台商城｜内部运营项目</span>
+            <span class="pc-scope">我的职责：独立设计并 coding Agent，负责审批、审计与 A/B 迭代；协作：运营与开发</span>
+            <span class="badge-live"><span class="dot"></span>内部使用</span>
+          </div>
+          <a class="pc-btn" href="projects/ecom-agent.html">体验静态演示 <span>↗</span></a>
+        </div>
+      </header>
+
+      <div class="pc-layout">
+        <div class="pc-main">
+          <section class="pc-section">
+            <span class="mono label">01 / 业务问题与目标</span>
+            <p class="pc-text">日常运营由大量临时任务驱动：建品、改信息、下架与巡检。重复操作耗时，直接让模型执行又难控制风险。我将 Agent 设计为事件驱动的工作台：运营者用自然语言交代任务，系统生成计划，按风险自动执行或请求审批，并保留完整记录。</p>
+          </section>
+
+          <section class="pc-section">
+            <span class="mono label">02 / 我的方案与关键决策</span>
+            <div class="pc-decisions">
+              <div class="pc-decision"><span class="mono pc-decision-idx">D.01</span><div><h4>对话即任务入口</h4><p>运营者直接说「下架已结束活动」或「创建周末演出」；Agent 识别意图、补齐参数、生成执行计划，无需进入订单或商品后台。</p></div></div>
+              <div class="pc-decision"><span class="mono pc-decision-idx">D.02</span><div><h4>按风险分级执行</h4><p>只读检查可一键执行；发布、修改、下架等写操作先展示影响范围与变更内容，人工批准后执行，也可驳回。</p></div></div>
+              <div class="pc-decision"><span class="mono pc-decision-idx">D.03</span><div><h4>每次执行都有审计</h4><p>记录原始指令、执行计划、工具调用、审批人、结果与失败原因；异常回到任务队列，badcase 用于规则与 prompt 迭代。</p></div></div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="pc-proof">
+          <section class="pc-section">
+            <span class="mono label">03 / 结果与验证</span>
+            <div class="pc-stats">
+              <div class="pc-stat"><span class="pc-stat-num serif">270<span class="unit">+ 天</span></span><span class="pc-stat-label">稳定运行<small class="mono">每日处理 SKU 100+</small></span></div>
+              <div class="pc-stat"><span class="pc-stat-num serif">19000<span class="unit">+</span></span><span class="pc-stat-label">累计处理 SKU<small class="mono">单人日耗时 2h → 1h 内</small></span></div>
+              <div class="pc-stat"><span class="pc-stat-num serif">&lt;3<span class="unit">%</span></span><span class="pc-stat-label">任务失败率<small class="mono">由 &lt;11% 降至 &lt;3%</small></span></div>
+            </div>
+            <p class="pc-evidence">效率提升不以牺牲控制为代价：写操作先审后做，执行结果可回溯。</p>
+          </section>
+          <section class="pc-section pc-stack">
+            <span class="mono label">技术栈 / STACK</span>
+            <p class="pc-stack-line mono">LLM · Agent Workflow · Tool Calling<br>Human-in-the-loop · Audit Log · A/B Test</p>
+          </section>
+        </aside>
+      </div>
+    </article>
+
+    <!-- Project 03 -->
+    <article class="project-card project-card--pm reveal" id="work-jd">
+      <header class="pc-head">
+        <div class="pc-heading">
+          <div class="pc-kicker"><span class="mono pc-num">03</span><span class="mono pc-total">/ 04</span></div>
+          <h3 class="pc-title serif">智能 JD 分析</h3>
+          <p class="pc-tagline">本地运行，把 JD 变成可复现、可对照的六维报告。</p>
+        </div>
+        <div class="pc-header-side">
+          <div class="pc-meta">
+            <span class="mono pc-date">2026.09 — 2026.11</span>
+            <span class="pc-role">个人项目 · 独立研究、设计与开发</span>
+            <span class="badge-live"><span class="dot"></span>本地可用</span>
+          </div>
+          <a class="pc-btn" href="projects/jd-analysis/index.html">体验静态演示 <span>↗</span></a>
+        </div>
+      </header>
+
+      <section class="jd-demo-embed" aria-labelledby="jdDemoCaption">
+        <div class="jd-demo-embed-head">
+          <div>
+            <span class="mono label">静态演示 / STATIC DEMO</span>
+            <p class="jd-demo-embed-caption" id="jdDemoCaption">一分钟，从一条 JD 到一份可复现、可对照的六维报告。</p>
+          </div>
+        </div>
+        <div class="jd-demo-embed-frame">
+          <iframe id="jdDemoFrame" src="projects/jd-analysis/index.html?embed=demo" title="智能 JD 分析产品动画：从输入 JD 到生成六维报告" loading="lazy"></iframe>
+          <noscript><a href="projects/jd-analysis/index.html">打开产品演示 ↗</a></noscript>
+        </div>
+      </section>
+
+      <div class="pc-layout">
+        <div class="pc-main">
+          <section class="pc-section">
+            <span class="mono label">01 / 业务问题与目标</span>
+            <p class="pc-text">JD 信息模糊、岗位之间难比较，通用大模型又侧重「人岗匹配」，难判断岗位本身是否靠谱。基于 38 份问卷与 4 场深访，我设计了一款本地工具：输入 JD，输出可复现的六维报告，帮助求职者识别风险、补齐信息、比较 offer。</p>
+          </section>
+
+          <section class="pc-section">
+            <span class="mono label">02 / 我的方案与关键决策</span>
+            <div class="pc-decisions">
+              <div class="pc-decision"><span class="mono pc-decision-idx">D.01</span><div><h4>可靠性做闸门，匹配度做调节</h4><p>可靠性不参与加权；薪资、稳定性、双休、发展潜力按 30 / 25 / 25 / 20 计分，匹配度仅调节总分。关键信息缺失则不猜分，直接列出待补项。</p></div></div>
+              <div class="pc-decision"><span class="mono pc-decision-idx">D.02</span><div><h4>模型提取证据，程序统一计分</h4><p>模型只输出证据与档位，纯函数负责评分；证据须逐字匹配 JD 原文，否则作废留痕，确保结果可复现、可测试、可追溯。</p></div></div>
+              <div class="pc-decision"><span class="mono pc-decision-idx">D.03</span><div><h4>本地优先，多通道输入</h4><p>档案与密钥仅保存在本机，支持链接、截图 OCR、岗位自述和简历上传；云端与本机 OCR 可切换，使用限制明确告知。</p></div></div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="pc-proof">
+          <section class="pc-section">
+            <span class="mono label">03 / 结果与验证</span>
+            <div class="pc-stats">
+              <div class="pc-stat"><span class="pc-stat-num serif">175<span class="unit">例</span></span><span class="pc-stat-label">计分回归测试全部通过<small class="mono">node:test · 29 个文件 · 175 / 175</small></span></div>
+              <div class="pc-stat"><span class="pc-stat-num serif">188<span class="unit">条</span></span><span class="pc-stat-label">JD 风险表述比对库<small class="mono">高危 112 · 留意 76</small></span></div>
+              <div class="pc-stat"><span class="pc-stat-num serif">38<span class="unit">份</span></span><span class="pc-stat-label">匿名问卷，验证问题定义<small class="mono">4 场深访 · 73.7% 遇 JD 与实际不符</small></span></div>
+            </div>
+            <p class="pc-evidence">规则或提示词变更后跑全量回归，防止评分漂移；结果仅供求职参考，以劳动合同与官方信息为准。</p>
+          </section>
+          <section class="pc-section pc-stack">
+            <span class="mono label">技术栈 / STACK</span>
+            <p class="pc-stack-line mono">Node.js · Express · 原生 JavaScript<br>DeepSeek / GLM · OCR · Chrome 扩展 · node:test</p>
+          </section>
+        </aside>
+      </div>
+    </article>
+
+    <!-- Project 04 -->
+    <article class="project-card project-card--pm reveal" id="work-video">
+      <header class="pc-head">
+        <div class="pc-heading">
+          <div class="pc-kicker"><span class="mono pc-num">04</span><span class="mono pc-total">/ 04</span></div>
+          <h3 class="pc-title serif">视频平台陪伴 Bot</h3>
+          <p class="pc-tagline">让平台化身陪你看完这条视频：有性格、有记忆、有自己生活，在场、懂内容、给反馈。</p>
+        </div>
+        <div class="pc-header-side">
+          <div class="pc-meta">
+            <span class="mono pc-date">2026.11</span>
+            <span class="pc-role">个人项目 · 独立研究、产品设计与原型开发</span>
+            <span class="badge-live"><span class="dot"></span>交互原型</span>
+          </div>
+          <a class="pc-btn" href="projects/video-companion/demo/index.html">查看产品方案与 Demo <span>↗</span></a>
+        </div>
+      </header>
+
+      <section class="video-demo-embed" aria-label="视频平台陪伴 Bot 产品演示">
+        <div class="video-demo-embed-frame">
+          <iframe id="videoDemoFrame" src="projects/video-companion/mascot-states.html?embed=landscape&amp;v=20261119" title="视频平台陪伴 Bot 原版横屏演示：视线追踪、画面焦点、思考与短句反馈" loading="lazy"></iframe>
+          <noscript><a href="projects/video-companion/mascot-states.html">打开产品演示 ↗</a></noscript>
+        </div>
+      </section>
+
+      <div class="pc-layout">
+        <div class="pc-main">
+          <section class="pc-section">
+            <span class="mono label">01 / 业务问题与目标</span>
+            <p class="pc-text">城市青年缺的不是内容，而是「看到喜欢内容时，有人能懂、能回应」。基于 8 组跨平台需求证据与视频平台、AI 陪伴竞品调研，我发现现有 AI 落地多集中于架空角色、提效检索和内容创作，真实内容消费中的生活陪伴仍有产品空位。因此设计一个非架空、非独立场景、非功能主导的视频陪看伙伴，探索 AI 从效率工具走向持续关系型伙伴的产品范式。</p>
+          </section>
+
+          <section class="pc-section">
+            <span class="mono label">02 / 我的方案与关键决策</span>
+            <div class="pc-decisions">
+              <div class="pc-decision"><span class="mono pc-decision-idx">D.01</span><div><h4>先做关系，不堆功能</h4><p>以平台化身而非虚构角色为入口，围绕「伙伴关系而非提效工具」收敛边界：不做检索、摘要、创作，不做架空剧情和开放式自定义；用人格主体性与共同观看的在场感建立差异化。</p></div></div>
+              <div class="pc-decision"><span class="mono pc-decision-idx">D.02</span><div><h4>人格—记忆—行为—演出，形成可持续关系</h4><p>人格随互动逐步生长，概要记忆与情绪峰值碎片维持连续性；以陪伴、睡眠、离开三类基础状态和困倦、断网覆盖层表现自主生活。用户可召回、要求安静或关闭，关系感不以牺牲控制权为代价。</p></div></div>
+              <div class="pc-decision"><span class="mono pc-decision-idx">D.03</span><div><h4>离线剧本理解 + 在线状态驱动</h4><p>设计「视频理解 → 剧本资产 → 行为判定 → 记忆与反应闸门 → 生成 → 渲染」链路；普通神态查表触发，重型语言生成仅在用户显式输入后发生。以 Release、版本化 Trace 和 Eval 串起资产—发布—反馈—修复—回归，兼顾成本、剧透与打扰风险。</p></div></div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="pc-proof">
+          <section class="pc-section">
+            <span class="mono label">03 / 结果与验证</span>
+            <div class="pc-stats">
+              <div class="pc-stat"><span class="pc-stat-num serif">8<span class="unit">组</span></span><span class="pc-stat-label">跨平台需求证据<small class="mono">小红书 / B 站 · 原始截图与登记表</small></span></div>
+              <div class="pc-stat"><span class="pc-stat-num serif">32<span class="unit">张</span></span><span class="pc-stat-label">可交互表情卡<small class="mono">覆盖 8 类情绪与睡眠状态</small></span></div>
+              <div class="pc-stat"><span class="pc-stat-num serif">2<span class="unit">端</span></span><span class="pc-stat-label">C / B 端可交互原型<small class="mono">横竖屏陪看 · 运营发布与 Eval 闭环</small></span></div>
+            </div>
+            <p class="pc-evidence">C 端含 4 个剧情节点、差异化反馈、陪伴／睡眠／离开与断网异常；B 端覆盖剧本生产、策略配置、Release、灰度、运行监测与 Eval。均为静态原型和 mock 数据，产品效果仍需 5–8 人可用性测试与后续灰度验证。</p>
+          </section>
+          <section class="pc-section pc-stack">
+            <span class="mono label">技术栈 / STACK</span>
+            <p class="pc-stack-line mono">HTML5 · CSS3 · 原生 JavaScript · 内联 SVG<br>LocalStorage · BroadcastChannel · 确定性 Mock 数据</p>
+          </section>
+        </aside>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============ EXPERIENCE ============ -->
+<section class="section" id="experience">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 class="section-title serif">建筑 → 项目管理 → 产品</h2>
+      <p class="section-sub">三个身份，同一套能力在迁移：拆解模糊需求、搭建结构、验证结果。</p>
+    </div>
+
+    <div class="exp-list">
+      <div class="exp-item reveal">
+        <span class="mono exp-date">2025.10 — 2026.09</span>
+        <div class="exp-main">
+          <h3>项目经理<span class="exp-org">本地宝</span></h3>
+          <p>负责平台商城运营、商务拓展，主导团队 AI 化。</p>
+        </div>
+        <span class="mono exp-idx">01</span>
+      </div>
+      <div class="exp-item reveal">
+        <span class="mono exp-date">2024.09 — 2025.07</span>
+        <div class="exp-main">
+          <h3>项目运营<span class="exp-org">深圳一凡项目管理有限公司</span></h3>
+          <p>负责 toG 项目前期研究、指标估算、初步方案、可行性研究，以及 toG 项目设备标全流程。</p>
+        </div>
+        <span class="mono exp-idx">02</span>
+      </div>
+      <div class="exp-item reveal">
+        <span class="mono exp-date">2023.09 — 2024.02</span>
+        <div class="exp-main">
+          <h3>实习建筑师<span class="exp-org">URBANUS 都市实践</span></h3>
+          <p>需求分析与场地调研（人群分析、场地研究、初步设计）；工地巡检、材料测试。</p>
+        </div>
+        <span class="mono exp-idx">03</span>
+      </div>
+      <div class="exp-item reveal">
+        <span class="mono exp-date">2020 — 2024</span>
+        <div class="exp-main">
+          <h3>建筑学学士<span class="exp-org">广东工业大学</span></h3>
+          <p>系统设计训练，奠定结构化思维与空间逻辑基础。</p>
+        </div>
+        <span class="mono exp-idx">04</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section class="section" id="about">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 class="section-title serif">能力栈</h2>
+    </div>
+
+    <div class="cap-grid">
+      <div class="cap-col reveal">
+        <span class="mono cap-idx">A.</span>
+        <h3 class="serif">Agent 工程</h3>
+        <ul class="cap-list">
+          <li>Agent 0→1 架构设计</li>
+          <li>Eval 0→1 评测体系搭建</li>
+          <li>Prompt Engineering / 调优</li>
+          <li>Human-in-the-loop 设计</li>
+          <li>ReAct · LangGraph · LangSmith</li>
+        </ul>
+      </div>
+      <div class="cap-col reveal">
+        <span class="mono cap-idx">B.</span>
+        <h3 class="serif">技术实现</h3>
+        <ul class="cap-list">
+          <li>独立 coding 原型与 Agent</li>
+          <li>TypeScript · Python</li>
+          <li>FastAPI · MySQL</li>
+          <li>A/B Test 实验设计</li>
+          <li>数据驱动的效果验证</li>
+        </ul>
+      </div>
+      <div class="cap-col reveal">
+        <span class="mono cap-idx">C.</span>
+        <h3 class="serif">产品与运营</h3>
+        <ul class="cap-list">
+          <li>需求拆解与用户调研</li>
+          <li>产品设计与落地推进</li>
+          <li>项目管理与跨团队协作</li>
+          <li>商务拓展与团队 AI 化</li>
+          <li>从发起到平稳运行的闭环</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section class="section contact" id="contact">
+  <div class="wrap">
+    <div class="contact-inner reveal">
+      <h2 class="contact-title serif">期待与你共事<span class="accent">。</span></h2>
+      <p class="contact-sub">正在寻找 AI 产品经理机会。如果你想找一个能把 Agent 产品真正做出来的人，欢迎联系。</p>
+      <div class="contact-links">
+        <button type="button" class="contact-link" id="copyPhone" data-copy="13828700774" aria-label="复制手机号 138 2870 0774，与微信同号">
+          <span class="mono cl-label">TEL</span>
+          <span class="cl-value">138 2870 0774</span>
+          <span class="arr" id="copyPhoneHint" aria-live="polite">复制 · 微信同号</span>
+        </button>
+        <a href="resume.pdf" download class="contact-link">
+          <span class="mono cl-label">PDF</span>
+          <span class="cl-value">下载完整简历</span>
+          <span class="arr">下载 ↓</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span class="mono">© 2026 LIN ZHENGHAO</span>
+    <span class="footer-tag serif-italic">用数据说话，用产品解决问题。</span>
+    <a href="#top" class="mono back-top">回到顶部 ↑</a>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

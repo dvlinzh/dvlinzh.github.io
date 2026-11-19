@@ -1,0 +1,3075 @@
+:root {
+  --ink: #191919;
+  --ink-2: #6f6e69;
+  --ink-3: #9b9a97;
+  --line: #e9e9e7;
+  --line-2: #dcdcda;
+  --paper: #ffffff;
+  --paper-2: #f7f7f5;
+  --paper-3: #f1f1ef;
+  --font: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "SF Pro Text", "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html, body { min-height: 100%; }
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 64px 32px 120px;
+}
+
+.view { animation: fade-up 0.35s ease both; }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade { animation: fade-in 0.55s ease both; }
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.section {
+  padding: 30px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.section:last-of-type { border-bottom: none; }
+
+.section-head {
+  display: flex;
+  align-items: center;
+}
+
+.section-title { font-size: 15px; font-weight: 600; margin-right: 20px; }
+
+/* ---------- 顶部导航（四个视图上方都可见） ---------- */
+/* 全宽吸顶条：里面按内容列宽对齐，与内容靠留白分开，不用线条也不用阴影 */
+.topnav {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--paper);
+}
+
+.topnav-inner {
+  position: relative;   /* 设置浮层的定位基准＝内容列 */
+  max-width: 760px;
+  margin: 0 auto;
+  height: 56px;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.nav { display: flex; align-items: center; margin-left: auto; }
+
+/* 文字按钮：13~15px 灰字，hover 变深并加下划线；热区撑到 44px 高 */
+.nav-item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  font-family: var(--font);
+  font-size: 13.5px;
+  color: var(--ink-2);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-item:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--line-2);
+}
+
+/* 当前视图的那个入口加粗（历史档案同时是开关，展开时才加粗） */
+.nav-item[aria-current="page"] { color: var(--ink); font-weight: 600; }
+
+/* 返回简历：站外回路入口，视觉比主导航轻一档，与右侧四个视图入口用分隔线断开 */
+.nav-back {
+  color: var(--ink-3);
+  text-decoration: none;
+  border-right: 1px solid var(--line);
+  padding-right: 14px;
+  margin-right: 6px;
+}
+.nav-back:hover { color: var(--ink); text-decoration: none; }
+@media (max-width: 640px) {
+  .nav-back { padding-right: 8px; margin-right: 2px; }
+}
+
+/* ---------- 品牌（现在住在顶栏里） ---------- */
+/* 可点＝回首页：按钮的默认样式（字体/底色/边框/内边距）全部抹平，视觉与原样一致 */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.brand-mark {
+  width: 26px;
+  height: 26px;
+  border-radius: 2px;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+}
+
+.brand-name { font-size: 15px; font-weight: 600; letter-spacing: 0.2px; }
+
+.hero-title {
+  font-size: 40px;
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  margin-bottom: 18px;
+}
+
+/* 它能做什么：与下面那行「支持…」同一套灰色小字，两行连成一小段说明 */
+.hero-cap { font-size: 16px; color: var(--ink-2); margin-bottom: 6px; }
+
+.hero-sub { font-size: 16px; color: var(--ink-2); margin-bottom: 22px; }
+
+/* 社交证明：一行灰字 + 一个放大的数字，压在首屏按钮上方 */
+.hero-proof { font-size: 14px; color: var(--ink-3); margin-bottom: 26px; }
+
+.hero-proof b { font-size: 22px; font-weight: 700; color: var(--ink); }
+
+.actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+
+.btn {
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-outline {
+  padding: 13px 22px;
+  border-radius: 2px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line-2);
+}
+
+.btn-outline:hover { background: var(--paper-2); }
+
+.btn-outline .check { display: none; color: var(--ink); }
+
+.btn-outline.done .check { display: block; }
+
+.btn-solid {
+  padding: 15px 38px;
+  border-radius: 2px;
+  color: #fff;
+  font-size: 15px;
+  background: var(--ink);
+}
+
+.btn-solid:hover { background: #000; }
+
+.btn-solid:disabled { opacity: 0.5; cursor: default; }
+
+.cta-wrap { margin-top: 44px; animation: fade-up 0.3s ease both; }
+
+/* ---------- 首页：输入就绪后的收 / 展 ---------- */
+/* 三个输入按钮 ↔ 「生成深度分析 + 重新上传」：收起的那一行 max-height 归零、不占位，
+   同时淡出；展开原路放回来。两边同一段过渡（V1 缓动，约 300ms），下面的内容不跳。
+   max-height 取略高于实际行高：先压扁再消失，不会有「先停住再突然收掉」的空档。
+   高度上限按行放在 --fold-h 上，.collapsed 只管归零，两边不用比谁的规则更靠后。 */
+.fold-row {
+  overflow: hidden;
+  max-height: var(--fold-h, 60px);
+  transition: max-height 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    margin-top 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s;
+}
+
+/* 收完才真正 hidden（顺带把这一行移出 Tab 与读屏），展开时立刻可见、由 opacity 淡进来 */
+.fold-row.collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: max-height 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    margin-top 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.3s;
+}
+
+/* 首页入口拆成两行：行 1「粘贴链接 / 上传二维码」、行 2「上传截图 / 20 题自述」，
+   中间夹着扩展说明那一行（#extNeedLine）。行 1 与帮助行之间靠帮助行自己的 margin-top: 10px，
+   帮助行与行 2 之间补 10px；两行自己的 margin-bottom 归零，免得叠出双倍间距、
+   也免得给 .fold-row 的容器高度多算一截 */
+#inputActions > .actions { margin-bottom: 0; }
+#inputActions > .ext-need + .actions { margin-top: 10px; }
+
+/* 手机 / 平板上不显示「粘贴链接」「上传二维码」这两条路。
+   理由：它们都要靠浏览器扩展才能在页面里读出 JD（二维码里装的还是链接，一样得让扩展去打开它），
+   而手机浏览器装不了扩展——摆出来只会让人点了报错。桌面保留：没装扩展时那行说明还有引导价值。
+   连下面那行「需安装浏览器扩展」的说明一起收掉：按钮都不在了，说明它没有说明的对象。
+   第二条规则补回间距：原本靠 .ext-need + .actions 给的 10px，说明行一藏这条选择器就不命中了。
+   生效方式两条，任一命中即隐藏——媒体查询管小屏（立即生效、不闪），
+   body.is-mobile 由 JS 打上，管那些屏幕够大但同样装不了扩展的触摸设备（iPad 之类）。 */
+@media (max-width: 640px) {
+  #inputActions > .actions:first-child,
+  #extNeedLine { display: none; }
+  #inputActions > .actions:not(:first-child) { margin-top: 10px; }
+}
+body.is-mobile #inputActions > .actions:first-child,
+body.is-mobile #extNeedLine { display: none; }
+body.is-mobile #inputActions > .actions:not(:first-child) { margin-top: 10px; }
+
+/* 输入入口容器：装「两行按钮 + 一行帮助」，收起时三块一起归零。
+   实测（Edge，2026-10-03，脚本 _m126_rows_check.js）：>640px 时两行各 49px、帮助行 17px，
+   49×2 + 10 + 17 + 10 = 135px，上限给 140px。
+   原来 641~740px 那道窄缝给过 120px（四个按钮一行放不下）：拆成两行后每行只剩两个按钮，
+   641px（最窄的一档）实测两行都还在一行里（各 49px），不再折行，所以那条媒体查询撤掉，跟桌面同一档 */
+#inputActions { --fold-h: 140px; }
+
+/* 生成按钮那一行：实心按钮 + 紧挨着的小号灰字链。演示里那行 .cta-wrap 不走这里，
+   这里也不要 .cta-wrap 自带的 fade-up（fill 会把它钉在 opacity:1，淡出就失灵了） */
+.cta-wrap.fold-row {
+  --fold-h: 60px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  animation: none;
+}
+
+.cta-wrap.fold-row .link-btn {
+  font-size: 13px;
+  color: var(--ink-3);
+  transition: color 0.15s ease;
+}
+
+.cta-wrap.fold-row .link-btn:hover { color: var(--ink); text-decoration-color: var(--ink); }
+
+/* ---------- 首页：功能展示 / 示例 ---------- */
+.block { margin-top: 80px; }
+
+.block-title {
+  font-size: 15px;
+  font-weight: 600;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 4px;
+}
+
+.block-note { margin-left: 10px; font-size: 12px; font-weight: 400; color: var(--ink-3); }
+
+.feature-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; }
+
+.feature { padding: 16px 0 18px; border-bottom: 1px solid var(--line); }
+
+.feature-name { font-size: 14px; font-weight: 600; }
+
+.feature-desc { margin-top: 6px; font-size: 13px; line-height: 1.65; color: var(--ink-2); }
+
+.case { padding: 22px 0 0; cursor: pointer; transition: opacity 0.15s ease; }
+
+.case:active { opacity: 0.65; }
+
+.case-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+
+.case-job { font-size: 16px; font-weight: 600; }
+
+.case-meta { margin-top: 7px; font-size: 13px; color: var(--ink-2); }
+
+.case-score {
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.case-score span { font-size: 13px; font-weight: 400; color: var(--ink-3); margin-left: 3px; letter-spacing: 0; }
+
+.case-line { margin-top: 16px; font-size: 13.5px; line-height: 1.7; color: var(--ink-2); }
+
+.case-radar { width: 100%; max-width: 340px; display: block; margin: 10px auto 0; }
+
+.case-cta { margin-top: 8px; text-align: right; font-size: 13.5px; color: var(--ink-2); }
+
+.case-arrow { margin-left: 5px; }
+
+.case:hover .case-cta { color: var(--ink); }
+
+/* ---------- 首页示例轮播 ----------
+   舞台里放的就是报告页那几个模块（雷达图 / 维度面板 / JD 解读 / 分析图），
+   直接复用报告页的类名，样式不走第二套；这里只负责「一次只显示一屏」和底部那排圆点。 */
+/* 与上方 CTA / 简历提示行之间留出区块级留白——首页每块之间都是这个节奏（同 .block 的 80px）。
+   历史区在场时不会叠加：两者相邻、外边距合并，取二者中大的那个，仍是这一段留白。 */
+.demo-block { margin-top: 80px; }
+
+.demo-stage {
+  min-height: 430px;
+  /* 高度始终跟着内容走（JS 用 ResizeObserver 量、这里做过渡）：
+     动画过程中内容长多快，舞台就长多快，不会把里面的东西剪掉一截 */
+  transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  overflow: hidden;
+}
+
+/* 关键：列方向 flex 里 flex-shrink 默认是 1——舞台比内容矮时它会把整块压扁，
+   于是「演示里内容被剪切、显示不全」。这里钉死不收缩，高度只由内容决定。 */
+.demo-scene { flex: 0 0 auto; }
+
+/* 舞台里只留图与图例：口径说明、鼠标提示这些「正文」留给完整示例（否则示例块高得像一篇文档） */
+.demo-scene .analysis-note,
+.demo-scene .chart-disclaimer,
+.demo-scene .quad-explain,
+.demo-scene .chart-detail { display: none; }
+
+.demo-scene { position: relative; animation: fade-up 0.32s ease both; }
+
+/* 演示用的假光标：一个鼠标指针 + 点击涟漪，坐标由 JS 按目标元素算 */
+.demo-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 6;
+  pointer-events: none;
+  transition: transform 0.9s cubic-bezier(0.4, 0.1, 0.2, 1);
+}
+
+.demo-cursor.gone { opacity: 0; transition: opacity 0.3s ease; }
+
+.demo-ripple {
+  position: absolute;
+  left: -13px;
+  top: -13px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  opacity: 0;
+}
+
+.demo-cursor.clicking .demo-ripple { animation: demo-ripple 0.5s ease-out; }
+
+@keyframes demo-ripple {
+  0% { opacity: 0.7; transform: scale(0.25); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+/* ② 那一拍的总分卡：宽度收一档，与示例舞台的体量相称 */
+.demo-verdict { padding: 16px 0 4px; }
+
+.demo-verdict .verdict-line { min-height: 3.4em; }
+
+/* ⑥ 只看这一张图：居中放大，右上角挂「查看更多分析图」 */
+.demo-zoom { padding: 6px 0 0; }
+
+.demo-zoom .dim-scale { margin: 0 auto; }
+
+/* 舞台比报告页窄：维度面板里那张图按容器宽度缩一档，别被裁掉左边的轴标题 */
+.demo-scene .dim-scale svg { max-width: 100%; height: auto; display: block; }
+
+/* ⑤ 挂在窗口右上角（不随镜头滚动，像真实界面上的那个入口） */
+.demo-more {
+  position: absolute;
+  right: 0;
+  top: -6px;
+  z-index: 5;
+  transition: opacity 0.3s ease;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--ink-2);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.demo-more:hover { color: var(--ink); border-color: var(--line-2); }
+
+/* ⑦ 更多分析图：一列图，向下滚动示意 */
+.demo-scroll {
+  height: 470px;
+  overflow: hidden;
+  position: relative;
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 40px), transparent);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 40px), transparent);
+}
+
+.demo-scroll-item { padding: 6px 0 18px; }
+
+.demo-scroll-title { font-size: 13.5px; font-weight: 600; margin-bottom: 6px; }
+
+/* ⑧ 收尾：产品 logo + 署名 */
+/* ⑦ 收尾：一层白幕盖住窗口，logo 从中间浮现 */
+.demo-outro-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  transition: opacity 0.5s ease;
+}
+
+.demo-outro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.demo-outro-name { font-size: 15px; font-weight: 600; }
+
+.demo-outro-by { font-size: 13px; color: var(--ink-3); letter-spacing: 0.2px; }
+
+.demo-scene .section-head { margin-bottom: 10px; }
+
+/* 舞台里的分析图按容器宽度缩一档：它是示例，不需要报告页那样的整幅高度 */
+.demo-scene .quad { max-width: 640px; }
+
+/* 演示不再套"窗口"：没有边框、没有固定高度，内容直接长在首页里，
+   高度随内容走，任何一拍都不会被剪掉。 */
+.demo-window { position: relative; }
+
+.demo-screen { position: relative; }
+
+/* 聚焦（点开维度后看那张图）：周围压暗、图轻轻推近，全部内容仍在画面内 */
+.demo-dim { opacity: 0.24; transition: opacity 0.5s ease; }
+
+.demo-spot { position: relative; z-index: 3; transform: scale(1.02); transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+
+/* 「查看更多分析图」挂在那张图的右上角 */
+.demo-spot-wrap { position: relative; }
+
+/* 开场：超大字号的一句话流式打出来；打完字消失、logo 从同一个位置浮现。
+   两层都绝对居中：换过去的时候画面不动，像一句话变成 logo。 */
+.demo-intro {
+  position: relative;
+  min-height: 420px;
+}
+
+.demo-intro-title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 46px;
+  font-weight: 600;
+  line-height: 1.32;
+  letter-spacing: -1px;
+  text-align: center;
+  max-width: 640px;
+  width: 100%;
+}
+
+/* 正在生成的下一个字位：一个下划线，轻轻闪 */
+.demo-intro-caret {
+  color: var(--ink-3);
+  animation: demo-caret 0.9s steps(1, end) infinite;
+}
+
+.demo-intro-caret.gone { display: none; }
+
+@keyframes demo-caret {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0.18; }
+}
+
+.demo-intro-logo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: opacity 0.36s ease;
+}
+
+.demo-intro-logo-name { font-size: 16px; font-weight: 600; letter-spacing: -0.2px; }
+
+/* 0) 仿首页：与真实首页同一套按钮类名，缩一档放进窗口 */
+.demo-home { padding: 30px 0 8px; }
+
+.demo-home-title { font-size: 24px; font-weight: 600; line-height: 1.4; letter-spacing: -0.4px; margin-bottom: 22px; }
+
+.demo-home .actions { margin-bottom: 14px; }
+
+/* 1) 加载块：与真实解析中一样，居中一个进度圈 */
+.demo-loading { min-height: 400px; }
+
+/* 每一段内容的插槽：展开时高度从 0 长出来（由 JS 设高度过渡）；展开完由 JS 放开 overflow，
+   之后内容再长（比如评价逐字写出来）也不会被剪掉 */
+.demo-slot { overflow: hidden; }
+
+.demo-radar-sec { padding-bottom: 4px; }
+
+/* ---------- 设置页（独立一页：分数口径 / 模型） ---------- */
+/* 两块设置：标题行（右边挂控件）＋ 一张示意图 ＋ 一句说明。行与行之间发丝线分开 */
+.set-block { padding: 26px 0 28px; border-bottom: 1px solid var(--line); }
+.set-block:last-of-type { border-bottom: none; }
+
+.set-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+.set-title { font-size: 15px; font-weight: 600; }
+
+/* 图：随内容缩放的 SVG，上下留白对齐正文 */
+.set-fig { margin: 18px 0 0; }
+.set-fig svg { display: block; width: 100%; max-width: 640px; height: auto; }
+
+/* 图里的方块：当前口径那一块由脚本给 .on 涂成墨色（就是「大数字」给谁），另一块保持浅色 */
+.set-fig-box { fill: var(--paper-2); stroke: var(--line-2); stroke-width: 1.5; }
+.set-fig-cap { font-size: 12.5px; fill: var(--ink-3); }
+.set-fig-num { font-size: 16px; font-weight: 600; fill: var(--ink-2); }
+.set-fig-part.on .set-fig-box { fill: #191919; stroke: #191919; }
+.set-fig-part.on .set-fig-cap { fill: rgba(255, 255, 255, 0.72); }
+.set-fig-part.on .set-fig-num { fill: #fff; }
+.set-fig-arrow { stroke: #191919; stroke-width: 1.2; }
+.set-fig-head { fill: #191919; }
+.set-fig-mul { font-size: 13px; fill: var(--ink-2); }
+.set-fig-mul2 { font-size: 11.5px; fill: var(--ink-3); }
+
+/* 一句说明：与图拉开一点，别贴着 */
+.set-note { margin-top: 14px; font-size: 13px; line-height: 1.8; color: var(--ink-3); }
+
+/* 模型那一行：模型名 + 来源小标（右端是「更换」，在标题行里）。
+   小标紧跟在模型名后面，不推到行尾——长名字先缩它（看不全有 title 兜底） */
+.set-head-model { justify-content: flex-start; margin-top: 12px; gap: 8px; min-width: 0; }
+.set-head-model .model-cur-name { flex: 0 1 auto; }
+
+/* 一个胶囊装两个词：点在前面那个就是当前口径，另一个退成灰字；点一下两个词对调。
+   文字本身就说清了切换结果，不再要换向图标 */
+.settings-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: auto;
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.25;
+  color: var(--ink);
+  text-align: left;
+  background: var(--paper-2);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+
+.settings-pill:hover { background: #f1f1ee; }
+
+.settings-pill-on { font-weight: 600; color: var(--ink); }
+
+.settings-pill-off { font-weight: 400; color: var(--ink-3); }
+
+/* ---------- 设置页：模型那一行（换服务商 / 填 key / 测连通在弹层里） ---------- */
+/* 模型名 + 来源小标：整行给它们；模型名可长，先缩它、别把行撑破（看不全有 title 兜底） */
+
+.model-cur-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 模型走哪儿的 2 字小标：面板 / 环境 / 文件 / 默认（整行 title 里再说 key 从哪儿来） */
+.model-cur-tag {
+  flex: none;
+  padding: 1px 5px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--ink-3);
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+}
+
+.model-edit {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--line-2);
+  cursor: pointer;
+}
+
+.model-edit:hover { color: var(--ink); }
+
+/* 弹层：遮罩 + 居中卡片，z-index 压过顶栏（30） */
+.model-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.model-backdrop { position: absolute; inset: 0; background: rgba(25, 25, 25, 0.5); }
+
+.model-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(420px, calc(100vw - 32px));
+  max-height: 100%;
+  background: var(--paper);
+  border-radius: 3px;
+  overflow: hidden;
+  animation: fade-up 0.2s ease both;
+}
+
+.model-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.model-body { padding: 16px 18px; overflow: auto; }
+
+.model-label { font-size: 12.5px; color: var(--ink-2); margin: 14px 0 6px; }
+
+.model-body > .model-label:first-child { margin-top: 0; }
+
+.model-label-note { margin-left: 8px; font-size: 11.5px; color: var(--ink-3); }
+
+/* 服务商三选一：胶囊跟全站那套一样，选中靠 .on */
+.model-seg { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.model-seg-btn {
+  padding: 5px 12px;
+  font-family: var(--font);
+  font-size: 12.5px;
+  color: var(--ink-2);
+  background: var(--paper-2);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.model-seg-btn:hover { background: #f1f1ee; }
+
+.model-seg-btn.on { color: var(--ink); border-color: var(--ink); font-weight: 600; }
+
+/* 已保存的模型：一行一套，「用这个」切换 / × 移除；当前生效那行高亮 + 「正在用」小标。
+   行里除了名字都能压，375 宽下也不会把卡片撑破（名字走省略号）。 */
+.model-saved { display: flex; flex-direction: column; gap: 6px; }
+
+.model-saved-empty { font-size: 12px; color: var(--ink-3); line-height: 1.6; margin: 0; }
+
+.model-saved-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--paper);
+  cursor: pointer;   /* 整行可点＝切到这一套，「用这个」只是它的显式出口 */
+  transition: background 0.15s ease;
+}
+
+.model-saved-row:hover { background: var(--paper-2); }
+
+.model-saved-row.on { border-color: var(--ink); background: var(--paper-2); }
+
+.model-saved-main { display: flex; align-items: center; gap: 6px; flex: 1 1 auto; min-width: 0; }
+
+/* 名字不截断（最多折两行，只在空格处断，思考档不会被拆开）：label 末尾的思考档
+   （· 更准(开) / · 更快(关)）就是靠它区分的，用省略号一裁，同一型号的几条又变得一模一样。 */
+.model-saved-name {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink);
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.model-saved-badge {
+  flex: none;
+  padding: 0 6px;
+  font-size: 10.5px;
+  line-height: 16px;
+  color: var(--ink-2);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+}
+
+.model-saved-key {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.model-saved-use,
+.model-saved-x {
+  flex: none;
+  padding: 0 2px;
+  font-family: var(--font);
+  color: var(--ink-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.model-saved-use { font-size: 12px; }
+
+.model-saved-use:hover { color: var(--ink); text-decoration: underline; }
+
+.model-saved-x { font-size: 15px; line-height: 1; }
+
+.model-saved-x:hover { color: #c0392b; }
+
+.model-saved-use:disabled,
+.model-saved-x:disabled { opacity: 0.45; cursor: default; }
+
+.model-think-now { margin-left: 6px; font-size: 11.5px; font-weight: 400; color: var(--ink-3); }
+
+.model-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+}
+
+.model-input::placeholder { color: var(--ink-3); }
+
+.model-input:focus { outline: none; border-color: var(--ink); }
+
+/* key 那一行：输入框 + 「粘贴」按钮（给 Ctrl+V 再加一道保险） */
+.model-key-row { display: flex; gap: 6px; }
+
+.model-key-row > .model-input { flex: 1 1 auto; min-width: 0; }
+
+.model-paste {
+  flex: none;
+  padding: 8px 12px;
+  font-family: var(--font);
+  font-size: 12.5px;
+  color: var(--ink-2);
+  background: var(--paper-2);
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.model-paste:hover { color: var(--ink); background: #f1f1ee; }
+
+/* 型号下拉：外观跟输入框一套，右边留出原生箭头的位置 */
+.model-select {
+  appearance: none;
+  padding-right: 26px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-2) 50%), linear-gradient(135deg, var(--ink-2) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 50%, calc(100% - 10px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+/* 「其他（自己填）」时露出来的那个文本框，跟下拉留一点缝 */
+.model-other { margin-top: 6px; }
+
+/* 规格小字：上下文/输出上限那一行，比提示清楚一点 */
+.model-spec { font-size: 12px; color: var(--ink-2); line-height: 1.6; margin-top: 6px; }
+
+.model-spec:empty { display: none; }
+
+/* 高级设置：一行可点开的标题，展开后是一小块带发丝线的区域 */
+.model-adv-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 14px;
+  padding: 0;
+  font-family: var(--font);
+  font-size: 12.5px;
+  color: var(--ink-2);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.model-adv-head:hover { color: var(--ink); }
+
+.model-adv-caret { font-size: 12px; transition: transform 0.15s ease; }
+
+.model-adv-head.on .model-adv-caret { transform: rotate(180deg); }
+
+.model-adv { margin-top: 4px; padding-top: 2px; border-top: 1px solid var(--line); }
+
+.model-adv > .model-label:first-child { margin-top: 10px; }
+
+.model-tip { font-size: 11.5px; color: var(--ink-3); margin-top: 5px; }
+
+.model-tip-sep { margin-top: 13px; }
+
+.model-source { font-size: 11.5px; color: var(--ink-3); line-height: 1.7; margin-top: 14px; }
+
+/* 测试结果一行：成功绿、失败红，模型那边的原文直接显示在这里 */
+.model-result { font-size: 12px; line-height: 1.6; margin-top: 4px; }
+
+.model-result.ok { color: #2f7d4f; }
+
+.model-result.err { color: #c0392b; }
+
+.model-privacy {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  line-height: 1.7;
+}
+
+.model-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 640px) {
+  .model-modal { padding: 14px; }
+}
+
+/* ---------- 浏览器扩展引导 ---------- */
+/* 夹在首页两行入口中间那行：小「?」+ 一句说明，整行可点，打开同一份安装教程。
+   检测状态只改文案（「需要浏览器扩展」/「扩展已就绪 ✓」），不用颜色区分——
+   琥珀色警示态太扎眼，也容易跟按钮的完成态混淆。
+   它就在 #inputActions 里面，输入就绪时跟着容器一起收起（自己不用再挂 .collapsed）；
+   留着的 .fold-row 只给一个够高的上限：手机上这句话会折两行，实测 34px，36px 装得下 */
+.ext-need {
+  --fold-h: 36px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+.ext-need-q {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  font-family: var(--font);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink-2);
+  background: transparent;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.ext-need-q:hover { color: var(--ink); border-color: var(--ink-2); }
+
+/* 右侧那句走 link-btn 的手感：hover 变深 + 下划线 */
+.ext-need-txt {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--line-2);
+  cursor: pointer;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.ext-need-txt:hover { color: var(--ink-2); text-decoration-color: var(--ink-2); }
+
+/* 教程弹层：和「模型接入」同一套做法，尺寸也一致（420px 宽、居中、点遮罩或 Esc 关掉） */
+.ext-guide-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.ext-guide-backdrop { position: absolute; inset: 0; background: rgba(25, 25, 25, 0.5); }
+
+.ext-guide-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(420px, calc(100vw - 32px));
+  max-height: 100%;
+  background: var(--paper);
+  border-radius: 3px;
+  overflow: hidden;
+  animation: fade-up 0.2s ease both;
+}
+
+.ext-guide-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.ext-guide-body { padding: 16px 18px; overflow: auto; }
+
+/* 安装状态：前面一个标志（空心圈＝还没检测到、墨点＝已就绪），检测到是绿的 */
+.ext-guide-status { display: inline-flex; align-items: center; font-size: 12.5px; color: var(--ink-2); }
+
+.ext-guide-status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border: 1.5px solid var(--ink-3);
+  border-radius: 50%;
+}
+
+.ext-guide-status.ok { color: #2f7d4f; }
+
+.ext-guide-status.ok::before { background: #2f7d4f; border-color: #2f7d4f; }
+
+.ext-guide-why { margin-bottom: 14px; font-size: 14px; color: var(--ink-2); line-height: 1.8; }
+
+.ext-guide-steps { margin: 12px 0 0; padding-left: 20px; font-size: 12.5px; line-height: 1.8; }
+
+.ext-guide-steps > li { margin-top: 9px; }
+
+.ext-guide-steps > li:first-child { margin-top: 0; }
+
+.ext-guide-steps code {
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 12px;
+  padding: 0 4px;
+  background: var(--paper-3);
+  border-radius: 2px;
+}
+
+.ext-guide-copy {
+  display: inline-block;
+  margin-top: 7px;
+  padding: 4px 10px;
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--ink-2);
+  background: var(--paper-2);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.ext-guide-copy:hover { color: var(--ink); background: #f1f1ee; }
+
+.ext-guide-tip { display: block; margin-top: 5px; font-size: 11.5px; color: var(--ink-3); line-height: 1.7; }
+
+/* 安装状态 ＋「重新检测」同一行，摆在步骤下面 */
+.ext-guide-retest { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+
+.ext-guide-link {
+  padding: 0;
+  font-family: var(--font);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--line-2);
+  cursor: pointer;
+}
+
+.ext-guide-link:hover { color: var(--ink); text-decoration-color: var(--ink); }
+
+/* 底部：两个按钮一行，重测失败那行红字换到按钮下面一行 */
+.ext-guide-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+}
+
+.ext-guide-err {
+  flex: 1 1 100%;
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: #c0392b;
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .ext-guide-modal { padding: 14px; }
+  .ext-guide-foot .btn { flex: 1 1 100%; }
+}
+
+/* 轮播里的雷达图与维度面板：宽度收一点，和示例舞台的体量相称 */
+.demo-scene .radar-wrap { max-width: 420px; margin: 0 auto; }
+
+.demo-scene .dim-panel { margin-top: 14px; }
+
+/* ---------- 解析页 ---------- */
+
+/* 长图分享：JD 分析右上角。不要框，做成纯文字按钮 */
+.btn-share {
+  padding: 5px 0;
+  border: none;
+  background: none;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.btn-share:hover { color: var(--ink); }
+.btn-share:disabled { color: var(--ink-3); cursor: default; }
+
+/* ---------- 长图预览：先看，再决定要不要导出 ---------- */
+.shot-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.shot-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(25, 25, 25, 0.5);
+}
+
+.shot-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(460px, 100%);
+  max-height: 100%;
+  background: var(--paper);
+  border-radius: 2px;
+  overflow: hidden;
+  animation: fade-up 0.2s ease both;
+}
+
+.shot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.shot-close {
+  border: none;
+  background: none;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.shot-close:hover { color: var(--ink); }
+
+.shot-body {
+  flex: 1;
+  min-height: 0;
+  padding: 18px 20px;
+  overflow: auto;
+  background: var(--paper-2);
+}
+
+.shot-body img {
+  display: block;
+  width: 100%;
+  background: var(--paper);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.09);
+}
+
+.shot-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 640px) {
+  .shot-modal { padding: 14px; }
+}
+
+/* 解析中：整页只有居中的进度圈，雷达图模块此时整体不出现 */
+.report-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 96px 0 110px;
+}
+
+.loading-ring svg { width: 30px; height: 30px; }
+
+.report-loading .loading-label {
+  margin-left: 0;
+  font-size: 13.5px;
+  color: var(--ink-2);
+  text-align: center;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 10px 6px 4px;
+  margin-left: -4px;
+  border: none;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink-2);
+  font-family: var(--font);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-back:hover { color: var(--ink); background: var(--paper-2); }
+
+/* 总分区：从零高度丝滑展开（生成前完全不可见） */
+.verdict-section {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+}
+
+.verdict-section.open { grid-template-rows: 1fr; opacity: 1; }
+
+.verdict-inner { overflow: hidden; }
+
+.verdict {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0 44px;
+  padding: 30px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.verdict-left { flex: 0 0 auto; }
+
+.verdict-right { flex: 1 1 0; min-width: 0; padding-top: 6px; }
+
+.score-label {
+  font-size: 12.5px;
+  letter-spacing: 3px;
+  color: var(--ink-3);
+  margin-bottom: 6px;
+  transition: opacity 0.35s ease;
+}
+
+.demo-tag {
+  margin-left: 8px;
+  padding: 1px 6px;
+  font-size: 10.5px;
+  letter-spacing: 0;
+  color: var(--ink-3);
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+  vertical-align: 3px;
+}
+
+.score-value {
+  font-size: 66px;
+  font-weight: 600;
+  letter-spacing: -2px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition: opacity 0.3s ease;
+}
+
+.score-unit { font-size: 18px; font-weight: 400; letter-spacing: 0; color: var(--ink-3); transition: opacity 0.35s ease; }
+
+/* 分数飞入前，「总分」「—」「/100」全部不可见（保留占位，不影响落点） */
+.score-label.pending,
+.score-value.pending,
+.score-unit.pending { opacity: 0; }
+
+.verdict-job {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-bottom: 7px;
+}
+
+.verdict-meta { margin-bottom: 12px; font-size: 13px; color: var(--ink-3); }
+
+/* 综合点评：客观评价与针对用户的评价写在同一段里，不另起一行 */
+.verdict-line { font-size: 19px; line-height: 1.75; color: var(--ink); min-height: 1.75em; }
+
+/* 分析图自己的两个开关：纵轴切换（年薪 / 时薪）与涨幅图的行排序（涨幅空间 / 底薪最高）。
+   都是图名右边一小组小字，靠右对齐；在报告页里和图名同一行（.chart-pick-row） */
+.pay-toggle,
+.chart-sort { margin-left: auto; display: flex; gap: 14px; }
+
+.pay-toggle-btn,
+.chart-sort-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.pay-toggle-btn.on,
+.chart-sort-btn.on { color: var(--ink); font-weight: 600; }
+
+/* 维度面板里的附加小字：休息偏离度那一行 */
+.dim-note { margin: 10px 0 2px; font-size: 12.5px; line-height: 1.8; color: var(--ink-3); }
+
+/* 总分下的两条提示（薪资缺失 / 未上传简历）——与总分同一块内容，不加分割线 */
+.verdict-hints { flex: 1 1 100%; margin-top: 14px; }
+
+.verdict-hint {
+  margin-bottom: 5px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--ink-3);
+}
+
+.verdict-hint:last-child { margin-bottom: 0; }
+
+/* 资料不全提示里的行动按钮（补薪资 / 上传简历 / 联网重采） */
+.verdict-hint-act {
+  margin-left: 6px;
+  padding: 1px 9px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--ink-3);
+  background: none;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.verdict-hint-act:hover { color: #191919; }
+
+/* 分析过程（审计）：默认折叠的小字块 */
+.audit-section { margin-top: 26px; }
+.audit-details summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--ink-3);
+  list-style: none;
+}
+.audit-details summary::-webkit-details-marker { display: none; }
+.audit-details summary::after { content: ' ⌄'; }
+.audit-details[open] summary::after { content: ' ⌃'; }
+.audit-body { margin-top: 8px; }
+.audit-line {
+  margin: 0 0 4px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--ink-3);
+}
+.audit-line:last-child { margin-bottom: 0; }
+
+/* 进度圆环（转满即完成）+ 右侧进度提示 */
+.progress-ring {
+  display: inline-flex;
+  align-items: center;
+  transition: opacity 0.4s ease;
+}
+
+.progress-ring svg { display: block; }
+
+/* 行内小进度圈：挂在某处内容后面，表示这一块正在被重新生成 */
+.mini-ring {
+  display: inline-block;
+  margin-left: 8px;
+  vertical-align: middle;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.mini-ring.on { opacity: 1; }
+.mini-ring svg { display: block; }
+
+.progress-label {
+  margin-left: 10px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  transition: opacity 0.4s ease;
+}
+
+/* 默认不可见：只有真正在上传/解析时才由脚本点亮 */
+#resumeRing, #resumeLabel { opacity: 0; }
+
+/* 雷达图容器：生成前隐藏，数据到达后"生长"出现 */
+.radar-wrap { padding: 10px 0 0; }
+
+.radar-wrap svg {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  transition: opacity 0.5s ease, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.radar-wrap svg.radar-hidden { opacity: 0; transform: scale(0.94); }
+
+/* 雷达图下面的一行提示：让人知道点维度就能看到评分规则与举例 */
+.radar-hint {
+  margin-top: 4px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+.radar-label { transition: opacity 0.35s ease; }
+
+.radar-label:hover text:first-of-type { fill: #191919; }
+
+/* ---------- 维度分析面板（点击雷达标签展开） ---------- */
+.dim-panel { padding: 12px 0 4px; }
+
+.dim-panel.swap { animation: fade-in 0.4s ease both; }
+
+.dim-panel-head { display: flex; align-items: center; gap: 14px; }
+
+.dim-panel-name { font-size: 14.5px; font-weight: 600; }
+
+.dim-meter { display: inline-flex; gap: 3px; margin-left: auto; }
+
+.meter-cell { width: 11px; height: 5px; background: var(--paper-3); }
+
+.meter-cell.on { background: var(--ink); }
+
+.dim-panel-score {
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 24px;
+  text-align: right;
+}
+
+.dim-panel-text { margin-top: 12px; }
+
+/* 薪资小结：预计月薪 / 预计税后 / 年度总收入三块数字，摆在面板里「一句话评价」的上面。
+   比 V2 的薪资拆解更小更扁——数字 16px、标签与注文 11.5px，块与块之间只用发丝线分隔，
+   不加框、不加底色、不用彩色：它是一段数据，不是一张卡。 */
+.pay-est { margin: 14px 0 0; padding-top: 11px; border-top: 1px solid var(--line); }
+
+.pay-est-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.pay-est-cell { min-width: 0; padding-right: 14px; }
+.pay-est-cell + .pay-est-cell { padding-left: 14px; border-left: 1px solid var(--line); }
+
+.pay-est-v {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+.pay-est-k { margin-top: 3px; font-size: 11.5px; letter-spacing: 0.2px; color: var(--ink-2); }
+
+.pay-est-note { margin-top: 6px; font-size: 11.5px; line-height: 1.7; color: var(--ink-3); }
+
+/* 窄屏三列太挤：改成竖排，分隔线从「左」换成「上」 */
+@media (max-width: 640px) {
+  .pay-est-grid { grid-template-columns: 1fr; }
+  .pay-est-cell { padding-right: 0; }
+  .pay-est-cell + .pay-est-cell {
+    margin-top: 10px;
+    padding: 10px 0 0;
+    border-left: none;
+    border-top: 1px solid var(--line);
+  }
+}
+
+/* 一句话评价：点开维度第一眼看到的东西，比正文重、比标题轻。
+   只靠字重与颜色分层，不加框、不加底色——外面套个框反而像一块公告栏，把结论压成了引用。 */
+.dim-verdict {
+  margin: 12px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+/* 维度「依据」：模型给的标签 + 原句 + 来源标记，比正文轻一级的小字 */
+.dim-evidence { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.dim-scale { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.dim-evidence-line {
+  position: relative;
+  padding-left: 11px;
+  font-size: 12px;
+  line-height: 1.85;
+  color: var(--ink-3);
+}
+.dim-evidence-line::before {
+  content: '·';
+  position: absolute;
+  left: 0;
+  color: var(--ink-3);
+}
+
+/* 依据里的小表格（成色系数 C：看什么 / 落在哪一档 / 系数，三项一行）——
+   与规则表同一套样式，只把首列放开、字号再小半级 */
+.dim-evidence-caption {
+  margin: 8px 0 2px;
+  font-size: 12px;
+  line-height: 1.85;
+  color: var(--ink-3);
+}
+.dim-evidence-table {
+  width: 100%;
+  margin: 4px 0 8px;
+  border-collapse: collapse;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.dim-evidence-table th {
+  padding: 3px 10px 3px 0;
+  text-align: left;
+  font-weight: 400;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--line);
+}
+.dim-evidence-table td {
+  padding: 4px 10px 4px 0;
+  border-bottom: 1px solid var(--line);
+}
+.dim-evidence-table th:first-child,
+.dim-evidence-table td:first-child { white-space: nowrap; color: var(--ink-2); }
+.dim-evidence-table th:last-child,
+.dim-evidence-table td:last-child { padding-right: 0; white-space: nowrap; text-align: right; }
+.dim-evidence-table tbody tr:last-child td { border-bottom: none; color: var(--ink-2); }
+
+.dim-panel-tip {
+  margin-top: 14px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--ink-3);
+}
+
+/* 维度面板：评分规则 + 举例（点开某一维就能看到分是怎么算出来的） */
+.dim-rule {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.dim-rule-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--font);
+  font-size: 12.5px;
+  color: var(--ink-2);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dim-rule-toggle:hover { color: var(--ink); }
+
+/* 收起时三角朝右，展开时朝下（沿用 .jd-caret 的画法） */
+.dim-rule .jd-caret { transform: rotate(-45deg) translate(-2px, -2px); }
+.dim-rule.open .jd-caret { transform: rotate(45deg) translate(-2px, -2px); }
+
+.dim-rule-body { margin-top: 9px; }
+
+.dim-rule-line {
+  position: relative;
+  padding-left: 11px;
+  font-size: 12.5px;
+  line-height: 1.85;
+  color: var(--ink-2);
+  white-space: pre-line;   /* 规则里用 \n 让公式单独成行 */
+}
+
+.dim-rule-line::before {
+  content: '·';
+  position: absolute;
+  left: 0;
+  color: var(--ink-3);
+}
+
+.dim-rule-caption {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.dim-rule-table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.dim-rule-table th {
+  padding: 4px 0;
+  text-align: left;
+  font-weight: 400;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--line);
+}
+
+.dim-rule-table td {
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.dim-rule-table th:first-child,
+.dim-rule-table td:first-child {
+  width: 42px;
+  white-space: nowrap;
+  color: var(--ink-2);
+}
+
+.dim-rule-table tbody tr:last-child td { border-bottom: none; }
+
+.analysis-line {
+  position: relative;
+  padding-left: 16px;
+  margin-bottom: 9px;
+  font-size: 14.5px;
+  line-height: 1.9;
+  color: var(--ink-2);
+}
+
+.analysis-line:last-child { margin-bottom: 0; }
+
+.analysis-line::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.85em;
+  width: 4px;
+  height: 4px;
+  background: var(--line-2);
+}
+
+.quote {
+  font-style: normal;
+  background: var(--paper-3);
+  padding: 0 3px;
+  color: var(--ink);
+}
+
+/* ---------- 职位描述解读（荧光笔标记） ---------- */
+.jd-section {
+  opacity: 0;
+  transform: translateY(12px) scale(0.992);
+  transition: opacity 0.75s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.jd-section.grown { opacity: 1; transform: translateY(0) scale(1); }
+
+.jd-body {
+  margin-top: 22px;
+  padding: 0 6px 10px;
+  font-size: 15px;
+  line-height: 2.05;
+  letter-spacing: 0.2px;
+  color: var(--ink);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+/* 薪资未读到时的 ? 提示与手动输入 */
+.salary-hint-q {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  margin-left: 6px;
+  padding: 0;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-3);
+  font-size: 10.5px;
+  line-height: 1;
+  vertical-align: 1px;
+  cursor: pointer;
+  font-family: var(--font);
+}
+
+.salary-hint-q:hover { color: var(--ink); border-color: var(--ink-3); }
+
+.salary-hint-box {
+  display: none;
+  margin: 10px 0 4px;
+  padding: 11px 13px;
+  background: var(--paper-2);
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--ink-2);
+}
+
+.salary-hint-box.open { display: block; }
+
+.salary-hint-text { margin-bottom: 4px; }
+
+/* 发展潜力重采：提示下的一行状态（正在采 / 采到了 / 还是没采到） */
+.growth-hint-status {
+  margin-top: 4px;
+  color: var(--ink-3);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+
+.salary-hint-act {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--line-2);
+  cursor: pointer;
+}
+
+.salary-hint-act.done { display: none; }
+
+.salary-hint-form { display: none; margin-top: 9px; gap: 8px; align-items: center; }
+
+.salary-hint-form.open { display: flex; }
+
+.salary-hint-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+  background: var(--paper);
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.salary-hint-input:focus { outline: none; border-color: var(--ink-3); }
+
+.salary-hint-ok {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: var(--ink);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.salary-hint-ok:disabled { opacity: 0.55; cursor: default; }
+
+/* ---------- 简历 ---------- */
+.resume-hint {
+  margin-top: 22px;
+  font-size: 13.5px;
+  color: var(--ink-3);
+}
+
+.link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--line-2);
+  cursor: pointer;
+}
+
+.link-btn:hover { text-decoration-color: var(--ink); }
+
+/* 独立视图页眉：大标题 + 一行副标题（职位对比页 / 简历页 / 历史档案页共用） */
+.view-analysis .page-title,
+.view-resume .page-title,
+.view-history .page-title { font-size: 26px; line-height: 1.4; font-weight: 600; letter-spacing: -0.3px; text-wrap: balance; }
+.view-resume .page-sub,
+.view-history .page-sub { margin-top: 8px; font-size: 13px; color: var(--ink-2); text-wrap: pretty; }
+
+/* 解析进度整行：平时收起（脚本用 hidden 控制），上传时才点亮 */
+.resume-progress { margin-top: 18px; }
+
+.resume-body { margin-top: 22px; padding: 0 2px 6px; }
+
+/* 页眉两行：文件名 + 更新于（V2 的 resume-name / resume-meta） */
+.resume-name { font-size: 15px; font-weight: 600; text-wrap: balance; }
+.resume-meta { margin-top: 2px; font-size: 12.5px; color: var(--ink-3); }
+
+/* 「来源的文件」：可点开 / 保存；悬停给下划线，别只靠一个手型 */
+.resume-file { cursor: pointer; }
+.resume-file:hover, .resume-file:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Markdown 版一行：小灰字 + 句内链接 */
+.resume-file-md { margin-top: 6px; font-size: 12.5px; color: var(--ink-3); }
+
+/* 清空确认：一行字 + 两个句内动作（只限简历页，别处另有一套）。
+   要「显眼」：整行加浅底衬底，动作里「清空简历」用墨色加粗。 */
+.view-resume .confirm-line {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px;
+  margin-top: 14px; padding: 10px 14px; font-size: 13px; color: var(--ink-2);
+  background: var(--paper-2); border-left: 2px solid var(--ink);
+}
+.view-resume .confirm-line .link-btn { font-weight: 600; color: var(--ink); }
+.view-resume .notice-sep { margin: 0 8px; color: var(--line-2); }
+
+/* 正文：一条发丝线起头，标题／段落／条目只靠字号与三级灰分层（V2 的 md-body） */
+.md-body { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); }
+.md-body h3 { margin: 24px 0 10px; font-size: 15px; font-weight: 600; }
+.md-body h3:first-child { margin-top: 0; }
+.md-body p { margin-top: 10px; font-size: 15px; line-height: 1.9; color: var(--ink-2); }
+.md-body ul { margin: 6px 0 10px; }
+.md-body li {
+  position: relative;
+  margin-bottom: 6px;
+  padding-left: 14px;
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--ink-2);
+  list-style: none;
+}
+.md-body li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.85em;
+  width: 4px;
+  height: 4px;
+  background: var(--line-2);
+}
+
+/* 空态：只有字，没有卡片 */
+.resume-empty { padding: 34px 0 6px; }
+.resume-empty-title { font-size: 15px; font-weight: 600; }
+.empty-act { margin-top: 8px; }
+
+/* 清空确认的动作分隔符（行本身在上面的简历页样式块里） */
+.view-resume .notice-sep { margin: 0 8px; color: var(--line-2); }
+
+/* 页脚动作：两个句内文字链，一条发丝线隔开 */
+.resume-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 0 28px; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 13px; }
+.resume-actions .link-btn { color: var(--ink-2); }
+.resume-actions .link-btn:hover { color: var(--ink); }
+
+.dim-panel-tip.clickable { cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.dim-panel-tip.clickable:hover { color: var(--ink); }
+
+.history-tag {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 0 5px;
+  font-size: 11px;
+  line-height: 17px;
+  color: var(--ink-3);
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+}
+
+/* 参照档案的小标：比「无简历 / 简历已更新」那两枚更轻一档（描边更淡），别喧宾夺主。
+   margin-right 是给紧跟其后的另一枚标签留的缝——两枚都是 inline-block，挨在一起会贴住。 */
+.history-tag-seed {
+  margin-right: 6px;
+  border-color: var(--line);
+}
+
+/* ---------- 简历编辑 ---------- */
+.resume-line { transition: opacity 0.4s ease, transform 0.45s cubic-bezier(0.22,1,0.36,1); }
+.resume-line:not(.resume-in) { opacity: 0; transform: translateY(4px); }
+.resume-in { opacity: 1; transform: translateY(0); }
+
+/* 章节标题行：铅笔紧跟在标题右侧 */
+.resume-pencil {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1;
+  margin-left: 9px;
+  vertical-align: middle;
+  color: var(--line-2);
+  cursor: pointer;
+}
+.resume-sec:hover .resume-pencil, .resume-pencil:active { color: var(--ink-3); }
+
+.resume-edit { margin: 6px 0 8px; }
+.resume-edit-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+  background: var(--paper);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--ink);
+  resize: vertical;
+}
+.resume-edit-input:focus { outline: none; border-color: var(--ink-3); }
+.resume-edit-actions { display: flex; gap: 10px; margin-top: 8px; }
+.resume-edit-save, .resume-edit-cancel {
+  padding: 5px 12px;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: var(--ink);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.resume-edit-cancel { background: none; color: var(--ink-2); border-color: var(--line-2); }
+
+/* ---------- 首页「最近报告」预览 + 历史档案页 ---------- */
+/* 首页只放最近几条预览；排序行、分页、删除确认都在历史档案页里 */
+.recent-block { margin-top: 52px; }
+
+/* 默认折起来：整行标题（含右侧留白）可点，展开时列表高度从 0 长出来 */
+.recent-block .block-head { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+.recent-block .fold-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 裁剪交给内层：折叠时连列表那 16px 上边距一起吃进去，不留一道缝 */
+.recent-block .fold-inner { overflow: hidden; }
+
+.recent-block.collapsed .fold-body { grid-template-rows: 0fr; }
+
+/* 标题后的 V 形箭头（画法同 .jd-caret）：折叠时朝下＝可展开，展开后转 180° 朝上 */
+.recent-block .fold-caret {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 7px;
+  width: 7px;
+  height: 7px;
+  border-right: 1.4px solid var(--ink-3);
+  border-bottom: 1.4px solid var(--ink-3);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.recent-block:not(.collapsed) .fold-caret { transform: rotate(225deg) translate(-2px, -2px); }
+
+/* 首页的行没有 ×：右端留一段比 × 列略宽的余量，右端的雷达不贴边、比例更从容 */
+.recent-block .history-item::after { content: ""; flex: 0 0 auto; width: 32px; }
+
+.recent-empty { padding: 16px 0 2px; font-size: 12.5px; color: var(--ink-3); }
+
+/* 历史档案页：页标题 → 排序行 → 列表 */
+.view-history .history-sort { margin-top: 22px; }
+
+/* 窄屏一行放不下就整排换行，方向按钮仍贴右 */
+.history-sort { display: flex; flex-wrap: wrap; gap: 14px; }
+
+.history-sort-btn,
+.history-dir-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.history-sort-btn.on,
+.history-dir-btn.on { color: var(--ink); }
+
+/* 方向切换贴在最右：文案就是当前方向，点了在反序 ↓ / 顺序 ↑ 之间翻 */
+.history-dir-btn { margin-left: auto; }
+
+.history-list { margin-top: 16px; }
+
+/* 一行＝职位名/灰 meta + 右端「分数对 + 六维小雷达」 + 浅灰 ×（雷达只画不点，点行才是打开报告） */
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.history-item.history-item-last { border-bottom: none; }
+
+/* 整行的可点区域只有主区这一个真按钮，× 是另一个按钮——别把两个热区叠在一起 */
+.history-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: block;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* 职位名与那颗心同一行：心紧贴名字右侧，不跟右端的分数、雷达、× 挤在一起；名字长了还是在行内省略 */
+.history-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.history-head .history-title { min-width: 0; }
+
+/* 收藏（心）：空心＝没收藏，实心＝已收藏；hover 加深。它是行按钮里的一个 span
+   ——按钮不能套按钮——点击的分流在 history-main 的 click 里。 */
+.fav {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  /* 26×26 的热区，四周各用 -4px 的负 margin 抵掉：在行里只占 18×18，行高一点没变 */
+  margin: -4px;
+  color: var(--ink-3);
+  transition: color 0.15s ease;
+}
+
+.fav svg { display: block; }
+.fav svg path { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.fav:hover { color: var(--ink-2); }
+.fav.on { color: var(--ink); }
+.fav.on svg path { fill: currentColor; }
+
+.history-title {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-meta {
+  display: block;
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.8;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-main:hover .history-title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--line-2);
+}
+
+/* 分数对：与报告页同一套数字呈现——大数字 + 灰色「/67」。
+   紧贴右端雷达的左侧（右对齐）：几条档案的分母落在同一条线上，与雷达的间距也一致 */
+.history-score {
+  flex: 0 0 auto;
+  text-align: right;
+  white-space: nowrap;
+}
+.history-score-value { display: inline-flex; align-items: baseline; }
+.history-score-num { font-size: 25px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.history-score-unit { font-size: 14px; color: var(--ink-3); }
+
+/* 右端六维小雷达：形状与报告页同一套几何；悬停那句 title 里有每维的数字 */
+.history-radar {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+}
+.history-radar svg { display: block; }
+
+.history-del {
+  position: relative;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 17px;
+  line-height: 1;
+  color: var(--line-2);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+/* 视觉上只有 22px，热区向四周扩 11px（V2 同款） */
+.history-del::after { content: ""; position: absolute; inset: -11px; }
+
+.history-del:hover { color: var(--ink); }
+
+/* 删除确认：那一行原地换成一句问句，答案就在句子里（删除 / 取消） */
+.history-confirm .confirm-line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.history-confirm .notice-sep { margin: 0 8px; color: var(--line-2); }
+
+/* 删除 / 清空 这类确认行里的动作：给深色底做成真正的按钮——
+   原来是带下划线的小灰字，用户反馈"太不显眼，看不到该点哪"。
+   第一个按钮（删除 / 清空）最深，第二个（取消）次一档，主次分明。 */
+.history-confirm .confirm-line .link-btn,
+.view-resume .confirm-line .link-btn {
+  padding: 3px 12px;
+  border-radius: 2px;
+  color: #fff;
+  background: var(--ink-2);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.history-confirm .confirm-line .link-btn:hover,
+.view-resume .confirm-line .link-btn:hover { background: var(--ink); }
+
+.history-confirm .confirm-line .link-btn:first-of-type,
+.view-resume .confirm-line .link-btn:first-of-type { background: var(--ink); }
+
+/* 两个按钮并排就够了，中间那条「/」反而碍眼 */
+.history-confirm .notice-sep,
+.view-resume .notice-sep { display: none; }
+
+.history-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 0 2px;
+}
+
+.history-page-btn {
+  padding: 0 6px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.history-page-btn:disabled { color: var(--line-2); cursor: default; }
+
+.history-page-label { font-size: 12.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+.history-empty { padding: 22px 0; font-size: 13px; line-height: 1.9; color: var(--ink-3); }
+
+.history-empty-title { font-size: 15px; color: var(--ink-2); margin-bottom: 6px; }
+
+.history-empty-note { font-size: 12.5px; line-height: 1.85; color: var(--ink-3); }
+
+.history-empty-act { margin-top: 8px; }
+
+/* ---------- 自述问卷：成果预览（一份还没分析的自述草稿） ---------- */
+/* 独立视图页眉：与简历页 / 历史档案页同一套（大标题 + 一行副标题） */
+.view-self .page-title { font-size: 26px; line-height: 1.4; font-weight: 600; letter-spacing: -0.3px; text-wrap: balance; }
+.view-self .page-sub { margin-top: 18px; font-size: 13px; color: var(--ink-2); text-wrap: pretty; }
+
+/* 答题成果摘要：按题目的分组分块，每行 k 灰 v 墨（问卷完成页那套 .sum-row 的版式） */
+.self-sum { margin-top: 30px; }
+.self-sum-group { margin-bottom: 24px; }
+
+.self-sum-group h3 {
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--ink-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.self-sum-row { display: flex; gap: 16px; padding: 6px 0; font-size: 14px; line-height: 1.7; }
+
+.self-sum-k { flex: 0 0 40%; color: var(--ink-3); }
+
+.self-sum-v { flex: 1; min-width: 0; color: var(--ink); }
+
+/* 将来喂给分析接口的自述正文：原样摆着，pre-wrap 换行；浅底，不做卡片 */
+.self-text {
+  margin-top: 26px;
+  padding: 14px 16px;
+  background: var(--paper-2);
+  border-radius: 2px;
+  font-size: 13.5px;
+  line-height: 1.95;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+}
+
+.self-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 14px 18px; margin: 20px 0 6px; }
+
+.self-actions .link-btn { font-size: 13px; }
+
+/* 列表里的「待分析 · 自述」行：分数还没跑，摆一个浅灰破折号占住分数位 */
+.self-pending-score { font-size: 25px; color: var(--line-2); font-variant-numeric: tabular-nums; }
+
+/* ---------- 结构化区块 ---------- */
+.jd-block { margin-bottom: 19px; }
+
+.jd-block:last-child { margin-bottom: 8px; }
+
+.jd-block-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 9px;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--ink);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.jd-caret {
+  width: 7px;
+  height: 7px;
+  border-right: 1.4px solid var(--ink-3);
+  border-bottom: 1.4px solid var(--ink-3);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.jd-block.collapsed .jd-caret { transform: rotate(-45deg) translate(-2px, -2px); }
+
+.jd-block-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.34s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease;
+}
+
+.jd-block-inner { overflow: hidden; }
+
+.jd-block.collapsed .jd-block-body { grid-template-rows: 0fr; opacity: 0; }
+
+.jd-p { margin-bottom: 12px; }
+
+.jd-p:last-child { margin-bottom: 0; }
+
+.jd-li {
+  position: relative;
+  padding-left: 15px;
+  margin-bottom: 8px;
+}
+
+.jd-li:last-child { margin-bottom: 0; }
+
+.jd-li::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0.78em;
+  width: 4px;
+  height: 4px;
+  background: var(--line-2);
+}
+
+.jd-kv {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 7px;
+}
+
+.jd-kv:last-child { margin-bottom: 0; }
+
+.jd-k { flex: 0 0 74px; color: var(--ink-3); }
+
+.jd-v { flex: 0 1 auto; color: var(--ink); }
+
+.jd-v-wide { flex: 1 1 100%; }
+
+.jd-type-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.jd-tag {
+  padding: 3px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+/* 逐条生长出现 */
+.jd-line {
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 0.45s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.jd-line.jd-in { opacity: 1; transform: translateY(0); }
+
+.jd-caret { margin-left: 0; }
+
+/* 模块标题：点一下即可收起/展开全部小节 */
+.jd-title { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+
+.jd-title .jd-caret { margin-left: 0; }
+
+.jd-title.all-collapsed .jd-caret { transform: rotate(-45deg) translate(-2px, -2px); }
+
+/* 折叠后：划线内容按顺序保留在标题下方（保持荧光笔颜色），横向铺开，不浪费右侧版面 */
+.jd-peek {
+  display: none;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 18px;
+  margin-bottom: 2px;
+}
+
+.jd-block.collapsed .jd-peek { display: flex; }
+
+.jd-peek-item {
+  font-size: 14.5px;
+  line-height: 1.7;
+}
+
+.jd-peek .hl-peek { cursor: pointer; }
+
+/* ---------- 划线解读卡（点击荧光笔展开） ---------- */
+.jd-note {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.34s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+}
+
+.jd-note.open { grid-template-rows: 1fr; opacity: 1; }
+
+.jd-note-inner { overflow: hidden; }
+
+.jd-type-tags .jd-note { flex: 1 1 100%; }
+
+.jd-note-card {
+  margin: 10px 0 16px;
+  padding: 12px 14px 13px;
+  background: var(--paper-2);
+}
+
+.jd-note-cat {
+  margin-bottom: 6px;
+  font-size: 11.5px;
+  letter-spacing: 0.6px;
+  color: var(--ink-3);
+}
+
+.jd-note-why {
+  font-size: 14px;
+  line-height: 1.85;
+  color: var(--ink);
+}
+
+.jd-note-cite {
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+  line-height: 1.8;
+  color: var(--ink-2);
+  user-select: text;
+}
+
+.jd-note-cite-label { color: var(--ink-3); margin-right: 4px; }
+
+.jd-note-cite-text { color: var(--ink-2); }
+
+.jd-note-cite a {
+  margin-left: 8px;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--line-2);
+  white-space: nowrap;
+}
+
+.jd-note-cite a:hover { color: var(--ink); }
+
+/* 展开解读时，被点的这一行与上下行拉开距离 */
+.jd-li.has-note, .jd-p.has-note, .jd-kv.has-note { margin-bottom: 16px; }
+
+.jd-body .hl {
+  padding: 1px 1px 2px;
+  border-radius: 1px;
+  /* 覆盖 <mark> 的浏览器默认黄底与黑字，只保留荧光笔色带 */
+  background-color: transparent;
+  color: inherit;
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 0% 100%;
+  transition: background-size 0.52s cubic-bezier(0.33, 1, 0.68, 1);
+  cursor: pointer;
+}
+
+/* 一种浅灰色带（比正文色浅一档），高危/不利的区别写在展开的解读里 */
+.jd-body .hl.hl-high,
+.jd-body .hl.hl-mid {
+  background-image: linear-gradient(180deg,
+    rgba(25, 25, 25, 0.03) 14%,
+    rgba(25, 25, 25, 0.15) 14%,
+    rgba(25, 25, 25, 0.15) 87%,
+    rgba(25, 25, 25, 0.03) 87%);
+}
+
+.jd-body .hl.on {
+  background-size: 100% 100%;
+  animation: hl-breathe 1.1s ease-out 1;
+}
+
+/* 荧光笔落下时的轻微呼吸 */
+@keyframes hl-breathe {
+  0% { opacity: 0.55; }
+  60% { opacity: 1; }
+  80% { opacity: 0.9; }
+  100% { opacity: 1; }
+}
+
+/* 总分飞行动画 */
+.fly-score {
+  position: fixed;
+  z-index: 60;
+  transform: translate(-50%, -50%);
+  font-weight: 600;
+  letter-spacing: -2px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* ---------- 数据分析：薪资—休息象限图 ---------- */
+.block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 4px;
+}
+.block-head .block-title { flex: 1 1 auto; padding-bottom: 0; border-bottom: 0; margin-bottom: 0; }
+
+.block-more {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.block-more:hover { color: var(--ink); }
+.block-more .case-arrow { margin-left: 6px; }
+
+.quad-wrap { position: relative; margin-top: 26px; }
+.quad-wrap .quad { display: block; width: 100%; height: auto; overflow: visible; }
+
+/* 点位信息：纯文字，无底色 */
+.quad-tip {
+  position: absolute;
+  width: max-content;
+  max-width: 280px;
+  font-size: 12.5px;
+  line-height: 1.75;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.quad-tip[hidden] { display: none; }
+.quad-tip-shared { margin-bottom: 6px; }
+.quad-tip-item { padding: 6px 0; cursor: pointer; }
+.quad-tip-item:first-of-type { padding-top: 0; }
+.quad-tip-item:last-child { padding-bottom: 0; }
+.quad-tip-item + .quad-tip-item { border-top: 1px solid var(--line-2); }
+.quad-tip-title { font-size: 13.5px; color: var(--ink); }
+.quad-tip-meta { margin-top: 2px; color: var(--ink-3); }
+.quad-tip-item:hover .quad-tip-title { text-decoration: underline; text-underline-offset: 3px; }
+
+.quad-note { margin-top: 16px; font-size: 12px; line-height: 1.9; color: var(--ink-3); }
+
+/* 分析图上的点：普通岗位统一淡一档，最深的那个留给「本次分析的岗位」（.quad-pt-cur）——
+   这些图是拿来横向比的，颜色深浅只用来挑出自己正在看的那份。 */
+.quad-pt { fill: rgba(25,25,25,0.32); stroke: #fff; stroke-width: 1.2; transition: fill 0.15s ease, r 0.15s ease; }
+/* 当前命中的那个点（重叠时靠它指明翻到了哪一个） */
+.quad-pt-on { fill: #191919; r: 6; }
+/* 散点图的点：休息信息的来源不同，画法不同——实心＝有依据（JD 或本人补充），
+   空心＝估算，虚线空心＝网络参考。都留 1px 描边，重叠时各自还看得清。 */
+.quad-pt-solid { fill: #b9b8b5; stroke: #fff; stroke-width: 1; }
+.quad-pt-hollow { fill: #fff; stroke: #b9b8b5; stroke-width: 1; }
+.quad-pt-dash { fill: #fff; stroke: #b9b8b5; stroke-width: 1; stroke-dasharray: 2 2; }
+/* 报告页正在看的那份：墨色实心点，比别的点大一圈；几张分析图统一用它，不再用 ★ */
+.quad-pt-cur { fill: #191919; stroke: #fff; stroke-width: 1.2; }
+/* 收藏过的岗位：同一个墨色，半径维持常规大小——深色挑出来的那一簇里还能分得出本次打开的那份 */
+.quad-pt-fav { fill: #191919; stroke: #fff; stroke-width: 1.2; }
+/* 散点图上光标当前命中的点：半径略大、描边加粗；不动填充，来源的样式还看得出来 */
+.quad-pt-hit { r: 5.4; stroke-width: 2.2; transition: r 0.15s ease, stroke-width 0.15s ease; }
+/* 本来就是深色的点，hover 得连描边一起变深才看得出来（白描边只加粗会被背景吃掉） */
+.quad-pt-solid.quad-pt-hit, .quad-pt-cur.quad-pt-hit { stroke: #191919; }
+
+/* 区间辅助线：横＝休息天数区间（左端最差），竖＝薪资 / 时薪区间 */
+.quad-guide { stroke: #dcdcda; stroke-width: 1; }
+/* 选中的点：点为中心的方框（多选时每个点各一个），只是标记，不参与命中 */
+.quad-pick { fill: none; stroke: #191919; stroke-width: 1.4; pointer-events: none; }
+
+/* 双轴图右轴上的点：性价比倍数（柱＝时薪读左轴，点＝性价比读右轴） */
+.val-dot { fill: rgba(25,25,25,0.32); stroke: #fff; stroke-width: 1; }
+.val-range { stroke: #cfcfcc; stroke-width: 1.2; stroke-linecap: round; }
+
+/* 一行一个岗位的图（薪资涨幅）：鼠标扫到哪一行，哪一行整行变浅灰 */
+.step-row-bg { fill: transparent; transition: fill 0.12s ease; }
+.step-row-on .step-row-bg { fill: rgba(25,25,25,0.05); }
+/* 这份 JD 只有单个报价、没有区间时的点：与深灰条同一个灰 */
+.step-jd-pt { fill: #98a2b3; stroke: #fff; stroke-width: 1.2; }
+
+/* 图底部的免责小字：薪资涨幅、薪资 × 发展潜力两张图共用同一行 */
+.chart-disclaimer { margin-top: 10px; font-size: 11.5px; line-height: 1.8; color: var(--ink-3); }
+
+/* 图上标记的含义 */
+.quad-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 20px;
+  margin-top: 14px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+.quad-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.quad-legend .lg { width: 10px; height: 10px; border-radius: 50%; box-sizing: border-box; }
+.quad-legend .lg-bar { width: 7px; height: 12px; border-radius: 2px; background: rgba(25,25,25,0.42); }
+.quad-legend .lg-dot { background: rgba(25,25,25,0.32); box-shadow: 0 0 0 1.5px #fff inset; }
+/* 散点图的图例：小圆点照图上点的三种画法来（实心 / 空心 / 虚线空心） */
+.quad-legend .lg-dot-solid { background: #b9b8b5; }
+.quad-legend .lg-dot-hollow { border: 1px solid #b9b8b5; }
+.quad-legend .lg-dot-dash { border: 1px dashed #b9b8b5; }
+/* 本次分析的岗位：墨色点 / 加深的柱，跟图上标出来的那一个对上；收藏过的次之 */
+.quad-legend .lg-dot-cur { background: #191919; }
+.quad-legend .lg-bar-cur { width: 7px; height: 12px; border-radius: 2px; background: rgba(25,25,25,0.78); }
+.quad-legend .lg-dot-fav { width: 8px; height: 8px; background: #191919; }
+.quad-legend .lg-bar-fav { width: 7px; height: 12px; border-radius: 2px; background: rgba(25,25,25,0.62); }
+/* 薪资涨幅分析：两条灰条各是什么（用户看不懂的正是这个），外加「收藏」那颗心 */
+.quad-legend .lg-bar-range { width: 13px; height: 13px; border-radius: 3px; background: #e7ebf2; border: 1px solid #ccd3de; }
+.quad-legend .lg-bar-jd { width: 13px; height: 13px; border-radius: 3px; background: #98a2b3; }
+.quad-legend .lg-heart { width: auto; height: auto; background: none; color: #c98a8a; font-size: 14px; line-height: 1; }
+
+/* 图下详情前那一粒序号：颜色由 JS 按选中顺序给（与图上那个方框同色，一岗一色） */
+.quad-tip-no { margin-right: 6px; font-weight: 700; }
+
+/* 时薪 × 性价比：横线的读数集中在图下这一行，图上不再挂浮动文字 */
+.chart-refs { margin-top: 6px; font-size: 12px; line-height: 1.8; color: var(--ink-3); }
+
+/* 参考线（辅助线）的开关：点线上的字收起这条线，再点一下显示。
+   收起后线不画，标签留在原处——变淡 ＋ 删除线，一眼看得出是「关掉了」而不是「没有这条线」。 */
+.ref-toggle { cursor: pointer; }
+/* SVG 的标签：透明描边只为把可点范围往四周放宽 3px，外观不变（文字本身往往只有十来个像素宽） */
+svg .ref-toggle { stroke: transparent; stroke-width: 6; }
+svg .ref-toggle:hover { fill: #191919; }
+.ref-off { opacity: 0.45; text-decoration: line-through; }
+/* 图下那行读数做成的小按钮：看着还是那行小字，点下去收起 / 显示那条横线 */
+.chart-refs .ref-toggle {
+  padding: 0; border: 0; background: none; font: inherit; color: inherit;
+  text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-2);
+}
+.chart-refs .ref-toggle:not(.ref-off):hover { color: var(--ink); }
+.chart-refs .ref-toggle.ref-off { text-decoration: line-through; }
+.chart-refs .ref-hint { margin-left: 8px; }
+
+/* 休息情况：联网结果与批量重算 */
+.rest-hint-status { margin-top: 8px; font-size: 12.5px; line-height: 1.8; color: var(--ink-3); }
+.rest-web-result { margin-bottom: 8px; color: var(--ink-2); }
+.rest-web-act { margin-left: 14px; }
+.rest-web-take { padding: 5px 10px; font-size: 12.5px; }
+
+/* 分析图槽位：点标题展开列表换图 */
+.chart-slot { padding: 26px 0 28px; border-bottom: 1px solid var(--line); }
+.chart-slot:last-of-type { border-bottom: none; }
+/* 数据分析图「露面」时的入场（由 revealReportChart 临时挂一次 .grow-in）：淡入 + 轻微下落 */
+.chart-slot.grow-in { animation: chartIn 0.5s var(--ease) both; }
+@keyframes chartIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+.chart-title { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+
+/* 报告页的数据分析：大标题固定，下面一行是可点的图名（图自己的开关也放在这一行） */
+.chart-pick { position: relative; margin-top: 12px; }
+
+/* 一行放不下就整排换行（窄屏图名 + 开关会挤在一起） */
+.chart-pick-row { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 14px; }
+
+.chart-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.chart-name:hover { color: var(--ink-2); }
+.chart-pick-row + .chart-menu { margin-top: 6px; }
+
+.chart-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  margin: 8px 0 2px;
+}
+
+.chart-menu-btn {
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 2px;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink-2);
+  text-align: left;
+  cursor: pointer;
+}
+.chart-menu-btn:hover { background: var(--paper-2); color: var(--ink); }
+.chart-menu-btn.on { color: var(--ink); font-weight: 600; }
+
+.chart-body { padding-top: 2px; }
+
+/* 详情固定显示在图下方，不再浮在图上遮数据 */
+.chart-detail {
+  margin-top: 12px;
+  min-height: 22px;
+  font-size: 12.5px;
+  line-height: 1.85;
+  color: var(--ink-3);
+}
+.chart-detail:empty::before { content: '鼠标移到图上，这里显示详情；点一下选中（可多选），再点一下取消'; }
+.chart-detail .quad-tip-title { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.chart-detail .quad-tip-item { padding: 2px 0; }
+/* 多选时那行小字：已选中几个、怎么取消 */
+.chart-detail .quad-tip-hint { margin-bottom: 6px; font-size: 12px; color: var(--ink-3); }
+.chart-detail .quad-tip-item + .quad-tip-item { border-top: 1px solid var(--line); margin-top: 4px; padding-top: 6px; }
+
+/* 柱状图：柱＝时薪（浅灰）。上段更浅＝估算出来但可能达不到的部分（偏离度） */
+.bar-rect { fill: rgba(25,25,25,0.42); transition: fill 0.15s ease; }
+.bar-uncertain { fill: rgba(25,25,25,0.14); transition: fill 0.15s ease; }
+.bar-item:hover .bar-rect, .bar-on .bar-rect { fill: #191919; }
+.bar-item:hover .bar-uncertain, .bar-on .bar-uncertain { fill: rgba(25,25,25,0.34); }
+
+/* 象限参考选择（图外） */
+.basis-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+}
+.basis-label { color: var(--ink-3); margin-right: 2px; }
+.basis-btn {
+  padding: 4px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.basis-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+.basis-btn.on { border-color: var(--ink); color: var(--ink); font-weight: 600; }
+.basis-src { margin-top: 8px; font-size: 12px; line-height: 1.85; color: var(--ink-3); cursor: pointer; }
+.basis-src:hover { color: var(--ink-2); }
+.quad-explain { margin-top: 12px; font-size: 12.5px; line-height: 1.9; color: var(--ink-3); }
+.quad-explain p { margin-bottom: 4px; }
+.quad-explain p:last-child { margin-bottom: 0; }
+.quad-explain b { color: var(--ink-2); font-weight: 600; }
+
+.analysis-sub { margin-top: 14px; font-size: 13px; color: var(--ink-3); }
+
+.analysis-note { margin-top: 34px; font-size: 12px; line-height: 1.95; color: var(--ink-3); }
+
+/* 图最底下那行免责小字：比口径注释再轻一档 */
+.chart-ai-note { margin-top: 8px; font-size: 11.5px; line-height: 1.7; color: var(--ink-3); }
+
+/* 页面总尾注：报告与数据分析两张视图的最底部各一条，居中 */
+.page-ai-note { margin: 44px 0 4px; text-align: center; font-size: 11.5px; color: var(--ink-3); }
+/* 报告还在生成时（加载圈在转）不露出尾注，等报告出来再显示 */
+.report-loading:not([hidden]) ~ .page-ai-note { display: none; }
+
+/* 数据分析：数据不够画图时——只有一句居中的提示，没有坐标框架、图例、口径 */
+.chart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  padding: 40px 20px;
+  text-align: center;
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--ink-3);
+  letter-spacing: 0.3px;
+}
+
+/* 数据分析：雷达图对比 */
+/* 「选择岗位」是每张图的入口，靠左、加粗、用正文色——别做成一行不起眼的灰字 */
+.compare-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.compare-toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+}
+.compare-toggle:hover { color: #000; }
+/* 「选择岗位」的展开/收起箭头：收起时朝下＝可展开，展开后转 180° 朝上（画法同 .jd-caret） */
+.compare-toggle .jd-caret {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+.compare-toggle[aria-expanded="true"] .jd-caret { transform: rotate(225deg) translate(-2px, -2px); }
+
+/* 对比表：六个维度行可点开各岗位的分析（一岗一栏、与表头列对齐；内容与报告页维度面板同一套） */
+.compare-table-inner tr.compare-dim-row { cursor: pointer; }
+.compare-table-inner > tbody > tr.compare-dim-row:hover > td { background: var(--paper-2); }
+.compare-dim-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.compare-dim-row.open .jd-caret { transform: rotate(225deg) translate(-2px, -2px); }
+.compare-table-inner > tbody > tr.compare-dim-detail > td {
+  padding: 2px 8px 16px;
+  text-align: left;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  vertical-align: top;
+}
+.compare-dim-detail .cd-head { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-weight: 600; color: var(--ink); }
+.compare-dim-detail .cd-head .compare-dot { width: 10px; height: 10px; }
+/* 一岗一栏：栏与栏之间一根细线，提醒这是三个并排的独立小面板 */
+.compare-table-inner > tbody > tr.compare-dim-detail > td.cd-cell + td.cd-cell { border-left: 1px solid var(--line); }
+/* 栏内各块沿用报告页的 .dim-verdict/.dim-note/.dim-evidence 样式，只压一点间距与字号 */
+.compare-dim-detail .cd-content .dim-verdict,
+.compare-dim-detail .cd-content .dim-note { margin-top: 8px; font-size: 12.5px; line-height: 1.8; }
+/* 薪资小结的三块数字：栏窄，竖排 */
+.compare-dim-detail .pay-est { margin-top: 10px; padding-top: 9px; }
+.compare-dim-detail .pay-est-grid { grid-template-columns: 1fr; }
+.compare-dim-detail .pay-est-cell { padding: 0; }
+.compare-dim-detail .pay-est-cell + .pay-est-cell { margin-top: 10px; padding: 10px 0 0; border-left: 0; border-top: 1px solid var(--line); }
+
+.compare-list { margin-top: 12px; }
+.compare-list-empty { padding: 12px 0; font-size: 13px; color: var(--ink-3); }
+
+.compare-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.compare-item:last-child { border-bottom: none; }
+/* 一行只有「圆点 + 岗位名」：名字占满剩下的宽度、显示全（长了换行，不省略号）；
+   后面那串工资 / 作息 / 城市 / 公司按用户要求已从这一列去掉 */
+.compare-item-title { flex: 1 1 auto; min-width: 0; font-size: 14px; font-weight: 600; line-height: 1.5; color: var(--ink); }
+
+.compare-dot {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 11px;
+  color: #fff;
+}
+
+.compare-radar-wrap { position: relative; margin-top: 26px; }
+.compare-radar { display: block; width: 100%; max-width: 400px; height: auto; margin: 0 auto; }
+
+.compare-empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 13px;
+  color: var(--ink-3);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.compare-table { margin-top: 26px; overflow-x: auto; }
+.compare-table-inner { width: 100%; table-layout: fixed; border-collapse: collapse; }
+/* 基础表格样式只作用于对比表自己的行（> 直接子级）：展开栏里嵌的刻度表 / 成色系数表
+   是自己的小表格，不能被 92px 首列、居中、省略号这套规则污染 */
+.compare-table-inner > thead > tr > th,
+.compare-table-inner > tbody > tr > td {
+  padding: 9px 8px;
+  font-size: 13px;
+  text-align: center;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.compare-table-inner > thead > tr > th { font-weight: 600; color: var(--ink); }
+.compare-table-inner > tbody > tr > td { color: var(--ink-2); }
+.compare-table-inner > thead > tr > th:first-child,
+.compare-table-inner > tbody > tr > td:first-child {
+  width: 92px;
+  text-align: left;
+  color: var(--ink-3);
+  font-weight: 400;
+}
+.compare-th { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; }
+.compare-th .compare-dot { width: 16px; height: 16px; font-size: 10px; }
+.compare-th-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.compare-table-inner > tbody > tr > td.compare-hi { font-weight: 600; color: var(--ink); }
+/* 左上角两行字：上面「岗位名」＝右边那几列是什么，下面「指标」＝左边那一列是什么 */
+.compare-corner { line-height: 1.45; }
+.compare-corner-col { display: block; text-align: right; color: var(--ink); font-weight: 600; }
+.compare-corner-row { display: block; text-align: left; }
+
+/* 展开里的「同一张图」：图与表横跨整行（薪资的刻度尺＋刻度表、发展潜力的量表），
+   一份 JD 一行、各用自己的颜色——不按岗位分栏各画一张 */
+.compare-table-inner > tbody > tr.compare-dim-chartrow > td { padding: 0 8px 2px; }
+.cd-chart-block { margin-top: 10px; }
+.cd-chart-cap { margin: 0; font-size: 12px; line-height: 1.8; color: var(--ink-3); }
+.cd-chart { margin-top: 8px; }
+/* 刻度表（共享版）：首列＝分，一列一份 JD；落档那一格由 JS 用该岗位的颜色铺底 */
+.compare-ladder { margin-top: 10px; table-layout: fixed; }
+.compare-ladder th, .compare-ladder td { padding: 3px 10px 3px 0; text-align: left; white-space: nowrap; vertical-align: top; }
+.compare-ladder th { white-space: normal; }   /* 表头那行「口径｜最低工资 · 中位」允许折行，不然三列一起把表撑出屏幕 */
+.compare-ladder th:first-child, .compare-ladder td:first-child { width: 56px; color: var(--ink-3); }
+.compare-ladder th:last-child, .compare-ladder td:last-child { text-align: left; }
+.cd-ladder-h { display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--ink); }
+.cd-ladder-h .compare-dot { width: 10px; height: 10px; }
+.cd-ladder-sub { display: block; margin-top: 3px; font-size: 11px; font-weight: 400; color: var(--ink-3); }
+.cd-ladder-pct { margin-left: 6px; font-size: 11px; color: var(--ink-3); }
+.compare-ladder td.cd-band-on { font-weight: 600; color: var(--ink); }
+
+/* 展开末尾的「评分规则」：维度级的一份，属于共享行 */
+.compare-table-inner > tbody > tr.compare-dim-rulerow > td { padding: 0 8px 14px; }
+.compare-rule { margin-top: 4px; }
+
+@media (max-width: 640px) {
+  .compare-head { margin-top: 36px; }
+  .compare-radar-wrap { margin-top: 20px; }
+  .compare-table { margin-top: 20px; }
+}
+
+/* ---------- 其他 ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 48px;
+  transform: translateX(-50%) translateY(10px);
+  padding: 12px 20px;
+  border-radius: 2px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  z-index: 70;
+}
+
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* toast 里挂的动作按钮（历史档案删掉一条后的「撤销」）：深底上反白，下划线提示可点 */
+.toast-action {
+  margin-left: 14px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.toast-action:hover { text-decoration-color: #fff; }
+
+/* ---------- iPhone 比例（≤640px） ---------- */
+@media (max-width: 640px) {
+  .page { padding: 34px 20px calc(64px + env(safe-area-inset-bottom)); }
+
+  /* 四个入口一行放不下时整排换到第二行，仍然右对齐——不挤成一团 */
+  .topnav-inner { height: auto; min-height: 48px; padding: 0 20px; gap: 0 8px; flex-wrap: wrap; }
+  .brand { margin-right: auto; }
+  .brand-mark { width: 24px; height: 24px; }
+  .brand-name { font-size: 14.5px; }
+  .nav { margin-left: auto; }
+  .nav-item { padding: 0 6px; font-size: 12.5px; }   /* 热区仍按上面的 44px */
+
+  /* 设置页：图在窄屏占满整行，块与块之间少留一点 */
+  .set-block { padding: 20px 0 22px; }
+  .set-fig { margin-top: 14px; }
+
+  /* 首屏：导航下面留出和原来（品牌行下方 46px）差不多的呼吸位 */
+  .view-home { padding-top: 14px; }
+
+  .hero-title { font-size: 26px; line-height: 1.42; letter-spacing: -0.2px; margin-bottom: 14px; }
+  .hero-sub { font-size: 14px; margin-bottom: 22px; }
+  .hero-proof { font-size: 13px; margin-bottom: 22px; }
+  .hero-proof b { font-size: 20px; }
+
+  .actions { gap: 10px; }
+  .btn-outline { flex: 1 1 100%; min-height: 48px; padding: 14px 18px; font-size: 15px; }
+  .cta-wrap { margin-top: 20px; }
+  .btn-solid { width: 100%; min-height: 50px; padding: 15px 0; font-size: 15.5px; }
+
+  /* 手机上按钮满宽：两行入口各折成两行按钮（2×51 + 10 = 112px），再加中间的帮助行，
+     112×2 + 10 + 17 + 10 = 261px，上限给 264px（≤384px 时帮助行自己也折两行，见文件末尾那条） */
+  #inputActions { --fold-h: 264px; }
+  .cta-wrap.fold-row { --fold-h: 96px; }
+
+  .block { margin-top: 44px; }
+  .block-title { font-size: 14px; padding-bottom: 12px; }
+  .block-note { font-size: 11.5px; margin-left: 8px; }
+
+  .feature-grid { grid-template-columns: 1fr; column-gap: 0; }
+  .feature { padding: 13px 0 14px; }
+  .feature-name { font-size: 13.5px; }
+  .feature-desc { font-size: 12.5px; margin-top: 5px; }
+
+  .case { padding: 18px 0 0; }
+  .case-job { font-size: 15px; }
+  .case-meta { font-size: 12.5px; margin-top: 6px; }
+  .case-score { font-size: 26px; }
+  .case-line { font-size: 13px; margin-top: 12px; }
+  .case-radar { max-width: 320px; margin-top: 6px; }
+  .case-cta { font-size: 13px; margin-top: 4px; }
+
+  .report-loading { padding: 66px 0 84px; }
+  .report-loading .loading-label { font-size: 13px; }
+
+  .section { padding: 22px 0; }
+  .section-title { font-size: 15px; margin-right: 16px; }
+  .progress-label { margin-left: 8px; font-size: 12px; }
+
+  .verdict { gap: 14px; padding: 22px 0; }
+  .verdict-right { padding-top: 2px; }
+  .score-label { font-size: 11.5px; letter-spacing: 2px; margin-bottom: 4px; }
+  .score-value { font-size: 46px; letter-spacing: -1.5px; }
+  .score-unit { font-size: 14px; }
+  .verdict-line { font-size: 17px; line-height: 1.72; }
+  .verdict-job { font-size: 15.5px; margin-bottom: 6px; }
+  .verdict-meta { font-size: 12px; margin-bottom: 10px; }
+  .demo-tag { font-size: 10px; padding: 1px 5px; margin-left: 6px; }
+
+  .radar-wrap { padding: 4px 0 0; }
+  .radar-wrap svg { max-width: 100%; }
+
+  .dim-panel { padding: 10px 0 2px; }
+  .dim-panel-head { gap: 10px; }
+  .dim-panel-name { font-size: 14px; }
+  .dim-panel-score { font-size: 15px; }
+  .analysis-line { font-size: 14px; line-height: 1.9; padding-left: 14px; }
+
+  .jd-body { margin-top: 18px; padding: 0 4px 8px; font-size: 14.5px; line-height: 2; }
+  .jd-block { margin-bottom: 17px; }
+  .jd-block-title { font-size: 14px; margin-bottom: 8px; }
+  .jd-k { flex: 0 0 64px; }
+  .jd-tag { padding: 2px 8px; font-size: 12.5px; }
+
+  .toast {
+    bottom: calc(28px + env(safe-area-inset-bottom));
+    max-width: calc(100vw - 40px);
+    font-size: 13.5px;
+    padding: 11px 18px;
+  }
+
+  /* 历史档案：窄屏收紧行距，小雷达收窄一档，别把标题挤没 */
+  .history-item { gap: 10px; }
+  .history-radar, .history-radar svg { width: 48px; height: 48px; }
+
+  /* 自述成果预览：窄屏把摘要行的两栏收紧一点，k 栏少占一列宽 */
+  .self-sum-group h3 { font-size: 12px; letter-spacing: 0.6px; }
+  .self-sum-row { gap: 12px; font-size: 13px; }
+  .self-sum-k { flex: 0 0 38%; }
+  .self-text { padding: 12px 13px; font-size: 13px; }
+
+  /* 数据分析：窄屏收紧间距 */
+  .block-head { gap: 14px; padding-bottom: 12px; }
+  .block-more { font-size: 12.5px; }
+  .quad-wrap { margin-top: 18px; }
+  .analysis-sub { margin-top: 12px; font-size: 12.5px; }
+  .quad-note { margin-top: 14px; font-size: 11.5px; }
+  .analysis-note { margin-top: 26px; font-size: 11.5px; }
+}
+
+/* 再窄一点（≤384px）：扩展说明那句话自己也折成两行（实测 34px），
+   首页输入入口的自然高从 261px 涨到 278px，上限跟着给 282px */
+@media (max-width: 384px) {
+  #inputActions { --fold-h: 282px; }
+}
+
+/* ---------- Portfolio embed: show the product animation only ---------- */
+html.embed-demo,
+html.embed-demo body { background: #fff; }
+html.embed-demo body { overflow: hidden; }
+html.embed-demo .topnav,
+html.embed-demo .view-home > :not(.demo-block),
+html.embed-demo .demo-block > .block-head { display: none !important; }
+html.embed-demo .page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 30px 46px 32px;
+}
+html.embed-demo .view-home { padding-top: 0; }
+html.embed-demo .demo-block { max-width: 760px; margin: 0 auto; }
+html.embed-demo .demo-stage { min-height: 420px; }
+html.embed-demo .demo-scene { animation: none; }
+
+@media (max-width: 680px) {
+  html.embed-demo .page { padding: 20px 20px 24px; }
+  html.embed-demo .demo-stage { min-height: 400px; }
+}

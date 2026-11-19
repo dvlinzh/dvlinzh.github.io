@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>小电视 · 系统架构与 Workflow 设计（简历项目概念稿）</title>
+<style>
+:root{
+  --bg:#f6f7f8; --card:#fff; --ink:#18191c; --sub:#61666d; --hint:#9499a0; --line:#e3e5e7;
+  --pink:#fb7299; --blue:#00aeec; --green:#2bb673; --amber:#f5a623; --purple:#7c5cff;
+  --off-l:#e5f7ff; --on-l:#e8f8f0; --fb-l:#fff0f4; --sup-l:#fff6e5; --core-l:#f0ecff;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased}
+.page{max-width:1180px;margin:0 auto;padding:0 24px 120px}
+.top{position:sticky;top:0;z-index:20;background:rgba(246,247,248,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1180px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{font-size:15px;font-weight:600;white-space:nowrap}
+.brand i{display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--pink);margin-right:7px;transform:rotate(45deg)}
+.nav{display:flex;gap:6px;flex-wrap:wrap}
+.nav a{font-size:12px;color:var(--sub);text-decoration:none;padding:4px 9px;border-radius:20px;border:1px solid var(--line);background:#fff;white-space:nowrap}
+.nav a:hover{color:var(--pink);border-color:var(--pink)}
+header.hero{padding:66px 0 34px}
+h1{font-size:34px;line-height:1.3;margin:0 0 10px;letter-spacing:-.5px}
+h1 em{font-style:normal;color:var(--pink)}
+.lead{font-size:15px;color:var(--sub);max-width:820px;margin:0}
+.lead b{color:var(--ink)}
+.kicker{display:inline-block;font-size:11px;letter-spacing:.12em;color:var(--pink);border:1px solid var(--pink);border-radius:3px;padding:3px 9px;margin-bottom:16px}
+.triad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:30px 0 10px}
+.triad .t{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;border-top:3px solid var(--c)}
+.triad h3{margin:0 0 6px;font-size:15px}
+.triad p{margin:0;font-size:12.5px;color:var(--sub)}
+.triad code{font-size:11.5px;background:var(--bg);padding:1px 5px;border-radius:4px;color:var(--ink)}
+.note{font-size:12px;color:var(--sub);background:#fff;border-left:3px solid var(--amber);border-radius:0 8px 8px 0;padding:10px 14px;margin:14px 0 0}
+section.blk{padding:58px 0 8px;scroll-margin-top:70px}
+.sec-h{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+.sec-h .no{font-size:12px;color:var(--pink);font-weight:600;letter-spacing:.08em}
+h2{font-size:23px;margin:0;letter-spacing:-.3px}
+.sec-sub{font-size:13px;color:var(--sub);margin:0 0 20px;max-width:840px}
+.dag{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;overflow-x:auto;box-shadow:0 6px 22px rgba(24,25,28,.04)}
+.dag svg{display:block;min-width:900px;width:100%;height:auto}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--sub);margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+.hint{font-size:12px;color:var(--hint);margin:10px 0 0}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:12.5px}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#fafbfc;color:var(--sub);font-weight:500;font-size:11.5px;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td b{font-weight:600}
+.tag{display:inline-block;font-size:10.5px;border-radius:4px;padding:2px 7px;background:var(--bg);color:var(--sub);white-space:nowrap}
+.tag.l-off{background:var(--off-l);color:#0079a8}.tag.l-on{background:var(--on-l);color:#177a52}
+.tag.l-fb{background:var(--fb-l);color:#c53b68}.tag.l-sup{background:var(--sup-l);color:#a96a00}
+.takeaway{margin-top:16px;background:var(--core-l);border-radius:12px;padding:14px 18px;font-size:13px}
+.takeaway b{color:var(--purple)}
+.takeaway span{color:#4a4360}
+#drawer{position:fixed;top:74px;right:20px;width:330px;max-height:calc(100vh - 100px);overflow:auto;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 50px rgba(24,25,28,.16);padding:20px;z-index:40;transform:translateX(380px);transition:transform .25s ease}
+#drawer.open{transform:translateX(0)}
+#drawer h4{margin:0 0 2px;font-size:16px}
+#drawer .d-lane{font-size:11px;color:var(--sub);margin-bottom:14px}
+#drawer .d-row{font-size:12.5px;margin:10px 0}
+#drawer .d-row b{display:block;color:var(--sub);font-size:11px;font-weight:500;margin-bottom:2px}
+#drawer .d-quote{margin-top:16px;padding:12px 14px;background:var(--fb-l);border-radius:10px;font-size:12.5px;color:#8e3654}
+#drawer .x{position:absolute;top:12px;right:14px;border:0;background:none;font-size:20px;color:var(--hint);cursor:pointer;line-height:1}
+.node-hit{cursor:pointer}
+.node-hit:hover rect.nb{stroke-width:3}
+footer{margin-top:70px;padding-top:26px;border-top:1px solid var(--line);font-size:12px;color:var(--hint)}
+footer b{color:var(--sub)}
+.story{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 22px;font-size:13px}
+.story li{margin:7px 0}
+@media(max-width:900px){.triad{grid-template-columns:1fr}#drawer{left:12px;right:12px;width:auto;top:auto;bottom:12px;max-height:60vh;transform:translateY(110%)}#drawer.open{transform:translateY(0)}h1{font-size:27px}}
+</style>
+</head>
+<body>
+<div class="top"><div class="top-in">
+  <div class="brand"><i></i>小电视 · 系统架构</div>
+  <nav class="nav">
+    <a href="#map">总图</a><a href="#gate">输入与闸门</a><a href="#context">上下文装配</a><a href="#offline">视频理解</a><a href="#audit">差距审计</a><a href="#journey">全链路</a><a href="#behavior">行为逻辑</a><a href="#updates">状态更新</a><a href="#online">在线观看</a>
+    <a href="#stage">演出系统</a><a href="#fsm">状态机</a><a href="#persona">记忆与性格</a><a href="#eval">Eval 闭环</a><a href="#ops">后台配套</a><a href="#list">系统清单</a>
+  </nav>
+</div></div>
+
+<div class="page">
+<header class="hero">
+  <span class="kicker">概念设计 · 非官方产品 · 简历项目</span>
+  <h1>一只小电视背后的 <em>8 个系统</em> 与 <em>9 张 DAG</em></h1>
+  <p class="lead">面试官问"你打算怎么把它做出来"——答案不是"写一个 Agent"。它是一条<b>离线生产链</b>、一条<b>在线决策链</b>，加一层<b>反馈闭环</b>、一套<b>记忆与性格模块</b>和一套<b>后台配套</b>。本页把它们画成同一套 DAG，点任意节点可看职责、输入输出、成本与答辩话术。</p>
+
+  <div class="triad">
+    <div class="t" style="--c:var(--blue)">
+      <h3>离线 · DAG Workflow</h3>
+      <p>视频上传时一次性跑完：抽帧 / ASR / OCR → 分段 → 多路解读 → 仲裁 → 剧本资产。<br><code>Airflow / Temporal / 自研调度</code>——可重试、可回放、可版本化。</p>
+    </div>
+    <div class="t" style="--c:var(--green)">
+      <h3>在线 · 有限状态机 FSM</h3>
+      <p>观看时每一刻做什么：陪看 / 困倦 / 睡眠 / 外出，事件驱动、有回流。<br><code>XState / useReducer</code>——这不是 DAG，是状态机，二者别混。</p>
+    </div>
+    <div class="t" style="--c:var(--pink)">
+      <h3>表达 · React 渲染层</h3>
+      <p>出门 / 睡觉 / 回复 / 抒发感想 × 开心 / 困倦 / 无聊——行为乘情绪是组合爆炸，用<b>状态驱动的组件树</b>解，不用 if-else 堆 DOM。<br><code>React + SVG + CSS 动画</code>——铁律：<b>组件里不写业务决策</b>。</p>
+    </div>
+  </div>
+  <p class="note"><b>为什么不是"一个 workflow 全搞定"？</b> workflow 擅长无环、可批处理的离线生产；在线观看是事件驱动、带状态回流的过程，用 DAG 描述会丢掉"状态"这个核心。React 是渲染层，不是编排层。三层各司其职，才是这个产品能控成本、能评估、能迭代的原因。</p>
+  <p class="hint">读图规则：每张图实线按流程顺序连；节点颜色 = 它属于哪一层；彩色虚线回弯 = 该系统内部自循环（没有这个小循环，系统就不会随使用变好）。</p>
+</header>
+
+<section class="blk" id="map">
+  <div class="sec-h"><span class="no">MAP</span><h2>总图：按 LangGraph 重画</h2></div>
+  <p class="sec-sub">三处修正：<b>BOT 陪伴是 state，不是节点</b>——它不执行任何动作，只是图挂起时的状态；<b>触发 BOT 交互是 START / 输入事件</b>，不是处理步骤；<b>gate 只管"说不说"，不管"睡不睡、出不出门"</b>——模式转移是状态判定的产物，由 observe 直接出条件边。节点只保留真正做事的五个：observe → gate → retrieve → generate → render。</p>
+  <div class="dag" id="dag-map"></div>
+  <div class="legend"><span><i style="background:var(--blue)"></i>离线层</span><span><i style="background:var(--purple)"></i>资产 / 记忆 / 演出层</span><span><i style="background:var(--green)"></i>在线层</span><span><i style="background:var(--pink)"></i>反馈 / 生长层</span><span><i style="background:var(--amber)"></i>后台层</span><span>实线箭头 = 流程顺序</span><span>彩色虚线 = 内部小循环</span></div>
+
+  <div class="sec-h" style="margin-top:26px"><span class="no">STATE</span><h2>状态里到底装什么：8 个分区</h2></div>
+  <p class="sec-sub">先纠正一个命名：<b>State 里存的是"状态"这个事实，不是"判定"</b>。判定是 <code>observe</code> 对状态做的动作——读这些值，算出"下一态 + 是否转移"，再由条件边执行。下面每块都可点开看字段 / 谁写 / 谁读。</p>
+  <table style="margin-top:6px">
+    <thead><tr><th>分区</th><th>字段</th><th>谁写</th><th>谁读</th><th>更新节奏</th></tr></thead>
+    <tbody>
+      <tr><td><b>① 状态 presence</b></td><td>company / drowsy / sleep / away + 子态（away_phase: peek / returning）</td><td>observe 判定后写；commit 落值</td><td>全链路</td><td>每事件</td></tr>
+      <tr><td><b>② 精力 energy</b></td><td>整数 0–8（可为负）、每格衰减、睡眠回充、叫醒继续扣</td><td>本地规则 + commit（详见下方精力机制）</td><td>状态判定 / 渲染（眼皮）</td><td>睡眠窗口内按小时</td></tr>
+      <tr><td><b>③ 心情 mood</b></td><td>emotion 标签、intensity 强度、衰减半衰期、基线</td><td>commit（EMA + 剧情曲线）</td><td>行为选择器 / 演出 / 渲染</td><td>每事件</td></tr>
+      <tr><td><b>④ 在做的事 activity</b></td><td>watching / away_watching / responding / waking / sleeping + 对象（看的是什么）</td><td>commit + 外出系统</td><td>渲染 / 归来播报 / 上下文</td><td>状态变化时</td></tr>
+      <tr><td><b>⑤ 在看什么 interest</b></td><td>内容 ID / 类型 + <b>兴趣分 interest_score</b>（判定它想陪看还是想走）、看片进度</td><td>剧本兴趣标注 + 观看行为</td><td>状态判定（→ away）、归来卡片</td><td>切内容 / 低频</td></tr>
+      <tr><td><b>⑥ 具体位置 placement</b></td><td>容器（Island / PlayerBadge / FullTv）、端（手机 / 电视）、横竖屏</td><td>播放器 / 设备事件（只读）</td><td>render、状态跟随</td><td>形态变化时</td></tr>
+      <tr><td><b>⑦ 剧情与会话</b></td><td>videoTime + 当前段 + 邻帧 + spoiler_index 可说集；messages(近N轮+滚动摘要)；summon_count / mute_until / wake_deadline / last_frame / gesture_pending；memory_ref / persona 参数</td><td>播放器事件 + observe + commit</td><td>retrieve / generate / gate / 渲染</td><td>随播放 + 每事件</td></tr>
+      <tr><td><b>⑧ 硬规则</b></td><td>语言风格（定死）、身份（定死）、伦理边界（定死）、无分发权限；<b>昵称 alias 可改</b></td><td>产品配置（除昵称外只读锁死）</td><td>gate / 约束复核 / generate</td><td>永不随互动变</td></tr>
+    </tbody>
+  </table>
+  <div class="note" style="border-left-color:var(--amber)"><b>关于"运行时计数"为什么不再是单独一块：</b> 它不是一种技术，只是几个会变的数字（召唤了几次、静音到几点、叫醒期限、上一帧是什么）。既然是数字，就并进 ⑦ 剧情与会话——那里本来就是"这一次观看的临时记事本"。用户要改的是它，不是给它单独开个分区。</div>
+  <div class="note" style="border-left-color:var(--purple)"><b>为什么要分"状态判定"和"反应闸门"两块：</b> 前者读状态、产出<b>模式</b>（睡 / 出门 / 留下来），属于状态机；后者读模式、产出<b>许可</b>（说 / 不说 / 哪几路），属于产品约束。合并成一个"阀门"会导致两种错误混在一起归因——剧透是切片问题，插话是闸门问题，误睡是状态判定问题。分开后各自可单测、可回放。</div>
+
+  <div class="sec-h" style="margin-top:26px"><span class="no">ENERGY</span><h2>精力与睡眠机制：纯本地规则</h2></div>
+  <p class="sec-sub">按你给的规则原样落地：精力 0–8，默认睡眠窗 22:00–06:00 正好 8 小时；每小时判一次，睡够回满；窗口内被强行叫醒，精力继续往下扣到负值，欠多少觉就多睡多久。<b>整套是规则，存在用户本地。</b></p>
+  <div class="dag" id="dag-energy"></div>
+  <div class="legend"><span><i style="background:var(--amber)"></i>睡眠窗口 / 精力</span><span><i style="background:var(--pink)"></i>被叫醒的扰动</span><span><i style="background:var(--blue)"></i>回充 / 补偿</span></div>
+  <table style="margin-top:16px">
+    <thead><tr><th>场景</th><th>精力变化</th><th>BOT 状态</th><th>本地规则</th></tr></thead>
+    <tbody>
+      <tr><td><b>22:00 到点</b></td><td>精力降到 0 → 触发睡眠</td><td>sleep</td><td>默认睡眠窗起点，无需模型</td></tr>
+      <tr><td><b>22:00–00:00</b></td><td>2 小时 / +2 点</td><td>睡得沉</td><td>每整小时判一次，按本地时钟</td></tr>
+      <tr><td><b>00:00–06:00</b></td><td>6 小时 / +6 点</td><td>继续睡</td><td>累计 8 点到 6:00 回满</td></tr>
+      <tr><td><b>23:30 叫醒</b></td><td>被打断，精力<b>继续扣</b>而非回充</td><td>drowsy → 低精力陪看</td><td>不满足回充条件；强扣可达负值</td></tr>
+      <tr><td><b>精力 = 0 仍被叫醒</b></td><td>扣成负值（欠觉）</td><td>极度困倦，随时想睡</td><td>负值 = 欠的觉，表情半眯、回应极短</td></tr>
+      <tr><td><b>重新入睡</b></td><td>先把负值补回 0，再走正常 8 点</td><td>sleep（延长）</td><td>总睡眠 = 8 + |负值| 小时</td></tr>
+    </tbody>
+  </table>
+  <div class="takeaway"><b>为什么放本地：</b><span>这是一条<b>时间 + 计数</b>的确定性规则，不需要模型、不需要联网、不需要画像——存用户本地即可，也符合"不跨端追踪"的隐私边界。换端同步的是账号级记忆与性格，精力这种实时小数值各自算各自的。</span></div>
+  <table style="margin-top:16px">
+    <thead><tr><th>LangGraph 概念</th><th>在本产品里对应什么</th><th>为什么这样对应</th></tr></thead>
+    <tbody>
+      <tr><td><b>State</b></td><td>8 分区：状态判定 / 心情 / 精力 / 现在在做的事 / 剧情位置 / 会话与关系 / 运行时计数 / 硬规则</td><td>陪伴、困倦、无聊都是状态字段，不占节点</td></tr>
+      <tr><td><b>START</b></td><td>五类触发事件：轻点说话、剧本高潮、想睡、无聊、时间</td><td>外部事件进图，不是处理步骤</td></tr>
+      <tr><td><b>node</b></td><td>observe / gate / retrieve / generate / render</td><td>节点是纯函数，只做一件事，不存状态</td></tr>
+      <tr><td><b>conditional edge</b></td><td>两条：① observe 判定模式转移（睡 / 出门）→ END；② gate 判定反应通道（纯神态 / 生成 / 卡片）</td><td>模式转移归状态判定；"极少主动插话"由反应闸门在生成前强制执行</td></tr>
+      <tr><td><b>interrupt（挂起）</b></td><td>BOT 陪伴 = 图挂起等待下一事件</td><td>在场感来自"一直在"，不是来自一个空转节点</td></tr>
+      <tr><td><b>checkpointer</b></td><td>两层：thread（本次观看）+ profile（账号级记忆与性格）</td><td>关掉再打开、换端继续看，它还是原来那一只</td></tr>
+    </tbody>
+  </table>
+  <div class="sec-h" style="margin-top:26px"><span class="no">WHY</span><h2>为什么拆成 5 个节点 / 哪些是大模型节点</h2></div>
+  <table style="margin-top:6px">
+    <thead><tr><th>节点</th><th>是不是大模型</th><th>为什么单独成节点</th></tr></thead>
+    <tbody>
+      <tr><td><b>START 触发</b></td><td>否 · 事件</td><td>外部事件进图的入口，不是处理步骤</td></tr>
+      <tr><td><b>① 看现状 observe</b></td><td>否 · 纯规则 + 状态判定</td><td>读 State、归一化事件、<b>判定模式转移</b>（睡 / 出门 / 留下来）。拆出来，下游拿到的是已判定的事实，不用各自猜状态</td></tr>
+      <tr><td><b>② 反应闸门 gate</b></td><td>否 · 纯规则</td><td><b>最关键的一拆</b>：只决定"说不说 / 出哪几路 / 多强"，不管模式转移。把"要不要花钱"变成生成之前就能强制执行的判断。"极少主动插话"靠它，不靠模型自觉</td></tr>
+      <tr><td><b>③ 取资料 retrieve</b></td><td>否 · 查表 / 向量检索</td><td>剧本已在上传时预处理好，这里只按时间点切片。拆出来，生成环节不用重复理解视频</td></tr>
+      <tr><td><b>④ 组织语言 generate</b></td><td><b>是 · 唯一的热路径大模型调用</b></td><td>把唯一烧钱的一步单独围起来：可跳过、可换模型、可单独评估、可限流</td></tr>
+      <tr><td><b>⑤ 画出来 render</b></td><td>否 · 前端组件</td><td>状态 → UI 的纯映射。拆出来，换模型不动渲染，改表情不动决策</td></tr>
+    </tbody>
+  </table>
+  <div class="takeaway"><b>回答"为什么不能直接让阀门决定动作"：</b><span>可以，但要把阀门拆成两半。<b>模式转移（睡 / 出门）是状态判定的结果</b>，放 observe 更对——它是"事实"，不是"许可"；<b>反应通道（说不说）才是闸门</b>，必须在生成前强制执行，不靠模型自觉。合起来做也行，代价是 badcase 归因糊成一团、状态转移规则被成本逻辑裹住。拆开后三件事都能单测：判定错看 observe，插话错看 gate，剧透错看切片。5 个节点仍是最小集——只是职责边界挪了一刀。</span></div>
+  <div class="note" style="border-left-color:var(--pink)"><b>大模型节点全景（别只盯着在线）：</b> 热路径只有 generate 一个，且必须由用户主动触发；<b>离线侧还有大模型</b>——视频理解里的多路解读与事实仲裁（上传时一次性，可用重模型）、概要记忆的摘要更新（低频）、Eval 的 LLM-as-judge（离线批处理）。这正好对上三层成本模型：一次性预解析 / 查表反应 / 按需对话。</div>
+  <div class="takeaway"><b>面试一句话：</b><span>离线把理解成本一次付清，在线只做查表与轻量决策，反馈层把每一次互动变成下一次的变量——三层成本模型就是这张图的骨架。</span></div>
+  <div class="note" style="border-left-color:var(--green)"><b>已拍板：注册就有，常驻，全局可关。</b> 用户不做任何启用动作，某天它自己活过来——产品时刻是"你见过它一万次，这是它第一次看回你"。前提是系统级总开关随时可关。由此推出<b>出厂无预设人设</b>：性格从零长起，锁死的只有硬规则（语言、明示 AI、伦理边界、无分发权限）。</div>
+</section>
+
+<section class="blk" id="gate">
+  <div class="sec-h"><span class="no">DAG 01</span><h2>输入 → 反应闸门 → 演出帧（本轮定稿）</h2></div>
+  <p class="sec-sub">技术实现的最小骨架。<b>不做意图识别，不做路由</b>——用户不完成任务，输出也不需要分发给不同模块。真正要判断的是"现在该不该有反应、反应多强"，这是规则，不是语义分类。</p>
+  <div class="dag" id="dag-gate"></div>
+  <div class="legend"><span><i style="background:var(--pink)"></i>输入</span><span><i style="background:var(--amber)"></i>规则闸门（零成本）</span><span><i style="background:var(--purple)"></i>演出帧</span><span><i style="background:var(--green)"></i>渲染</span><span>彩色虚线 = 内部小循环</span></div>
+  <div class="takeaway"><b>为什么不要意图识别：</b><span>① 没有任务可路由，传统意图识别服务于"订票/退票"这类任务分发；② 输出不是互斥三选一，而是一个可组合的帧；③ 多一层分类就多一个会错的组件，badcase 归因反而更难。<b>唯一例外</b>：少数指令型输入（"我想安静看会儿""你出去玩吧""你还记得什么"）用关键词/正则白名单覆盖即可，撑不起一个分类器。等它开始找片、跨视频检索、带它实现愿望时才需要真正的意图层。</span></div>
+  <div class="note" style="border-left-color:var(--purple)"><b>输出 = 一个演出帧，四路通道各自可空，可同时触发。</b> 神态几乎总是非空（在场感来源）；动作与卡片常为空；<b>语言通道默认关闭</b>，闸门放行才生成。一帧可以是「眼神一亮 + 天线立起 + 气泡『火锅！』」——三者互为加强。闸门因此不只判"说不说"，而是判<b>这次输出哪几路、各自强度多少</b>，仍然是规则、仍然零成本。</div>
+</section>
+
+<section class="blk" id="context">
+  <div class="sec-h"><span class="no">DAG 02</span><h2>推理上下文装配：不是全塞，是按预算拼装</h2></div>
+  <p class="sec-sub">推理节点要的东西确实多：剧本、概要、碎片、画像、自己的设定、多轮会话。但<b>剧本大不等于在线要大窗口</b>——整本塞进去只会更贵、更容易跑题、还可能剧透。大窗口留给离线剧本生成；在线只做切片与装配。</p>
+  <div class="dag" id="dag-context"></div>
+  <div class="legend"><span><i style="background:var(--amber)"></i>不可裁</span><span><i style="background:var(--purple)"></i>记忆 / 设定</span><span><i style="background:var(--pink)"></i>会话与输入</span><span><i style="background:var(--green)"></i>生成</span><span>虚线 = 多轮回写</span></div>
+  <div class="takeaway"><b>装配优先级（从上到下，裁切时从尾往前丢）：</b><span>① 硬规则与输出格式（永不裁）→ ② 当前剧情切片 + 防剧透闸门（永不裁）→ ③ 用户这句话 → ④ 当前会话（近几轮原文 + 滚动摘要）→ ⑤ 概要记忆 → ⑥ 碎片记忆（最多一两条，语境相关才取）。<b>用户画像不进 prompt 文本</b>——它只作为行为与语气参数存在，否则就会不小心被念出来，违反"画像不出口"。</span></div>
+  <div class="note" style="border-left-color:var(--pink)"><b>多轮对话单独一层，不和长期记忆混。</b> 会话记忆管"刚才说到哪、哪句还没接、这轮情绪是什么"，随会话结束可弃；长期记忆管"我们之间的关系"。做法：保留最近几轮原文 + 一段滚动摘要，老轮次先折叠成摘要再丢弃。否则聊十轮之后，prompt 里全是废话，关键剧情反而被挤出去。</div>
+  <p class="hint">Token 预算为设计口径（非实测）：硬规则约 300 ｜ 剧情切片 800–1500 ｜ 会话 500 ｜ 概要 300 ｜ 碎片 200 ｜ 用户输入 200，合计约 2.5k–3.5k，输出电报体极短。降级顺序：先丢碎片 → 再丢概要 → 折叠会话旧轮 → 去掉邻帧；硬规则与当前剧情段永不裁。</p>
+</section>
+
+<section class="blk" id="offline">
+  <div class="sec-h"><span class="no">DAG 03</span><h2>视频理解系统：上传时的一次性生产链</h2></div>
+  <p class="sec-sub">整条链在上传后异步执行，失败可重试、结果可回放。产出不是"摘要文本"，而是带时间索引的结构化剧本资产，全平台所有用户共用一份。</p>
+  <div class="dag" id="dag-offline"></div>
+  <div class="legend"><span><i style="background:var(--blue)"></i>离线节点</span><span><i style="background:var(--purple)"></i>产物 / 资产</span><span><i style="background:var(--pink)"></i>质量闸门</span></div>
+  <div class="takeaway"><b>关键设计：</b><span>多路解读分两层合并——事实层（时间线/角色/事件）必须仲裁成唯一版本，观点层（情绪/伏笔/梗点）允许多角度并存。事实层不仲裁，BOT 会自相矛盾；观点层不并存，它就失去"自己的看法"。</span></div>
+
+  <div class="sec-h" style="margin-top:26px"><span class="no">DAG 03b</span><h2>剧本到底抽出了什么：从视频到可切片资产</h2></div>
+  <p class="sec-sub">把"提取剧本"落到数据结构：一次上传产出一份带时间索引的 JSON，在线只按 playback time 查切片。下面把 6 步生产链和资产字段画在同一张图里——在线拿到的不是"摘要文本"，而是可查、可裁、可挡剧透的结构。</p>
+  <div class="dag" id="dag-offline-deep"></div>
+  <div class="legend"><span><i style="background:var(--blue)"></i>离线生产步骤</span><span><i style="background:var(--purple)"></i>剧本资产字段</span><span><i style="background:var(--pink)"></i>质量闸门 / 回退</span></div>
+  <table style="margin-top:16px">
+    <thead><tr><th>字段</th><th>抽取内容</th><th>在线用途</th><th>防剧透策略</th></tr></thead>
+    <tbody>
+      <tr><td><b>segments[]</b></td><td>起止时间 / 场景 / 事件 / 出场角色</td><td>当前段 + 前后邻帧切片</td><td>默认只取 t ≤ 当前播放点</td></tr>
+      <tr><td><b>facts[]</b></td><td>角色关系、时间线、物件归属（唯一版本）</td><td>"这是谁 / 什么歌"类事实问答</td><td>仅已播段落入可说集</td></tr>
+      <tr><td><b>viewpoints[]</b></td><td>多视角情绪 / 伏笔 / 梗点（不去重）</td><td>BOT"自己的看法"与吐槽角度</td><td>已播伏笔可提，未播伏笔屏蔽</td></tr>
+      <tr><td><b>emotion_curve</b></td><td>逐段情绪标签 + 强度</td><td>被动在场的神态曲线（在线查表）</td><td>后续峰值不提前泄漏到表情</td></tr>
+      <tr><td><b>spoiler_index</b></td><td>每段可说集 / 屏蔽集 / 结局阈值</td><td>问结局时按进度装傻或含糊</td><td>未到阈值 → 不透露走向</td></tr>
+      <tr><td><b>meta</b></td><td>video_id / version / 覆盖率 / 仲裁置信度</td><td>版本回滚与质量追溯</td><td>低置信度段禁用事实回答</td></tr>
+    </tbody>
+  </table>
+  <div class="takeaway"><b>一句话：</b><span>剧本 = 能按时间定位 + 能仲裁事实 + 能保留多视角 + 能挡住未来信息。缺一样，在线就会出现"答非所问 / 自相矛盾 / 剧透"三类致命 badcase。质量闸门不通过时只重跑失败段，不重跑全片。</span></div>
+</section>
+
+<section class="blk" id="audit">
+  <div class="sec-h"><span class="no">AUDIT</span><h2>研究结论：现有 LangGraph 只跑通了 happy path</h2></div>
+  <p class="sec-sub">拿《06 用户行为清单》逐条对照现有设计（5 节点 / 5 类 START / 3 态 FSM）。结论：<b>显式语音（2.1 / 3.2 / 5.x）和默认神态（1.1–1.2）能跑通；其余行为大多卡在结构缺口，不是改 prompt 能补的。</b>下表是必须修的 7 处。</p>
+  <table>
+    <thead><tr><th>#</th><th>缺口</th><th>证据（行为清单条目）</th><th>后果</th><th>修法</th></tr></thead>
+    <tbody>
+      <tr><td><b>G1</b></td><td>事件集不全</td><td>6.4 轻点/双击、10.1 暂停、7.2 断网、1.4 前后台、4.1 召唤</td><td>这些行为进不了图，只活在文档里</td><td>事件适配器：手势消歧 + 播放/网络/前后台/召唤事件归一化进 START</td></tr>
+      <tr><td><b>G2</b></td><td>节点只读不写</td><td>8.1 记忆、3.4 起名、3.5 纠错、6.3 计时回睡、4.3 召唤计数</td><td>State 永远不变，"相处生长"落空</td><td>新增 <code>commit</code> 写回节点：节点返回 StatePatch，reducer 统一应用</td></tr>
+      <tr><td><b>G3</b></td><td>子状态缺失</td><td>4.1–4.3 away 探头/返回、6.1 drowsy 过渡、7.2 error 覆盖、5.1 静音计时</td><td>视觉稿已有这些态，图上没有 → 前后端对不上</td><td>State 增 <code>away_phase / drowsy / error / mute_until</code></td></tr>
+      <tr><td><b>G4</b></td><td>关系参数没接条件边</td><td>4.3 "第几次回由关系决定"</td><td>文案写了，gate 不读，实现仍会硬编码次数</td><td>gate 读 <code>persona.closeness</code> → 召唤阈值与语气</td></tr>
+      <tr><td><b>G5</b></td><td>上下文一份通吃</td><td>observe / gate / render 并不需要 3.5k 上下文</td><td>浪费、badcase 归因糊</td><td>逐节点上下文分级（见"状态更新"章）</td></tr>
+      <tr><td><b>G6</b></td><td>checkpointer 只有单层</td><td>1.8 投屏、10.6 换端、5.3 单视频/全局关闭</td><td>换端丢记忆，退出语义不清</td><td>双层：thread（会话）+ profile（账号）</td></tr>
+      <tr><td><b>G7</b></td><td>部分行为无信号源</td><td>2.2 叹气 / 2.4 害怕 / 2.6 捂脸</td><td>无麦克风常驻、无人脸建档，检测不到</td><td>改写为"剧情情绪曲线 + 用户显式输入"驱动</td></tr>
+    </tbody>
+  </table>
+  <div class="note" style="border-left-color:var(--pink)"><b>必须承认的约束（G7）：</b> "看出用户害怕 / 叹气 / 捂脸"依赖被产品边界明令禁止的常驻收音与人脸建档。BOT 的共情只能来自两处：<b>剧情情绪曲线</b>（内容侧已解析）+ <b>用户主动说出来的那句话</b>（显式收音）。把这条写进方案，比假装能做更重要——它也解释了为什么"极少插话"不是能力不足，而是唯一可行的情感通道设计。</div>
+  <div class="note"><b>两处口径冲突，一并拍板：</b> ① 3.4 起名 vs "参数不可调" → 允许写 <code>alias</code>（称呼/自称），但性格向量仍只由相处渐变，不因一句"你要活泼"跳变；② 5.5 话多/话少 vs "参数不可调" → 不做设置滑杆，改用自然语言临时调闸门阈值，且阈值随时间衰减回基线。</div>
+  <div class="takeaway"><b>优化总方向：</b><span>保留 5 个做事节点，补 1 个写回节点 + 1 套完整事件分类 + 3 层 State；把关系参数接到条件边；把行为决策交给模型，规则退到硬约束与成本闸门。下面三章就是这套优化后的详细设计。</span></div>
+</section>
+
+<section class="blk" id="journey">
+  <div class="sec-h"><span class="no">FLOW</span><h2>用户全链路：从交互到退出</h2></div>
+  <p class="sec-sub">一张图走完在线生命周期：常驻 → 默认陪看 → 事件唤醒 → 四条支路 → 写回 → 再挂起；底部是四种退出／迁移，以及各自留下什么。</p>
+  <div class="dag" id="dag-journey"></div>
+  <div class="legend"><span><i style="background:var(--green)"></i>常态 / 在线</span><span><i style="background:var(--pink)"></i>事件与语音支路</span><span><i style="background:var(--purple)"></i>决策与帧</span><span><i style="background:var(--amber)"></i>控制 / 退出</span></div>
+  <table style="margin-top:16px">
+    <thead><tr><th>阶段</th><th>系统动作</th><th>State 变化</th><th>成本</th><th>对应行为</th></tr></thead>
+    <tbody>
+      <tr><td><b>进入</b></td><td>点开视频，携带 videoTime；从 checkpointer 恢复 profile</td><td>新建 thread；presence = company</td><td>0</td><td>1.1</td></tr>
+      <tr><td><b>默认陪看</b></td><td>情绪曲线 → 神态帧；图挂起等事件（不空转）</td><td>emotion 随曲线微动，energy 缓慢衰减</td><td>近零</td><td>1.1–1.3</td></tr>
+      <tr><td><b>事件唤醒</b></td><td>手势 / 剧情节点 / 播放控制 / 时钟 / 异常归一化</td><td>归一化事件入 state</td><td>0</td><td>2.x / 4.x / 6.x / 7.x / 10.x</td></tr>
+      <tr><td><b>四条支路</b></td><td>显式语音｜召唤寻回｜控制作息｜异常降级</td><td>见"行为逻辑"章</td><td>仅语音支路烧钱</td><td>2.1 / 4.x / 5.x / 6.x / 7.x</td></tr>
+      <tr><td><b>写回</b></td><td>commit 应用 patch：会话 / 记忆 / 性格 / 计数 / 计时</td><td>state 更新，帧存档，再挂起</td><td>0</td><td>8.x</td></tr>
+      <tr><td><b>退出 / 迁移</b></td><td>thread 可弃；profile 留；换端按账号恢复</td><td>presence 归档，不销毁关系</td><td>0</td><td>1.4 / 1.8 / 5.3 / 10.6</td></tr>
+    </tbody>
+  </table>
+  <div class="takeaway"><b>关键：</b><span>退出不是"END 掉记忆"。END 只结束本次 thread；profile 级 checkpointer 才跨视频、跨设备、跨天。"关掉 BOT"关的是演出，不是关系——除非用户显式选择清除数据（9.6）。切后台/锁屏只停演停跟随，回前台恢复原帧。</span></div>
+</section>
+
+<section class="blk" id="behavior">
+  <div class="sec-h"><span class="no">MODEL</span><h2>BOT 行为逻辑：模型驱动，不是规则引擎</h2></div>
+  <p class="sec-sub">行为选择交给<b>小模型（结构化输出）</b>，规则退到"硬约束 + 成本闸门 + 帧自洽校验"。常态表情不逐帧调模型——离线情绪曲线在线查表；被事件唤醒才走模型链路；要说话才调大模型。</p>
+  <div class="dag" id="dag-behavior"></div>
+  <div class="legend"><span><i style="background:var(--amber)"></i>硬约束（规则）</span><span><i style="background:var(--pink)"></i>模型调用</span><span><i style="background:var(--purple)"></i>决策输出</span><span><i style="background:var(--green)"></i>在线</span><span><i style="background:var(--blue)"></i>离线查表</span></div>
+  <table style="margin-top:16px">
+    <thead><tr><th>通道</th><th>行为原语（对齐渲染层状态名）</th><th>何时用</th><th>默认</th></tr></thead>
+    <tbody>
+      <tr><td><b>神态</b></td><td>竖条眼跟随 / 看你一眼 / 眨眼 / 眼神一亮 / 半眯（= =）/ 闭眼 Zzz / 灰眼信号环</td><td>默认态、剧情微反应、困倦、断网</td><td>几乎总是非空</td></tr>
+      <tr><td><b>动作</b></td><td>探头（away-checking）/ 缩回（away-returning）/ 天线立起 / 耷拉 / 捂眼扭头</td><td>召唤、归来、惊吓、尴尬</td><td>常空</td></tr>
+      <tr><td><b>语言</b></td><td>无 / 感受 / 判断 / 提问 / 宣告 / 追问</td><td>仅闸门放行 + 显式收音；极少数白名单例外</td><td><b>无</b></td></tr>
+      <tr><td><b>卡片</b></td><td>无 / 安利 / 回看 / 休息提醒</td><td>归来、事实问答、作息</td><td>常空</td></tr>
+    </tbody>
+  </table>
+  <p class="hint">原语名与 mascot-states.html 中的类名/状态（state-drowsy / away-checking / state-error）一一对应，保证决策层输出能被渲染层直接消费，不需二次翻译。</p>
+  <pre style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:12.5px;line-height:1.7;color:var(--sub);overflow:auto;margin:12px 0 0">// 行为选择器：小模型 · structured output · 不写 if-else
+in : { event, presence, mood, energy, relation, script_slice,
+       session_recent, memory_refs, primitive_catalog, hard_rules }
+out: {
+  emotion: "amused", intensity: 0.6,
+  expression: "eye_light_up", motion: "antenna_up",
+  speech_intent: "brief_comment" | null,
+  card_intent: null,
+  memory_candidate: { text, layer:"fragment", salience:0.7 } | null,
+  need_user_reply: false
+}
+// 约束复核（规则 · 零成本）：语言纪律 / 明示 AI / 无分发 / 防剧透 / 权限
+// 帧一致性：emotion 与 expression / motion / speech 语义一致，冲突则降级为纯神态</pre>
+  <div class="takeaway"><b>分层理由：</b><span>模型负责"此刻像不像它"，规则负责"能不能这么做"。把规则塞进模型会跑偏，把模型塞进规则会僵。分层后：改人设只调 few-shot / 小模型，改边界只调规则——互不干扰。还顺手解决了成本：被动在场零调用，被唤醒一次小模型，要说话才一次大模型。</span></div>
+</section>
+
+<section class="blk" id="updates">
+  <div class="sec-h"><span class="no">STATE</span><h2>状态更新机制：记忆 / 情绪 / 人格各怎么变</h2></div>
+  <p class="sec-sub">三层 State 各管各的生命周期；前 5 个节点只读，所有写回集中在 <code>commit</code> 一点，节点仍返回纯 patch，由 reducer 应用——既保住 LangGraph "可回放、可单测"的好处，又让状态真的会变。</p>
+  <div class="dag" id="dag-stateupdate"></div>
+  <div class="legend"><span><i style="background:var(--green)"></i>会话态</span><span><i style="background:var(--purple)"></i>账号态</span><span><i style="background:var(--blue)"></i>内容态</span><span><i style="background:var(--pink)"></i>写回</span><span>虚线 = 读取</span></div>
+  <table style="margin-top:16px">
+    <thead><tr><th>层</th><th>字段</th><th>生命周期</th><th>写者</th><th>读者</th></tr></thead>
+    <tbody>
+      <tr><td><b>会话态 thread</b></td><td>messages(近N轮+滚动摘要)、videoTime、summon_count、mute_until、wake_deadline、last_frame、gesture_pending</td><td>单次观看；结束可弃</td><td>observe / commit</td><td>全部在线节点</td></tr>
+      <tr><td><b>账号态 profile</b></td><td>memory{画像/概要/碎片}、persona{口味/阈值/用词/亲近度}、alias、hard_rules(只读)</td><td>永久；跨视频跨端</td><td>commit（含遗忘 API）</td><td>gate、行为选择器、retrieve、generate</td></tr>
+      <tr><td><b>内容态 video</b></td><td>segments / facts / viewpoints / emotion_curve / spoiler_index</td><td>视频生命周期；版本化</td><td>离线生产链</td><td>retrieve、行为选择器、render</td></tr>
+    </tbody>
+  </table>
+  <table style="margin-top:12px">
+    <thead><tr><th>更新对象</th><th>触发</th><th>更新方式</th><th>明确不做</th></tr></thead>
+    <tbody>
+      <tr><td><b>情绪 mood</b></td><td>每事件 + 剧情情绪曲线</td><td>EMA 向剧情情绪靠拢，强度随时间衰减回基线</td><td>情绪是状态，不写进长期记忆</td></tr>
+      <tr><td><b>精力 energy</b></td><td>时间 / 连续观看</td><td>单调衰减；睡眠补满；叫醒短暂 boost</td><td>不受用户设置面板影响</td></tr>
+      <tr><td><b>会话 messages</b></td><td>每轮语音</td><td>append 近 N 轮；超限先折叠旧轮为摘要再丢原文</td><td>不跨 thread 保留原文</td></tr>
+      <tr><td><b>画像</b></td><td>平台内公开行为</td><td>统计增量；只塑造行为</td><td><b>永不进 prompt 文本、不可被口头引用</b></td></tr>
+      <tr><td><b>概要</b></td><td>共同观看 / 未完成话题</td><td>可覆盖摘要，负责连续性</td><td>不写情绪峰值原文</td></tr>
+      <tr><td><b>碎片</b></td><td>情绪峰值 salience ≥ 阈值</td><td>带性格滤镜写入；召回最多一两条</td><td>用户可逐条删；不无端翻旧账</td></tr>
+      <tr><td><b>性格 persona</b></td><td>记忆统计 + 互动信号</td><td>小步渐变（EMA / 梯度）；单向 记忆 → 性格</td><td>不回写记忆、不因一句指令跳变、不可被引用</td></tr>
+      <tr><td><b>关系 closeness</b></td><td>回应质量 / 频率 / 召唤结果</td><td>EMA；决定第几次回与语气</td><td>不做"想你了"式惩罚推送</td></tr>
+      <tr><td><b>计数 / 计时</b></td><td>召唤 / 静音 / 叫醒</td><td>+1 / 到期清零；阈值由规则定</td><td>不由模型自行决定阈值</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sec-h" style="margin-top:26px"><span class="no">STEP</span><h2>每一步的上下文怎么组织</h2></div>
+  <p class="sec-sub">不是每个节点都看同一份 3.5k 上下文。下面的色块条显示各节点实际装配的上下文成分与相对预算——越往右越重，裁切从尾往前。</p>
+  <div class="dag" id="dag-context-step"></div>
+  <div class="legend"><span><i style="background:var(--amber)"></i>硬规则</span><span><i style="background:var(--blue)"></i>剧情切片</span><span><i style="background:var(--green)"></i>状态</span><span><i style="background:var(--pink)"></i>会话 / 输入</span><span><i style="background:var(--purple)"></i>记忆 / 帧</span></div>
+  <table style="margin-top:16px">
+    <thead><tr><th>节点</th><th>读什么</th><th>写什么</th><th>预算</th><th>裁剪顺序</th></tr></thead>
+    <tbody>
+      <tr><td><b>observe</b></td><td>START 事件 + thread 快照</td><td>归一化事件</td><td>~0.2k</td><td>不裁</td></tr>
+      <tr><td><b>gate / 行为</b></td><td>事件 + 状态 + 剧情切片 + 原语表 + persona 参数（非文本画像）</td><td>行为意图 + 通道开关</td><td>~0.8k</td><td>先丢邻帧 → 再丢原语示例</td></tr>
+      <tr><td><b>retrieve</b></td><td>script slice + profile 引用</td><td>可说集 + 记忆引用</td><td>~1.2k</td><td>先丢碎片 → 再丢概要</td></tr>
+      <tr><td><b>generate</b></td><td>①硬规则 ②当前切片 ③用户这句话 ④当前会话 ⑤概要 ⑥碎片</td><td>电报体短句</td><td>2.5–3.5k</td><td>碎片 → 概要 → 旧轮 → 邻帧；①②永不裁</td></tr>
+      <tr><td><b>render</b></td><td>演出帧 + FSM + 容器类型</td><td>SVG 指令</td><td>~0.1k</td><td>不裁</td></tr>
+      <tr><td><b>commit</b></td><td>StatePatch + 当前 State</td><td>已应用的新 State</td><td>~0.2k</td><td>不裁</td></tr>
+    </tbody>
+  </table>
+  <div class="takeaway"><b>结构性保证：</b><span>画像始终以参数形式存在，不进任何 prompt 文本——"画像不出口"因此不是靠模型自觉，而是靠装配层物理隔离。用户说"忘掉这件事"时，commit 明确删的是概要/碎片中的那条，不动性格向量；说"清除数据"才同时清 profile。删除语义从数据流上就是清楚的。</span></div>
+</section>
+
+<section class="blk" id="online">
+  <div class="sec-h"><span class="no">DAG 04</span><h2>在线观看链：默认神态，轻点才对话</h2></div>
+  <p class="sec-sub">用户点开视频后，剧本切片随播放时间点加载；默认全程只走神态层（近零边际）。只有用户轻点化身、视频降音量后，才进入 ASR + 上下文合成 + 重型生成。</p>
+  <div class="dag" id="dag-online"></div>
+  <div class="legend"><span><i style="background:var(--green)"></i>在线节点</span><span><i style="background:var(--purple)"></i>上下文注入</span><span><i style="background:var(--pink)"></i>重型调用（按需）</span></div>
+  <div class="takeaway"><b>成本闸门：</b><span>粉色三节点是唯一的烧钱路径，且必须由用户主动触发。这正是它能避开 Character.AI「0.44 &lt; 0.58」死亡账本的原因——不是模型更便宜，是调用次数被产品形态锁死了。</span></div>
+</section>
+
+<section class="blk" id="stage">
+  <div class="sec-h"><span class="no">DAG 05</span><h2>演出系统：一次"反应"是怎么被拼出来的</h2></div>
+  <p class="sec-sub">演出系统是总导演。它接收四类事件，按"神态层 &gt; 对话层"的优先级分发指令。同一件事，能用眼睛说的就不用嘴说。</p>
+  <div class="dag" id="dag-stage"></div>
+  <div class="legend"><span><i style="background:var(--green)"></i>输入事件</span><span><i style="background:var(--purple)"></i>演出决策</span><span><i style="background:var(--blue)"></i>输出通道</span></div>
+  <div class="takeaway"><b>为什么单独设一层：</b><span>没有演出系统，"表情 / 气泡 / 动作 / 卡片"会散落在四个系统里各写各的，很快就不一致。有了它，表情系统只管"怎么画"，行为系统只管"做什么"，演出系统管"先说哪句、用哪种方式"——职责边界干净，也不容易跑偏人设。</span></div>
+  <div class="note" style="border-left-color:var(--pink)"><b>渲染层为什么用 React：行为 × 情绪 = 组合爆炸。</b> 出门、睡觉、回复、抒发感想、表演心情，再乘上开心/困倦/无聊/害怕——如果用手工 DOM 操作，每加一个状态都要改一堆分支。声明式组件树让"状态 → UI"变成纯映射：</div>
+  <pre style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:12.5px;line-height:1.7;color:var(--sub);overflow:auto;margin:12px 0 0">&lt;Bot state={fsm} mood={emotion}&gt;
+  ├─ &lt;Face mood /&gt;        眼睛 + 嘴 + 天线（SVG，纯函数）
+  ├─ &lt;Bubble text /&gt;       语言通道为空则不渲染
+  ├─ &lt;Motion action /&gt;     探头 / 缩回 / 走开
+  └─ &lt;Card item /&gt;         安利卡片，可忽略
+三种容器复用同一棵树：&lt;Island /&gt; 灵动岛 · &lt;PlayerBadge /&gt; 播放框 · &lt;FullTv /&gt; 整机</pre>
+  <p class="hint">关键纪律：决策全部在 FSM 与规则层，组件只接收 props。一旦把"该不该出门"写进 useEffect，这套东西就再也测不动了。</p>
+</section>
+
+<section class="blk" id="fsm">
+  <div class="sec-h"><span class="no">STATE</span><h2>状态系统：这是状态机，不是 DAG</h2></div>
+  <p class="sec-sub">三大基础状态（陪你看 / 外出 / 睡眠）之间是可以来回流动的——有环，所以画成状态转移图。触发条件来自时间桶、内容兴趣、用户行为与它自己的精力。</p>
+  <div class="dag" id="dag-fsm"></div>
+  <div class="legend"><span><i style="background:var(--green)"></i>稳定状态</span><span><i style="background:var(--amber)"></i>过渡 / 半可见</span><span>标注 = 触发条件</span></div>
+  <div class="takeaway"><b>反依赖设计落在这里：</b><span>到点自己睡、无聊自己走开——状态转移由"它的作息"驱动，不由"让你多待"驱动。这也是它对"AI 让人上瘾"质疑的结构性回答：一个会自己离场的伙伴，成瘾机制从根上就不完整。</span></div>
+</section>
+
+<section class="blk" id="persona">
+  <div class="sec-h"><span class="no">DAG 06</span><h2>记忆与性格：一个独立模块，两件事</h2></div>
+  <p class="sec-sub">记忆与性格<b>不属于观看主流程</b>，是独立在旁边的模块：主流程只在"触发"时写入、在"行为"时读取。模块内部仍分两层——记忆记"发生了什么"，性格记"我因此变成了什么样"。</p>
+  <div class="dag" id="dag-persona"></div>
+  <div class="legend"><span><i style="background:var(--pink)"></i>互动信号</span><span><i style="background:var(--purple)"></i>记忆与性格</span><span><i style="background:var(--amber)"></i>硬规则（锁死）</span><span>彩色虚线 = 相处闭环</span></div>
+  <div class="takeaway"><b>三个必须能回答的问题：</b><span>① 存什么——画像（不出口，只塑造行为）/ 概要（关系连续性，可覆盖）/ 碎片（情绪峰值，带性格滤镜）；② 什么时候写——只在峰值写入，所以一亿用户长出一亿只；③ 怎么忘——用户说忘即从概要与碎片移除，未成年人不建长期画像。</span></div>
+  <div class="note" style="border-left-color:var(--purple)"><b>同一模块，但不混存储：性格不并入记忆。</b> 记忆可被用户删除、语境相关才提起；性格不可被引用、只影响行为、渐变不可重置。若合并存储，用户说"忘掉这件事"时系统无法判断该删记忆还是该重置性格——删除语义就毁了。关系是单向依赖：记忆 → 性格，性格读记忆的统计特征但不回写。</div>
+</section>
+
+<section class="blk" id="eval">
+  <div class="sec-h"><span class="no">DAG 07</span><h2>Eval 系统：badcase 从哪来，又回到哪去</h2></div>
+  <p class="sec-sub">Eval 不是"上线后补个打分"。它从线上埋点与人工抽检采 badcase，按四维评分，归因到具体环节，进回归集，修复后再灰度验证——闭环必须落在图里，否则不可迭代。</p>
+  <div class="dag" id="dag-eval"></div>
+  <div class="legend"><span><i style="background:var(--green)"></i>采集</span><span><i style="background:var(--pink)"></i>评分与归因</span><span><i style="background:var(--blue)"></i>修复与验证</span></div>
+  <div class="takeaway"><b>四维评分卡：</b><span>接住率（用户是否回应）、语言可信度（是不是被读成"故障的 AI"）、剧透率（是否越过了当前时间点）、打扰率（关闭率 / 投诉 / 熬夜）。前三维评"像不像它"，第四维评"该不该在"——护栏指标一票否决，和 AB 实验里的护栏是同一套。</span></div>
+</section>
+
+<section class="blk" id="ops">
+  <div class="sec-h"><span class="no">DAG 08</span><h2>后台配套：没有这些，前面 7 个系统跑不起来</h2></div>
+  <p class="sec-sub">按照"一个 AI 产品经理要能画出组织与工具边界"的标准，列出 8 个配套台。它们不直接产生用户体验，但决定产品能不能上线、能不能改、能不能被审计。</p>
+  <div class="dag" id="dag-ops"></div>
+  <div class="legend"><span><i style="background:var(--amber)"></i>后台能力</span><span>箭头 = 服务哪个环节</span></div>
+  <div class="takeaway" style="margin-top:14px"><b>这 8 个台不是八套孤立系统，而是一条闭环：</b><span><code>资产版本 → Release → 灰度 → Trace → Eval → 修复版本</code>。本页是"为什么这样设计"的<b>唯一权威状态模型与在线时序</b>（drowsy/error 是覆盖态不是第 4/5 种关系模式；gate 只管说不说、observe 判定模式转移、所有写回统一走 commit）；具体对象与可操作状态在运营工作台，二者共用一份 mock store，口径一致。</span></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+    <a class="btn" href="workbench.html#/manuscript" style="font:inherit;font-size:12px;padding:8px 14px;border:1px solid rgba(91,93,99,.35);border-radius:8px;text-decoration:none;color:inherit">内容生产 ↗</a>
+    <a class="btn" href="workbench.html#/release" style="font:inherit;font-size:12px;padding:8px 14px;border:1px solid rgba(91,93,99,.35);border-radius:8px;text-decoration:none;color:inherit">Release 与发布 ↗</a>
+    <a class="btn" href="workbench.html#/experiment" style="font:inherit;font-size:12px;padding:8px 14px;border:1px solid rgba(91,93,99,.35);border-radius:8px;text-decoration:none;color:inherit">灰度实验 ↗</a>
+    <a class="btn" href="workbench.html#/badcase" style="font:inherit;font-size:12px;padding:8px 14px;border:1px solid rgba(91,93,99,.35);border-radius:8px;text-decoration:none;color:inherit">Eval 与修复闭环 ↗</a>
+    <a class="btn" href="workbench.html#/deletion" style="font:inherit;font-size:12px;padding:8px 14px;border:1px solid rgba(91,93,99,.35);border-radius:8px;text-decoration:none;color:inherit">隐私删除 ↗</a>
+    <a class="btn" href="workbench.html#/cost" style="font:inherit;font-size:12px;padding:8px 14px;border:1px solid rgba(91,93,99,.35);border-radius:8px;text-decoration:none;color:inherit">成本账本 ↗</a>
+  </div>
+</section>
+
+<section class="blk" id="list">
+  <div class="sec-h"><span class="no">TABLE</span><h2>系统清单：职责 / 输入输出 / 技术形态 / 边际成本</h2></div>
+  <p class="sec-sub">面试时如果被追问"你打算怎么做"，按这张表从左上讲到右下；每一行都能展开讲成一个决策卡片。</p>
+  <table>
+    <thead><tr><th>系统</th><th>一句话职责</th><th>输入 → 输出</th><th>技术形态</th><th>边际成本</th></tr></thead>
+    <tbody>
+      <tr><td><b>视频理解</b> <span class="tag l-off">离线</span></td><td>把视频变成带时间索引的剧本资产</td><td>视频 → 结构化剧本（剧情/分镜/角色/情绪/伏笔）</td><td>DAG workflow，多路解读 + 事实仲裁</td><td>一次性，全平台摊薄</td></tr>
+      <tr><td><b>状态系统</b> <span class="tag l-on">在线</span></td><td>决定"现在是哪种在场状态"</td><td>时间 × 兴趣 × 行为 → 陪看/困倦/睡眠/外出</td><td>有限状态机 XState / reducer</td><td>近零（本地计算）</td></tr>
+      <tr><td><b>记忆与性格</b> <span class="tag l-off">独立模块</span></td><td>主流程之外的独立模块：触发时写入，行为时读取</td><td>互动 + 行为 + 指令 → 画像/概要/碎片 → 性格向量</td><td>写入闸门 + 分层存储 + 可问可忘；硬规则锁死</td><td>低频写入，离线为主</td></tr>
+      <tr><td><b>行为系统</b> <span class="tag l-on">在线</span></td><td>决定"这一刻做什么"</td><td>状态 + 剧本切片 + 性格 → 行为事件</td><td>规则 + 小模型，可解释优先</td><td>轻量</td></tr>
+      <tr><td><b>演出系统</b> <span class="tag l-on">在线</span></td><td>把决策编排成一次"演出帧"</td><td>行为事件 + 状态 → 表情/语言/动作指令</td><td>事件总线 + 表达优先级（神态 &gt; 对话）</td><td>近零</td></tr>
+      <tr><td><b>表情系统</b> <span class="tag l-on">在线</span></td><td>把情绪画成眼神/天线/嘴型</td><td>情绪指令 → SVG 表情（组合脸 + 表情池轮换）</td><td>React + SVG + CSS 动画</td><td>近零</td></tr>
+      <tr><td><b>Eval 系统</b> <span class="tag l-fb">闭环</span></td><td>采集 badcase、评分、归因、回流</td><td>埋点 + 抽检 → 评分卡、回归集、修复工单</td><td>规则校验 + LLM-as-judge + 人工标注台</td><td>离线批处理</td></tr>
+      <tr><td><b>后台配套</b> <span class="tag l-sup">支撑</span></td><td>让上面 7 个能上线、能改、能审计</td><td>8 个台：剧本生产/表情资产/语言规则/隐私记忆/灰度实验/成本/合规/标注</td><td>内部工具 + 权限与审计</td><td>固定人力成本</td></tr>
+    </tbody>
+  </table>
+  <div class="takeaway"><b>一句话总括：</b><span>视频理解负责"懂内容"，状态与性格负责"懂此刻和懂这个人"，行为与演出负责"做出来"，表情负责"像活的"，Eval 与后台负责"能持续变好"。</span></div>
+</section>
+
+<section class="blk">
+  <div class="sec-h"><span class="no">TELL</span><h2>30 秒怎么讲这套架构</h2></div>
+  <div class="story"><ol>
+    <li>先给痛点：想分享没人接住；产品是一只明示 AI、常驻播放器角落的小电视。</li>
+    <li>再给核心判断：陪伴≠对话，所以神态优先——这是它和所有 AI 陪伴 App 的分叉点。</li>
+    <li>展开到系统：离线一条 DAG 做剧本，在线一条状态机做反应，中间夹一层演出系统统一调度。</li>
+    <li>点出记忆：记忆独立成系统——三层分工、峰值写入、画像不出口、可问可忘，一亿用户养出一亿只。</li>
+    <li>给成本答案：最贵的理解只在上传时做一次；在线只有用户主动开口才烧钱——避开 0.44 &lt; 0.58。</li>
+    <li>给迭代答案：Eval 把 badcase 回流到规则与剧本；后台 8 个台保证能上线、能审计、能灰度。</li>
+    <li>收尾边界：总开关可关、参数不可调、关系可沟通；陪伴本体免费，付费买纪念与表达。</li>
+  </ol></div>
+</section>
+
+<footer><b>小电视 · 系统架构与 Workflow 设计</b>　个人简历项目概念稿，非哔哩哔哩官方产品。形象版权归哔哩哔哩所有，此处仅作求职作品集示意。<br>图中节点可点击查看职责细节；本页为静态设计稿，所有数据为设计口径，非实测。</footer>
+</div>
+
+<div id="drawer"><button class="x" onclick="closeDrawer()" aria-label="关闭">&times;</button><div id="drawerBody"></div></div>
+
+<script>
+var LC={off:'#00aeec',on:'#2bb673',fb:'#fb7299',sup:'#f5a623',core:'#7c5cff'};
+var DETAIL={
+  '视频上传':'##职责|上传后异步触发预处理，不阻塞用户。<br>##输入|视频文件、投稿元数据。<br>##输出|待解析任务入队。<br>##技术|任务队列 + 幂等键，支持重跑。<br>##成本|一次。|它和在线链路唯一的物理交点：没有上传时这一次，就没有后面所有的近零反应。',
+  '预处理':'##职责|把视频转成机器可解析的素材。<br>##输入|视频流。<br>##输出|抽帧序列、ASR 转写、OCR 文字。<br>##技术|抽帧按场景切换自适应，避免全片高精度。<br>##成本|一次，可降采样。|不是全片逐帧精读——粗读全片、精读关键段，成本控制从这一步就开始。',
+  '时间分段':'##职责|按场景切分成带时间戳的片段。<br>##输入|帧序列 + 转写。<br>##输出|时间段列表（起止时间、场景描述）。<br>##技术|镜头切分 + 语义分段。<br>##成本|一次。|分段的粒度决定在线切片的质量：太粗会剧透，太细会丢上下文。',
+  '多路解读':'##职责|从不同角度并行解读同一段内容。<br>##输入|时间段 + 素材。<br>##输出|剧情线、分镜、角色、情绪曲线、伏笔/梗点。<br>##技术|多路 prompt 并行调用。<br>##成本|一次（并行摊薄延迟）。|多路不是为省钱，是为"完整"；省钱靠的是只做一次。',
+  '事实仲裁':'##职责|把多路结果中的客观信息对齐成唯一版本。<br>##输入|多路解读结果。<br>##输出|无冲突的事实层。<br>##技术|冲突检测 + 优先级仲裁 + 人工兜底。<br>##成本|一次。|事实层不仲裁，BOT 会在不同时间说出自相矛盾的角色关系——这是最容易被面试官抓的漏洞。',
+  '观点层并存':'##职责|保留不同角度的主观解读。<br>##输入|多路解读中的观点。<br>##输出|多视角情绪/伏笔标注。<br>##技术|不去重，按角度打标。<br>##成本|一次。|它有"自己的看法"来自这里——观点层被合并掉，它就变成了一个无聊的摘要器。',
+  '剧本资产':'##职责|全平台复用的结构化内容资产。<br>##输入|事实层 + 观点层。<br>##输出|带时间索引的剧本（可按时间点切片）。<br>##技术|版本化存储，支持按视频 ID 查询。<br>##成本|存储成本，边际近零。|这是整个成本模型的枢纽：一份剧本服务一亿次观看，理解成本被彻底摊薄。',
+  '点开视频':'##职责|启动在线链路，带上当前播放时间点。<br>##输入|用户播放行为。<br>##输出|剧本查询请求 + 时间锚点。<br>##技术|前端埋点。<br>##成本|近零。|时间点是在线链路最重要的上下文——没有它，BOT 会聊到还没演到的剧情。',
+  '剧本切片':'##职责|按当前时间点取"现在能说"的信息。<br>##输入|剧本资产 + 播放时间。<br>##输出|当前段 + 前后邻帧 + 全局设定摘要。<br>##技术|时间索引查询。<br>##成本|近零。|剧透闸门就设在这里：默认只取当前时间点之前的内容，除非用户主动问"后面会怎样"。',
+  '状态读取':'##职责|读取此刻的在场状态与强度。<br>##输入|状态系统 FSM。<br>##输出|陪看/困倦/睡眠/外出 + 精力值。<br>##技术|本地状态订阅。<br>##成本|近零。|状态决定表达强度：同一个剧情节点，清醒时是气泡，困倦时只剩眼皮动一下。',
+  '上下文合成':'##职责|按优先级与 token 预算拼装受控上下文。<br>##输入|硬规则、剧本切片、当前会话、概要、碎片、用户输入。<br>##输出|约 2.5k–3.5k tokens 的受限上下文（设计口径）。<br>##技术|优先级装配 + 降级策略；画像只作参数不进文本。<br>##成本|拼装近零，生成按需。|剧本大不等于在线要大窗口——整本塞进去更贵、更易跑题、还可能剧透。大窗口给离线剧本生成，在线只取切片。',
+  '会话记忆':'##职责|管多轮对话的连续性，与长期记忆分开。<br>##输入|本轮用户输入与 BOT 输出。<br>##输出|最近几轮原文 + 滚动摘要。<br>##技术|老轮次先折叠成摘要再丢弃，会话结束可弃。<br>##成本|轻量。|不单独分层的话，聊十轮后 prompt 全是废话，关键剧情反被挤出去。它管"刚才说到哪"，长期记忆管"我们是什么关系"。',
+  '电报体生成':'##职责|生成"词组/命名"单位的短回应。<br>##输入|受控上下文。<br>##输出|候选短句。<br>##技术|轻量模型 + 场景例句库。<br>##成本|按需，仅轻点后触发。|它不是"更会聊天的 AI"，是用受控输出换人设稳定——这是产品取舍，不是能力不足。',
+  '规则过滤':'##职责|拦截滑回人话、越界、剧透的输出。<br>##输入|候选短句。<br>##输出|合规短句或降级为纯神态。<br>##技术|规则过滤（句长/词性/禁用句式/时间点校验）。<br>##成本|近零。|宁可降级成不说话，也不放一句"人话"出去——一次跑偏就会被读成故障，容错窗口极窄。',
+  '回应':'##职责|把结果交给演出系统渲染。<br>##输入|合规短句 + 神态指令。<br>##输出|气泡 + 表情动作。<br>##技术|事件回投演出总线。<br>##成本|近零。|回应结束即关麦、恢复音量、回到陪看态——闭环回到默认态，不留对话窗口。',
+  '剧本节点':'##职责|离线剧本里的关键时间点触发。<br>##输入|剧本资产。<br>##输出|节点事件（如"名场面""角色出场"）。<br>##技术|时间轴定时器。<br>##成本|近零。|注意：节点只触发神态，不主动开口——"极少主动插话"是产品纪律，不是技术限制。',
+  '用户行为':'##职责|把用户的观看行为变成信号。<br>##输入|切走、快进、戴耳机、长时间静默。<br>##输出|在场强度调整信号。<br>##技术|行为埋点 + 降噪。<br>##成本|近零。|频繁切走就降低存在感——它读空气，而不是无脑刷存在。',
+  '时钟':'##职责|提供时间桶与作息信号。<br>##输入|本地时间。<br>##输出|白天/黄金档/23点后/凌晨。<br>##技术|客户端时间 + 服务端校准。<br>##成本|近零。|23 点后回应变短、眼睛半眯——用身体表达"我困了"，比说教式劝睡更高明。',
+  '演出系统':'##职责|统一编排一次反应，决定"用什么方式说"。<br>##输入|剧本节点 / 用户行为 / 时钟 / 状态。<br>##输出|神态、语言、动作、卡片四类指令。<br>##技术|事件总线 + 表达优先级。<br>##成本|近零。|神态层 &gt; 对话层是硬优先级：能用眼睛说的，绝不用嘴说。',
+  '优先级仲裁':'##职责|按表达优先级与状态决定输出通道。<br>##输入|四类事件 + 当前状态。<br>##输出|通道选择（神态 / 对话 / 卡片）。<br>##技术|优先级规则表。<br>##成本|近零。|同一时刻多个事件冲突时，这里决定"先做哪一个"——没有它，表情和气泡会打架。',
+  '表情指令':'##职责|把情绪转成可渲染的表情参数。<br>##输入|情绪标签 + 强度 + 状态。<br>##输出|眼神目标、嘴型、天线角度、动作。<br>##技术|情绪-表情映射表。<br>##成本|近零。|眼珠默认跟画面主体、偶尔看你一眼——共享注意力才是"一起看"的感觉来源。',
+  '语言指令':'##职责|决定要不要说话、说什么类型的话。<br>##输入|演出决策 + 上下文。<br>##输出|感受/欲望/判断/提问/行动宣告之一。<br>##技术|五类话枚举 + 模板。<br>##成本|近零（生成才烧钱）。|默认不发语言指令——这条规则本身就是"少说话多反应"的执行。',
+  '动作卡片':'##职责|产出可点击的安利卡片或带回的评论。<br>##输入|它自己看的内容 / 评论区。<br>##输出|明示、可忽略的小卡片。<br>##技术|卡片模板 + 跳转链接。<br>##成本|近零。|安利必须真实——只推它"看过"的内容，且明示可忽略；它不能悄悄替你筛选世界。',
+  '表情系统':'##职责|把表情参数画成 SVG 小电视。<br>##输入|表情指令。<br>##输出|眼睛/嘴/天线/Zzz 的 SVG + 动画。<br>##技术|React + SVG，组合脸 + 表情池轮换。<br>##成本|近零（本地渲染）。|竖条眼是"它自己"，嘴在变是"它的心情"——同一个它做不同表情，不是换不同的脸。',
+  '渲染输出':'##职责|在播放器角落呈现最终结果。<br>##输入|四类指令。<br>##输出|灵动岛/整机/播放框三种形态。<br>##技术|React 组件树 + CSS 动画。<br>##成本|近零。|沉浸时只露两只眼睛——在场感不靠存在感强，靠"你总知道它在"。',
+  '陪你看':'##职责|默认稳定态，全程在场、极少说话。<br>##触发|默认进入；被叫醒、天亮、用户重新互动也回到此态。<br>##表现|竖条眼跟画面主体，偶尔看你一眼。|这是产品的默认世界——陪伴的本质是"感受得到它在"，不是它一直在说。',
+  '困倦':'##职责|中度过渡态，表达变轻。<br>##触发|23 点后、连续观看过久。<br>##表现|回应变短、眼睛半眯、气泡变少；无互动 30 秒转睡眠。|它关心你的作息，但不说教——用身体状态表达，比弹窗劝睡体面得多。',
+  '睡眠':'##职责|它自己先睡，不奉陪。<br>##触发|困倦态持续无互动、凌晨。<br>##表现|闭眼冒 Zzz，停止跟随与轮播；被叫会惊醒。|夜里睡（时间驱动，必然发生）和无聊睡（口味驱动，极低概率）要分开——后者不演示，避免用户读成"它嫌弃我"。',
+  '外出':'##职责|半可见状态，它去看自己的内容。<br>##触发|内容兴趣低 + 用户长时间零互动；或用户主动让它出去玩。<br>##表现|角落显示"它正在看《XXX》"，可点开；关键剧情会探头回来。|分岔由它自主判断，不是用户设置——"弱掌控"的不可控性就是价值来源。',
+  '归来':'##职责|从外面回来，带回播报与卡片。<br>##触发|自己看完一个视频 / 被用户叫 / 关键剧情探头。<br>##表现|电报体播报 + 视频卡片，如"看了某某某，好害怕"。|不说人话——"你也看看？"这类人类句式是禁区，信息用卡片补，不用长句补。',
+  '硬规则':'##职责|不可变的行为底线。<br>##定死|语言风格（电报体）、身份（明示 AI）、伦理边界、无分发权限。<br>##可改|昵称 alias——用户可以对它怎么称呼自己，不影响性格向量。<br>##输入|产品原则文档。<br>##输出|注入上下文与输出过滤器的约束。<br>##成本|零。|按你的口径：语言风格、身份、伦理定死；昵称可以改。"没有人设"不等于"没有底线"——锁死的是底线，可改的是称呼。',
+  '轻点 / 降音量':'##职责|用户显式发起语音通道。<br>##输入|轻点化身。<br>##输出|视频音量降低、开麦、进入倾听态。<br>##技术|显式触发，用完即关。<br>##成本|近零。|禁止常驻监听、只留转写文本——隐私边界从"用户主动触发"这一刻开始建立。',
+  'ASR 转写':'##职责|把用户说的话转成文本。<br>##输入|短时音频。<br>##输出|转写文本（不留存原始音频）。<br>##技术|语音识别，端侧优先。<br>##成本|按需。|边界改写：禁止的是"隐式监听"，不是"用户主动说话"——这是对你原方案最关键的一条合规修补。',
+  '互动信号':'##职责|把每一次回应/沉默/主动说话变成生长信号。<br>##输入|互动日志。<br>##输出|偏好增量。<br>##技术|情绪峰值写入，避免全量记录。<br>##成本|低频。|只记峰值与有意义的瞬间——全量记录会从"被理解"滑向"被监视"。',
+  '画像（不出口）':'##职责|用户口味、习惯、作息的统计画像。<br>##输入|平台内公开行为。<br>##输出|只塑造它自己的行为，永不被口头引用。<br>##技术|行为统计。<br>##成本|离线。|它不会说"检测到你喜欢科技区"——画像改变它的行为，不改变你的世界。',
+  '概要记忆':'##职责|关系连续性的摘要。<br>##输入|共同观看历史、未完成话题与愿望。<br>##输出|可问可忘的概要。<br>##技术|可覆盖更新的摘要。<br>##成本|低频。|"上次看到一半的那部……"——负责连续性，不是负责讨好。',
+  '碎片记忆':'##职责|只记情绪峰值与有意义的瞬间。<br>##输入|互动峰值。<br>##输出|带性格滤镜的记忆碎片。<br>##技术|阈值写入 + 年终精选集。<br>##成本|低频。|同一个晚上，两只小电视记住的东西不同——记忆写入的差异，就是"每个人的一只"的底层实现。',
+  '性格向量':'##职责|可生长的行为倾向：口味、反应阈值、用词偏好、亲近度。<br>##输入|三层记忆 + 互动信号。<br>##输出|影响状态判断、行为决策、表情强度。<br>##技术|向量化参数，随互动渐变。<br>##成本|低频更新。|出厂没有性格，性格是相处长出来的——这是"每个人的一只"在算法层的兑现。为什么不并入记忆：性格不可被引用、不可被删除重置，删除语义会和记忆冲突；保持"记忆 → 性格"单向依赖。',
+  '性格系统':'##职责|硬规则锁死 + 生长向量，消费记忆但不回写。<br>##输入|记忆系统的画像/概要/碎片 + 互动信号。<br>##输出|口味/阈值/用词/亲近度，影响行为与表情。<br>##技术|向量更新，与记忆系统单向依赖。<br>##成本|轻量。|面试官问"性格和记忆什么关系"——答：记忆是源码，性格是编译产物；性格读记忆的统计特征，但不写回记忆内容。',
+  '反馈到行为':'##职责|性格向量回写决策层。<br>##输入|更新后的性格向量。<br>##输出|下一轮行为与表达的差异。<br>##技术|参数热更新。<br>##成本|近零。|你越爱吐槽，它越爱接梗；你越安静，它越克制——关系靠相处改变，不靠设置面板。',
+  '记忆系统':'##职责|独立管理三层记忆的写入、检索、遗忘与权限。<br>##输入|互动信号、观看行为、用户指令。<br>##输出|画像/概要/碎片，供性格、行为、演出、Eval 消费。<br>##技术|写入闸门 + 分层存储 + 可问可忘接口。<br>##成本|低频写入，离线为主。|为什么不并进性格系统：记忆有独立的存储、检索、遗忘与审计需求，且被四个系统共同消费——把它塞进性格，面试官一问"怎么忘掉"就露馅。',
+  '写入闸门':'##职责|决定什么值得写、写成哪一层。<br>##输入|互动信号 + 观看行为。<br>##输出|画像统计 / 概要更新 / 碎片候选。<br>##技术|情绪峰值阈值 + 性格滤镜。<br>##成本|轻量。|碎片只在情绪峰值写入，且写入带性格滤镜——同一个晚上，两只小电视记住的东西不同，"每个人的一只"在底层就是这里实现的。',
+  '事件归一化':'##职责|把语音、行为、系统信号统一成一种事件对象。<br>##输入|显式语音文本 / 播放器事件 / 客户端时间与作息。<br>##输出|{type, payload, ts, videoTime}。<br>##技术|适配器层，无模型。<br>##成本|零。|归一化之后，下游不需要关心输入来自语音还是点击——新增输入源只改适配器，不动判断逻辑。',
+  'START · 触发':'##职责|外部事件进图的入口，对应 LangGraph 的 START。<br>##输入|轻点说话 / 剧本高潮点 / 想睡觉 / 觉得无聊 / 时间触发。<br>##输出|一个归一化事件，唤醒挂起的图。<br>##技术|事件源 → StateGraph.invoke。<br>##成本|零。|陪伴不是节点，触发才是入口：图在没有事件时是挂起的，不空转、不烧钱。',
+  'observe':'##职责|读取 State、归一化事件，并在此完成状态判定（是否转移、下一态）。<br>##输入|START 事件 + checkpointer 恢复的 8 分区 State。<br>##输出|{type,payload,ts,videoTime} + 已判定的 presence / mood / energy / activity。<br>##技术|纯函数 + 纯规则判定，不写状态。<br>##成本|零。|状态判定放这里而不是闸门：睡 / 出门是读到的事实结果，不是"许可"。下游拿到已判定的 state，不用各自猜。',
+  '反应闸门':'##职责|决定这次说不说、输出哪几路、各多强。只管反应通道，不管模式转移（睡 / 出门由 observe 判定）。<br>##输入|已判定的事件 + State + 剧本切片 + 性格。<br>##输出|四路通道开关与强度。<br>##技术|纯规则表 + 指令白名单（关键词/正则）。<br>##成本|零。|这里故意不做意图识别：没有任务可路由，多一层分类只会多一个出错点。"极少主动插话"必须在生成之前可强制执行，不能靠模型自觉。',
+  '指令白名单':'##职责|识别少数可枚举的用户指令。<br>##输入|语音转写文本。<br>##输出|安静 / 出去玩 / 你还记得什么 等有限指令。<br>##技术|关键词 + 正则，不上分类器。<br>##成本|零。|等它开始找片、跨视频检索、带它实现愿望清单时，才需要真正的意图层——现在加了就是给简历堆名词。',
+  '演出帧':'##职责|把一次输出组织成可同时触发的多路组合。<br>##输入|闸门给出的通道开关与强度。<br>##输出|神态 + 动作 + 语言 + 卡片的组合帧。<br>##技术|帧结构 + 帧内一致性仲裁。<br>##成本|零。|输出不是互斥三选一。一帧可以是"眼神一亮 + 天线立起 + 气泡『火锅！』"——三者互为加强。没有这一层，会出现嘴上兴奋、眼神困倦的精神分裂帧。',
+  '线上埋点':'##职责|采集可评估的行为数据。<br>##输入|互动、回应、关闭、投诉、观看时长。<br>##输出|评估数据集。<br>##技术|功能可见性隔离（仅实验组渲染）。<br>##成本|固定。|化身及其评论只对实验组可见——与"默认私密"的边界设计天然一致，也避免了社交污染。',
+  '人工抽检':'##职责|补充埋点看不到的质性信号。<br>##输入|随机抽样会话。<br>##输出|标注样本 + 用户访谈线索。<br>##技术|标注台 + 抽样策略。<br>##成本|人力。|数据持平但用户喜欢时，靠定性深挖找原因——可能是"低频但重要"的情感备份场景。',
+  'badcase 池':'##职责|集中管理失败案例。<br>##输入|埋点异常 + 抽检 + 用户反馈。<br>##输出|可归因的 badcase 列表。<br>##技术|自动聚类 + 人工去重。<br>##成本|离线。|没有 badcase 池，迭代只能靠拍脑袋——这是 AI 产品经理和"写 prompt 的人"的分界线。',
+  '四维评分':'##职责|评接住率、语言可信度、剧透率、打扰率。<br>##输入|badcase + 正常样本。<br>##输出|评分卡。<br>##技术|规则校验 + LLM-as-judge + 人工复核。<br>##成本|离线。|前三维评"像不像它"，第四维评"该不该在"——护栏一维恶化即一票否决。',
+  '归因':'##职责|定位问题出在哪个系统。<br>##输入|评分卡 + badcase。<br>##输出|归属到视频理解/状态/演出/语言等具体环节。<br>##技术|错误分类树。<br>##成本|离线。|归因必须到"系统"，不能停在"模型不行"——否则改了半天不知道改对了没有。',
+  '回归集':'##职责|最小核心质量回归集，防改坏。<br>##输入|已修复 badcase + 关键正常场景。<br>##输出|发布前的回归测试集。<br>##技术|版本化黄金集，不全量替代。<br>##成本|离线。|回归集不等于线上全量——它是"这次改动有没有把老问题带回来"的最小证据。',
+  '修复':'##职责|把归因结果落到具体改动。<br>##输入|归因 + 回归集。<br>##输出|prompt / 规则 / 剧本 / 模型的变更。<br>##技术|变更可追溯。<br>##成本|研发。|修的是系统不是模型：剧透就改切片规则，人话就改过滤器，认错角色就改事实仲裁。',
+  '灰度验证':'##职责|小流量验证修复效果。<br>##输入|修复版本 + 回归集通过。<br>##输出|全量 / 收窄 / 下线决策。<br>##技术|分层随机灰度，护栏一票否决。<br>##成本|固定。|上线平庸功能是双向门，错杀有价值功能是单向门——双向门快做快撤，单向门才反复论证。',
+  '剧本生产台':'##职责|管理离线预解析任务队列、重跑与版本。<br>##服务|视频理解系统。<br>##成本|人力 + 机器。|没有它，剧本生成失败只能靠人盯——离线链路必须有可视化与重试入口。',
+  '表情资产台':'##职责|管理 31 张表情卡、组合脸与表情池。<br>##服务|表情系统。<br>##成本|设计人力。|表情是主语言，所以它必须有资产台账；不然"这张卡还用不用"没人说得清。',
+  '语言规则台':'##职责|维护电报体规则、禁用句式与场景例句库。<br>##服务|上下文合成与规则过滤。<br>##成本|运营人力。|规则锁死靠的是可维护的规则库，不是写在代码里的字符串。',
+  '隐私记忆台':'##职责|记忆可问可忘、画像开关、注销清理。<br>##服务|性格系统。<br>##成本|合规人力。|可问可忘不是一句承诺，是一个能被用户点到的后台能力。',
+  '灰度实验台':'##职责|分层随机、护栏监控、决策规则执行。<br>##服务|Eval 系统与上线流程。<br>##成本|平台。|主指标净时长与次周留存，护栏关闭率/投诉/熬夜——规则预先写死，避免事后找理由。',
+  '成本监控台':'##职责|监控三层成本、单 DAU 成本与预算闸门。<br>##服务|全链路。<br>##成本|平台。| Character.AI 的死亡账本要天天看，不是上线看一次——成本失控是这类产品的第一死因。',
+  '合规审核台':'##职责|AI 身份标识、内容安全、未成年人降级。<br>##服务|表达层与后台。<br>##成本|合规人力。|青少年模式默认关闭、不建长期画像——红线要能在后台被验证，不能只写在文档里。',
+  '标注台':'##职责|badcase 标注、四维评分录入、回归集维护。<br>##服务|Eval 系统。<br>##成本|标注人力。| AI 产品经理要能画出标注台，才说明 Eval 不是 PPT 上的闭环。',
+  '事实层':'##职责|从剧本资产里按时间取客观事实：角色、关系、时间线、物件归属。<br>##输入|facts[] + 当前播放点。<br>##输出|无冲突的唯一版本事实。<br>##技术|仲裁后版本化存储。<br>##成本|近零。|事实层必须唯一——同一部剧里 BOT 不能前一句说"他哥"后一句说"他朋友"。',
+  '观点层':'##职责|保留多角度的情绪、伏笔与梗点，不去重。<br>##输入|viewpoints[] + 当前播放点。<br>##输出|可供 BOT 挑一个角度反应的观点集。<br>##技术|按角度打标，不合并。<br>##成本|近零。|它有"自己的看法"来自这里；观点被合并掉，它就变成无聊的摘要器。',
+  '情绪曲线':'##职责|逐段情绪标签与强度，供被动在场查表。<br>##输入|离线多路解读的情绪标注。<br>##输出|按 t 索引的 emotion + intensity。<br>##技术|在线只读，不逐帧调模型。<br>##成本|近零。|这是"不搭理时怎么陪着"的答案：表情跟着剧情微动，但不花钱、不打断。',
+  '防剧透索引':'##职责|每段的可说集、屏蔽集与结局阈值。<br>##输入|剧本时间线 + 当前播放进度。<br>##输出|当前允许引用的信息范围。<br>##技术|区间查询，按 question 类型决定装傻或含糊。<br>##成本|近零。|防剧透不能靠模型自觉——它必须是一个能被单测的规则字段。',
+  '质量闸门':'##职责|校验剧本覆盖率、事实一致性与剧透边界。<br>##输入|生成的剧本资产。<br>##输出|通过则发布；不通过则只重跑失败段。<br>##技术|自动校验 + 人工抽检兜底。<br>##成本|离线。|不通过时重跑全片是浪费；按段重跑才是可运营的成本结构。',
+  'commit 写回':'##职责|唯一的状态写回点：把各节点返回的 patch 统一应用到三层 State。<br>##输入|StatePatch（会话 / 记忆 / 性格 / 计数 / 计时）。<br>##输出|更新后的 State，随后图挂起。<br>##技术|reducer 应用；记忆写入闸门与遗忘 API 在此收口。<br>##成本|近零。|前面节点保持只读、可回放；写回集中一点，删除语义才不会糊——"忘掉这件事"删记忆，"清除数据"才清 profile。',
+  '行为选择器':'##职责|模型驱动的"这一刻像不像它"决策，输出结构化行为意图。<br>##输入|事件 + 状态 + 剧情切片 + 原语表 + persona 参数。<br>##输出|{emotion, intensity, expression, motion, speech_intent, card_intent, memory_candidate}。<br>##技术|小模型 + 结构化输出 + few-shot；不写 if-else 引擎。<br>##成本|仅事件唤醒时一次。|规则负责"能不能"，模型负责"像不像"。把规则塞进模型会跑偏，把模型塞进规则会僵。',
+  '约束复核':'##职责|模型输出的硬约束复核：语言纪律 / 明示 AI / 无分发 / 防剧透 / 权限。<br>##输入|行为选择器的结构化输出。<br>##输出|放行、降级为纯神态、或拒绝。<br>##技术|规则表，零成本，不可被模型覆盖。<br>##成本|零。|"极少主动插话"必须在生成之前就能被强制执行，不能靠模型自觉——这是它和所有 AI 陪伴 App 的分叉点。',
+  '行为原语':'##职责|决策层与渲染层之间的受控词表：神态 / 动作 / 语言 / 卡片。<br>##输入|行为选择器的意图字段。<br>##输出|可直接被 React 组件消费的原语名。<br>##技术|枚举表，与 mascot-states 状态名对齐。<br>##成本|零。|原语不封死行为，只封死"无法渲染的输出"。新增表情只加词表项，不动决策逻辑。',
+  '异常降级':'##职责|断网或拒绝麦克风授权时的降级路径。<br>##输入|网络事件 / 权限状态。<br>##输出|灰眼 + 信号环（断网覆盖层）；或纯表情陪伴（拒授权）。<br>##技术|覆盖层不切模式；能力检测前置。<br>##成本|近零。|拒绝授权是用户说不，不是故障——功能降级但陪伴不整体失效（9.4 / 9.5）。',
+  '单视频关闭':'##职责|只关这一部视频里的 BOT。<br>##输入|用户在本视频的关闭动作。<br>##输出|停演，丢弃 thread；账号态 profile 保留。<br>##技术|thread 与 profile 分离存储。<br>##成本|零。|"关掉"不等于"绝交"——下次点开视频，它还是原来那只。',
+  '全局关闭':'##职责|系统级总开关，停掉所有演出。<br>##输入|设置里的总开关。<br>##输出|全域停演；profile 封存不删。<br>##技术|账号级 flag。<br>##成本|零。|注册即常驻的前提是全局可关——这是产品时刻能成立的安全阀。',
+  '切后台 / 锁屏':'##职责|应用不可见时停演、停跟随、停轮播。<br>##输入|前后台 / 锁屏事件。<br>##输出|冻结当前帧；回前台恢复原帧。<br>##技术|生命周期事件，不切模式。<br>##成本|近零。|省资源，也避免"你不在它还自言自语"的诡异感（1.4）。',
+  '换端 / 投屏':'##职责|手机 ↔ 电视 / 投屏时的状态迁移。<br>##输入|账号 + 视频 ID。<br>##输出|新 thread；从 profile 恢复记忆与模式；容器按端适配。<br>##技术|账号级 checkpointer + 端能力探测。<br>##成本|近零。|电视端占比过半——交互形态要按端适配，但关系不能断（1.8 / 10.6）。',
+  '会话态':'##职责|单次观看的临时记事本。<br>##字段|messages / videoTime / summon_count / mute_until / wake_deadline / last_frame / gesture_pending。<br>##生命周期|thread 结束可弃。|它管"刚才说到哪、叫了几次、静音到几点"；thread 弃掉不伤心，因为长期的东西不在这里。',
+  '账号态':'##职责|跨视频、跨设备、跨天的关系本体。<br>##字段|memory{画像/概要/碎片} / persona{口味/阈值/用词/亲近度} / alias / hard_rules。<br>##生命周期|永久，除非用户显式清除。|checkpointer 的第二层。没有它，投屏换端就会"失忆"。',
+  '内容态':'##职责|视频侧的只读资产。<br>##字段|segments / facts / viewpoints / emotion_curve / spoiler_index。<br>##生命周期|视频生命周期，版本化。|一份剧本服务一亿次观看；在线只读，绝不回写。',
+  '状态':'##职责|它此刻处于什么模式——这是 State 里存的<b>事实</b>，不是"判定"。<br>##字段|presence: company / drowsy / sleep / away；away_phase: peek / returning。<br>##写入|observe 判定后由 commit 落值。<br>##技术|判定是 observe 对状态做的动作，读状态算出下一态；状态本身只是数据。<br>##成本|近零。|你问"状态为什么是判定"——命名反了。状态是数据（它现在是什么），判定是动作（要不要切）。面板这块现在只叫"状态"。',
+  '心情':'##职责|它此刻的情绪标签与强度。<br>##字段|emotion 标签、intensity 0–1、衰减半衰期、基线。<br>##更新|每事件由 commit 用 EMA 向剧情情绪靠拢，强度随时间衰减回基线。<br>##读者|行为选择器 / 演出系统 / 渲染层。<br>##成本|近零。|情绪是状态，不是记忆——它用来决定"这一帧怎么演"，不写进长期记忆。',
+  '精力':'##职责|整数精力值，范围 0–8，可为负（欠觉）。<br>##字段|energy: 整数（允许负）、每格衰减、睡眠回充、叫醒继续扣。<br>##默认规则|22:00–06:00 睡眠窗共 8 小时：22:00 精力 0 触发睡；每整小时 +1；06:00 回满 8。<br>##扰动|23:30 叫醒 → 不回充，继续扣到负值；精力 0 仍强叫 → 负值 = 欠觉；总睡眠 = 8 + |负值| 小时。<br>##技术|纯规则，存用户本地，不调模型、不联网、不进画像。<br>##成本|零。|按你给的规则原样落地：8 小时对应 0–8 八格，叫醒是"反向扣分"而非暂停充电。本地算，换端各算各的。',
+  '现在在做的事':'##职责|它当下正在进行的动作叙事，和"模式"不是一个东西。<br>##字段|activity: watching / away_watching / responding / waking / sleeping，以及对象（看的是什么、在回谁）。<br>##更新|状态变化时由 commit 与外出系统写。<br>##读者|渲染层 / 归来播报 / 上下文装配。<br>##成本|近零。|presence 回答"它处于什么模式"，activity 回答"它这会儿在干什么"。前者是档位，后者是动作——分开才能既睡得着、又能讲清"它去看《三体》了"。',
+  '在看什么':'##职责|它当前在看的视频，以及它对这片子有多大兴趣。<br>##字段|内容 ID / 类型、interest_score（兴趣分）、看片进度。<br>##判定|兴趣分高 → 留下来陪你看；兴趣分低 + 用户长时间零互动 → 它自己出去看别的（away）。<br>##写入|离线剧本兴趣标注 + 在线观看行为。<br>##读者|状态判定（→ away）、归来时的安利卡片。<br>##成本|近零。|"兴趣判定"是它自主出门的依据——分岔由它自己的口味驱动，不是你设置出来的，这正是"弱掌控"的价值来源。',
+  '具体位置':'##职责|它此刻挂在哪个容器、哪个端、什么屏幕方向。<br>##字段|容器：Island / PlayerBadge / FullTv；端：手机 / 电视；方向：横屏 / 竖屏。<br>##写入|播放器与设备事件（只读）。<br>##读者|render（决定画在哪、画多大）。<br>##成本|近零。|竖屏换横屏、手机换电视，模式与记忆都不丢，变的只是"它站在哪"——这是显示层的坐标，不是关系层的属性。',
+  '剧情与会话':'##职责|这一次观看的临时记事本：剧情锚点 + 对话 + 几个会变的数字。<br>##字段|videoTime + 当前段 + 邻帧 + spoiler_index 可说集；messages(近N轮+滚动摘要)；summon_count / mute_until / wake_deadline / last_frame / gesture_pending；memory_ref / persona 参数。<br>##写入|播放器事件 + observe + commit。<br>##成本|近零。|你问"为什么要运行时计数"——它不是技术，就是几个会变的数字：叫了几次（决定第几次回）、静音到几点（计时恢复）、上一帧（避免二刷重复台词）。既然是数字，就并进这张临时记事本，不单独开块。',
+  '状态转移':'##职责|模式转移的执行终点：本次图处理结束（END）。<br>##输入|observe 的判定结果（下一态 = sleep / away）。<br>##输出|切换 presence，停演 / 停跟随；等待下一件事唤醒。<br>##技术|条件边 B，不经反应闸门。<br>##成本|零。|睡觉和出门是"它自己的作息与口味"驱动的，不是你说不说的话的结果——这是反依赖设计在图上的落点。'
+};
+
+function E(id){
+  var raw=DETAIL[id]||'##职责|暂无详情。<br>##说明|点击其他节点查看。';
+  var parts=raw.split('|');var meta=parts.slice(0,-1).join('|');var quote=parts[parts.length-1]||'';
+  var rows=meta.split('##').filter(Boolean).map(function(b){
+    var i=b.indexOf('|');if(i<0)return '';
+    return '<div class="d-row"><b>'+b.slice(0,i)+'</b>'+b.slice(i+1)+'</div>';
+  }).join('');
+  document.getElementById('drawerBody').innerHTML='<h4>'+id+'</h4><div class="d-lane">系统节点 · 点击空白或右上角关闭</div>'+rows+(quote?'<div class="d-quote">'+quote+'</div>':'');
+  document.getElementById('drawer').classList.add('open');
+}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open')}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDrawer()});
+
+function node(x,y,w,h,t,s,lane,id){
+  var c=LC[lane]||LC.core;
+  return '<g class="node-hit" onclick="E(\''+(id||t)+'\')"><rect class="nb" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="10" fill="#fff" stroke="'+c+'" stroke-width="1.6"/>'+
+    '<rect x="'+x+'" y="'+y+'" width="4" height="'+h+'" rx="2" fill="'+c+'"/>'+
+    '<text x="'+(x+14)+'" y="'+(y+24)+'" font-size="13.5" font-weight="600" fill="#18191c">'+t+'</text>'+
+    (s?'<text x="'+(x+14)+'" y="'+(y+43)+'" font-size="11" fill="#61666d">'+s+'</text>':'')+'</g>';
+}
+function lane(x,y,w,h,label,color){
+  return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="14" fill="'+(color==='off'?'#f2fbff':color==='on'?'#f1fbf6':color==='fb'?'#fff5f8':color==='sup'?'#fffaf0':'#f7f5ff')+'" stroke="'+LC[color]+'" stroke-width="0.8" stroke-dasharray="5 5"/>'+
+    '<text x="'+(x+14)+'" y="'+(y+20)+'" font-size="11.5" font-weight="500" fill="'+LC[color]+'">'+label+'</text>';
+}
+function edge(a,b,o){
+  o=o||{};var x1=a[0],y1=a[1],x2=b[0],y2=b[1];var c=o.c||'#9499a0',dash=o.d?' stroke-dasharray="5 4"':'';
+  var d;
+  if(o.path)d=o.path;
+  else if(o.v)d='M'+x1+' '+y1+' C'+x1+' '+(y1+y2)/2+','+x2+' '+(y1+y2)/2+','+x2+' '+y2;
+  else d='M'+x1+' '+y1+' C'+(x1+x2)/2+' '+y1+','+(x1+x2)/2+' '+y2+','+x2+' '+y2;
+  var s='<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="'+c+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>';
+  s+='<path d="'+d+'" fill="none" stroke="'+c+'" stroke-width="1.6"'+dash+' marker-end="url(#ar)"/>';
+  if(o.label){var lx=o.lx!==undefined?o.lx:(x1+x2)/2,ly=o.ly!==undefined?o.ly:(y1+y2)/2-9;
+    s+='<text x="'+lx+'" y="'+ly+'" font-size="11" fill="#61666d" text-anchor="middle">'+o.label+'</text>'}
+  return s;
+}
+function wrap(id,w,h,inner){document.getElementById(id).innerHTML='<svg viewBox="0 0 '+w+' '+h+'" width="100%" role="img"><title>'+id+' 架构图</title>'+inner+'</svg>'}
+
+// ===== 简洁版渲染：单向直线 + 直角回环，每图 4–6 节点 =====
+function flowNode(x,y,w,h,t,s,lane,id){
+  return '<g class="node-hit" onclick="E(\''+(id||t)+'\')"><rect class="nb" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="10" fill="#fff" stroke="'+LC[lane]+'" stroke-width="1.7"/>'+
+    '<rect x="'+x+'" y="'+y+'" width="4" height="'+h+'" rx="2" fill="'+LC[lane]+'"/>'+
+    '<text x="'+(x+13)+'" y="'+(y+23)+'" font-size="13" font-weight="600" fill="#18191c">'+t+'</text>'+
+    (s?'<text x="'+(x+13)+'" y="'+(y+42)+'" font-size="10.8" fill="#61666d">'+s+'</text>':'')+'</g>';
+}
+function wrap(id,w,h,inner){
+  var defs='<defs>'+[['arB',LC.off],['arP',LC.core],['arG',LC.on],['arK',LC.fb],['arA',LC.sup],['arN','#9499a0']].map(function(m){
+    return '<marker id="'+m[0]+'" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="'+m[1]+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>'}).join('')+'</defs>';
+  document.getElementById(id).innerHTML='<svg viewBox="0 0 '+w+' '+h+'" width="100%" role="img">'+defs+inner+'</svg>';
+}
+var MK={off:'arB',core:'arP',on:'arG',fb:'arK',sup:'arA',n:'arN'};
+function ln(x1,y1,x2,y2,lane,dash){
+  return '<path d="M'+x1+' '+y1+' L'+x2+' '+y2+'" fill="none" stroke="'+(LC[lane]||'#9499a0')+'" stroke-width="1.6"'+(dash?' stroke-dasharray="5 4"':'')+' marker-end="url(#'+MK[lane||'n']+')"/>';
+}
+function lab(x,y,t,lane){return '<text x="'+x+'" y="'+y+'" font-size="11" fill="'+(LC[lane]||'#61666d')+'" text-anchor="middle">'+t+'</text>'}
+function badge(x,y,t,lane){var c=LC[lane]||'#9499a0';return '<rect x="'+x+'" y="'+y+'" width="46" height="17" rx="4" fill="'+c+'"/><text x="'+(x+23)+'" y="'+(y+12)+'" font-size="10" font-weight="500" fill="#fff" text-anchor="middle">'+t+'</text>'}
+// 单行流：items=[[标题,副标题,lane,id],...]
+function hrow(items,y,opt){
+  opt=opt||{};var nw=opt.nw||164,gap=opt.gap||30,h=opt.h||56,W=opt.W||1080;
+  var total=items.length*nw+(items.length-1)*gap, x0=(W-total)/2, s='', xs=[];
+  items.forEach(function(it,i){
+    var x=x0+i*(nw+gap); xs.push(x);
+    s+=flowNode(x,y,nw,h,it[0],it[1],it[2],it[3]);
+    if(i>0 && !opt.noArrow) s+=ln(x-gap,y+h/2,x,y+h/2,it[2]);
+  });
+  return {s:s,xs:xs,nw:nw,h:h,y:y,cx:xs.map(function(x){return x+nw/2})};
+}
+// 底部直角回环：从 (x1,y1) 下到 yy，横到 x2，再上到 y2
+function back(x1,y1,x2,y2,yy,lane,label){
+  var s='<path d="M'+x1+' '+y1+' L'+x1+' '+yy+' L'+x2+' '+yy+' L'+x2+' '+y2+'" fill="none" stroke="'+LC[lane]+'" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#'+MK[lane]+')"/>';
+  if(label) s+=lab((x1+x2)/2,yy+18,label,lane);
+  return s;
+}
+
+// MAP · LangGraph 版：State 在上（8 分区），节点是纯函数，模式转移从 observe 直接出边
+(function(){
+  var W=1200,s='';
+  // ── 放大的 State 面板 ──
+  s+='<rect x="40" y="12" width="1120" height="184" rx="12" fill="#f7f5ff" stroke="'+LC.core+'" stroke-width="1.4"/>';
+  s+='<text x="56" y="34" font-size="13" font-weight="600" fill="'+LC.core+'">共享记事本 State · 8 个分区（checkpointer 双层存档：thread + profile）</text>';
+  s+='<text x="900" y="34" font-size="10.5" fill="#9499a0">点每块看字段 / 谁写 / 谁读</text>';
+  var S=[
+    ['① 状态 presence','company / drowsy / sleep / away + 子态','core','状态'],
+    ['② 精力 energy','0~8 · 22:00→06:00 · 可为负','sup','精力'],
+    ['③ 心情 mood','emotion 标签 + 强度 · 衰减','fb','心情'],
+    ['④ 在做的事 activity','watching / away_watching / responding','on','现在在做的事'],
+    ['⑤ 在看什么 interest','内容 + 兴趣分 · 决定陪 or 走','off','在看什么'],
+    ['⑥ 具体位置 placement','容器 / 端 / 横竖屏','on','具体位置'],
+    ['⑦ 剧情与会话','videoTime + 可说集 + messages + 计数','core','剧情与会话'],
+    ['⑧ 硬规则','语言/身份/伦理定死 · 昵称可改','sup','硬规则']
+  ];
+  S.forEach(function(v,i){
+    var col=i%4, row=Math.floor(i/4), x=52+col*276, y=46+row*70;
+    s+=flowNode(x,y,264,60,v[0],v[1],v[2],v[3]);
+  });
+
+  var N=[['START 有事发生','五类触发事件进图','fb','START · 触发'],
+         ['① 看现状','observe · 读 State + 判定','core','observe'],
+         ['② 反应闸门','gate · 说不说 / 几路','sup','反应闸门'],
+         ['③ 取资料','retrieve · 剧本+记忆','core','上下文合成'],
+         ['④ 组织语言','generate · 可跳过','fb','规则过滤'],
+         ['⑤ 画出来','render · 表情/气泡','on','渲染输出']];
+  var xs=[15,215,415,615,815,1015];
+  var tags=[['事件','n'],['判定','n'],['规则','sup'],['查表','core'],['大模型','fb'],['代码','on']];
+  N.forEach(function(n,i){
+    s+=flowNode(xs[i],228,170,56,n[0],n[1],n[2],n[3]);
+    s+=badge(xs[i]+118,234,tags[i][0],tags[i][1]);
+    if(i>0) s+=ln(xs[i]-30,256,xs[i],256,n[2]);
+  });
+
+  // 条件边 A：只出神态 → 跳过取资料 + 生成（省钱），从 gate 绕到 render
+  s+='<path d="M500 284 L500 322 L1100 322 L1100 284" fill="none" stroke="'+LC.on+'" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arG)"/>';
+  s+=lab(800,314,'条件边 A：只出神态 → 跳过取资料 + 生成（省钱）','on');
+
+  // 条件边 B：模式转移从 observe 直接出边（不再经过 gate）
+  s+=flowNode(215,372,170,54,'模式转移：睡 / 出门','observe 判定 · 本次 END','sup','状态转移');
+  s+=ln(300,284,300,372,'sup'); s+=lab(402,336,'条件边 B：模式判定','sup');
+
+  s+=flowNode(1015,372,170,54,'挂起：陪你看着','等待下一件事 · 不空转','on','陪你看');
+  s+=ln(1100,284,1100,372,'on');
+
+  // 写回 State：从 render 左侧回到面板底部
+  s+='<path d="M1015 256 L985 256 L985 196" fill="none" stroke="'+LC.core+'" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arP)"/>';
+  s+=lab(940,212,'写回存档','core');
+
+  // 小循环：下一件事唤醒 → 读回存档 → 再看现状
+  s+='<path d="M1100 426 L1100 466 L100 466 L100 284" fill="none" stroke="'+LC.fb+'" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#arK)"/>';
+  s+=lab(600,486,'小循环：下一件事唤醒 → 从存档读回记事本 → 再看现状','fb');
+  wrap('dag-map',W,500,s);
+})();
+
+// ENERGY · 精力与睡眠：本地规则
+(function(){
+  var W=1080,s='';
+  // 时间轴：22:00 → 06:00，共 8 小时，精力从 0 回到 8
+  var T=[['22:00','精力 0 · 到点睡'],['00:00','+2 → 精力 2'],['02:00','+4 → 精力 4'],['04:00','+6 → 精力 6'],['06:00','+8 → 回满']];
+  T.forEach(function(v,i){
+    var x=40+i*210;
+    s+=flowNode(x,44,190,56,v[0],v[1],i===0||i===4?'sup':'off','精力');
+    if(i>0) s+=ln(x-20,72,x,72,'off');
+  });
+  s+=lab(540,26,'默认睡眠窗 22:00–06:00 · 共 8 小时 · 每整小时判一次','sup');
+
+  // 正常：睡满回充
+  s+=flowNode(48,164,420,60,'正常：22:00 躺下 → 06:00 回满 8','每小时 +1 点，8 小时补满','on','精力');
+  s+=ln(135,100,258,164,'off');
+
+  // 被叫醒：继续扣，可到负值
+  s+=flowNode(540,164,492,60,'23:30 被叫醒：不回充，精力继续往下扣','drowsy 陪看 · 越叫越困 · 可扣成负值','fb','精力');
+  s+=ln(555,100,786,164,'fb');
+
+  // 欠觉补偿
+  s+=flowNode(300,266,480,60,'欠觉补偿：负值补回 0 后才走正常回充','总睡眠 = 8 + |负值| 小时 · 纯本地规则','sup','精力');
+  s+=ln(786,224,540,266,'fb');
+
+  s+=lab(540,352,'精力 = 本地时钟 + 整数计数的确定性规则：不调模型、不联网、不进画像','sup');
+  wrap('dag-energy',W,368,s);
+})();
+
+// 记忆与性格：一个模块内的单向流
+(function(){
+  var r=hrow([['互动信号','回应 / 沉默 / 峰值','fb','互动信号'],['写入闸门','峰值阈值+性格滤镜','fb','写入闸门'],['三层记忆','画像 / 概要 / 碎片','core','记忆系统'],['性格向量','口味/阈值/用词/亲近','core','性格向量'],['行为表达','下次反应不同','fb','反馈到行为']],96,{W:1080,nw:176,gap:32});
+  var s=r.s;
+  s+=flowNode(r.xs[3],20,176,50,'硬规则','语言/身份/伦理 · 锁死','sup','硬规则');
+  s+=ln(r.cx[3],70,r.cx[3],96,'sup',1);
+  s+=back(r.cx[4],152,r.cx[0],152,230,'fb','小循环：相处闭环——行为改变互动，互动再改写记忆与性格');
+  wrap('dag-persona',1080,280,s);
+})();
+
+// CONTEXT：多源上下文 → 预算装配 → 生成；多轮回写
+(function(){
+  var s='',W=1080;
+  var src=[['硬规则 + 输出格式','永不裁 · 约300 tokens','sup','硬规则'],
+           ['剧本切片','当前段+邻帧 · 防剧透','core','剧本切片'],
+           ['当前会话','近几轮原文+滚动摘要','fb','会话记忆'],
+           ['概要记忆','关系摘要 · 可覆盖','core','概要记忆'],
+           ['碎片记忆','最多一两条 · 语境相关','core','碎片记忆']];
+  src.forEach(function(v,i){
+    var y=26+i*66;
+    s+=flowNode(40,y,250,54,v[0],v[1],v[2],v[3]);
+    s+=ln(290,y+27,400,168,v[2]);
+  });
+  s+=flowNode(400,130,250,80,'上下文装配','按优先级 + token 预算拼装','core','上下文合成');
+  s+=flowNode(750,130,220,80,'生成 + 过滤','轻量模型 · 电报体','on','规则过滤');
+  s+=ln(650,168,750,168,'core');
+  s+=flowNode(400,300,250,54,'用户画像','不进 prompt 文本 · 只调参数','sup','画像（不出口）');
+  s+=ln(525,300,525,210,'sup',1);
+  s+=flowNode(750,300,220,54,'用户这句话','当前输入 · 最高相关','fb','用户行为');
+  s+=ln(750,327,650,190,'fb');
+  s+='<path d="M860 210 L860 240 L1010 240 L1010 380 L165 380 L165 212" fill="none" stroke="'+LC.fb+'" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#arK)"/>';
+  s+=lab(510,400,'小循环：本轮输出写回会话记忆 → 多轮对话；会话结束才沉淀为长期记忆','fb');
+  wrap('dag-context',W,420,s);
+})();
+
+// GATE：输入 → 归一化 → 闸门 → 演出帧 → 渲染
+(function(){
+  var r=hrow([['用户输入','语音 / 行为 / 系统信号','fb','用户行为'],['事件归一化','统一 {type,payload,ts}','core','事件归一化'],['反应闸门','纯规则 · 零成本','sup','反应闸门'],['演出帧','四路可组合','core','演出帧'],['渲染输出','React + SVG','on','渲染输出']],56,{W:1080,nw:176,gap:32});
+  var s=r.s;
+  s+=flowNode(r.xs[3],196,176,54,'生成 + 过滤','仅语言通道放行时','fb','规则过滤');
+  s+=ln(r.cx[3],112,r.cx[3],196,'fb',1); s+=lab(r.cx[3]+64,158,'语言默认关闭','fb');
+  s+=back(r.cx[4],112,r.cx[0],112,300,'fb','小循环：用户对帧的反应，成为下一轮隐式行为输入');
+  wrap('dag-gate',1080,340,s);
+})();
+
+// OFFLINE
+(function(){
+  var r=hrow([['视频上传','异步触发','off','视频上传'],['预处理','抽帧/ASR/OCR','off','预处理'],['时间分段','镜头+语义','off','时间分段'],['多路解读','剧情/角色/情绪','off','多路解读'],['事实仲裁','观点层并存','fb','事实仲裁'],['剧本资产','时间索引 · 版本化','core','剧本资产']],56,{W:1080,nw:150,gap:26});
+  var s=r.s;
+  s+=back(r.cx[5],112,r.cx[3],112,190,'fb','小循环：线上消费反馈（缺失/误读）→ 触发重解读');
+  wrap('dag-offline',1080,240,s);
+})();
+
+// ONLINE
+(function(){
+  var r1=hrow([['点开视频','携带播放时间点','on','点开视频'],['剧本切片','当前段+邻帧','core','剧本切片'],['状态读取','FSM 当前态','on','状态读取'],['行为决策','默认只出神态','on','行为系统'],['表情渲染','近零边际','on','表情系统']],50,{W:1080,nw:176,gap:32});
+  var r2=hrow([['轻点化身','显式语音通道','fb','轻点 / 降音量'],['ASR 转写','不存音频','fb','ASR 转写'],['合成上下文','切片+记忆+规则','core','上下文合成'],['生成 + 过滤','按需调用','fb','规则过滤'],['回应','关麦 · 恢复音量','fb','回应']],196,{W:1080,nw:176,gap:32});
+  var s=r1.s+r2.s;
+  s+=ln(r1.cx[0],106,r2.cx[0],196,'fb',1); s+=lab(r1.cx[0]+52,152,'用户主动','fb');
+  s+=back(r2.cx[4],252,r1.cx[4],106,300,'on','小循环：回应结束 → 关麦 → 回到默认陪看态');
+  wrap('dag-online',1080,340,s);
+})();
+
+// STAGE
+(function(){
+  var r=hrow([['事件输入','剧本/行为/时钟/状态','on','剧本节点'],['演出系统','统一接收','core','演出系统'],['优先级仲裁','神态 > 对话','core','优先级仲裁'],['输出指令','神态/动作/语言/卡片','off','表情指令'],['渲染输出','React 组件树','on','渲染输出']],56,{W:1080,nw:176,gap:32});
+  var s=r.s;
+  s+=back(r.cx[4],112,r.cx[0],112,196,'fb','小循环：渲染结果与用户反应 → 作为新事件回到演出系统');
+  wrap('dag-stage',1080,250,s);
+})();
+
+// FSM
+(function(){
+  var s='';
+  var r=hrow([['陪你看','默认态','on','陪你看'],['困倦','23点后 · 回应变短','sup','困倦'],['睡眠','闭眼冒 Zzz','on','睡眠']],50,{W:900,nw:190,gap:60});
+  s+=r.s;
+  s+=flowNode(165,196,190,56,'外出','去看自己的内容','on','外出');
+  s+=flowNode(545,196,190,56,'归来','探头 · 带回卡片','sup','归来');
+  s+=ln(260,106,260,196,'sup'); s+=lab(320,152,'兴趣低+零互动','sup');
+  s+=ln(355,224,545,224,'on'); s+=lab(450,212,'看完 / 被叫','on');
+  s+=ln(545,224,260,106,'on',1); s+=lab(480,160,'探头回来','on');
+  s+=back(r.cx[2],106,r.cx[0],106,300,'on','小循环：被叫醒 → 回陪你看；夜里睡是时间驱动，必然发生');
+  wrap('dag-fsm',900,340,s);
+})();
+
+// EVAL
+(function(){
+  var r=hrow([['采集','埋点 + 人工抽检','on','线上埋点'],['badcase 池','聚类去重','fb','badcase 池'],['四维评分','接住/语言/剧透/打扰','fb','四维评分'],['归因','定位到具体系统','fb','归因'],['修复','prompt/规则/剧本','off','修复'],['灰度验证','护栏一票否决','off','灰度验证']],56,{W:1080,nw:150,gap:26});
+  var s=r.s;
+  s+=back(r.cx[5],112,r.cx[0],112,196,'fb','小循环：回到线上 → 再采集 → 再归因 → 再修复');
+  wrap('dag-eval',1080,250,s);
+})();
+
+// OPS
+(function(){
+  var r=hrow([['内容侧台','剧本生产 · 成本监控','sup','剧本生产台'],['体验侧台','表情资产 · 语言规则 · 隐私记忆','sup','表情资产台'],['质量侧台','标注 · 灰度实验 · 合规审核','sup','标注台']],50,{W:1000,nw:230,gap:50,noArrow:true});
+  var s=r.s;
+  s+=flowNode(180,196,240,56,'内容生产','视频理解系统','off','视频理解');
+  s+=flowNode(580,196,240,56,'在线体验','状态 / 性格 / 演出 / 表情','on','演出系统');
+  s+=ln(r.cx[0],106,300,196,'sup',1);
+  s+=ln(r.cx[1],106,700,196,'sup',1);
+  s+=ln(r.cx[2],106,700,196,'sup',1);
+  s+=back(700,252,300,252,300,'fb','小循环：线上问题与成本 → 回到对应后台台 → 改规则 → 再上线');
+  wrap('dag-ops',1000,340,s);
+})();
+
+// OFFLINE DEEP · 上传 → 剧本资产字段
+(function(){
+  var W=1080,s='';
+  var r=hrow([['上传入队','幂等键 · 可重跑','off','视频上传'],
+              ['粗读全片','按场景自适应抽帧','off','预处理'],
+              ['转写 + OCR','ASR / 字幕 / 画面文字','off','ASR 转写'],
+              ['时间分段','镜头边界 + 语义边界','off','时间分段'],
+              ['多路解读','事实 / 情绪 / 伏笔 / 梗','off','多路解读'],
+              ['事实仲裁','唯一版本 · 冲突检测','fb','事实仲裁']],50,{W:W,nw:150,gap:26,h:56});
+  s+=r.s;
+  s+=lane(40,150,1000,150,'剧本资产 · 结构化 JSON（video_id + version + segments[]）','core');
+  var f=[['segments[]','段时间 / 场景 / 事件','core','剧本资产'],
+         ['facts[]','角色关系 / 时间线','core','事实层'],
+         ['viewpoints[]','多视角情绪 / 伏笔','core','观点层'],
+         ['emotion_curve','逐段标签 + 强度','core','情绪曲线'],
+         ['spoiler_index','可说集 / 屏蔽集','sup','防剧透索引']];
+  f.forEach(function(v,i){s+=flowNode(56+i*200,190,180,52,v[0],v[1],v[2],v[3])});
+  s+=ln(980,106,946,190,'fb');
+  s+=flowNode(40,326,250,54,'质量闸门','覆盖率 / 事实一致 / 边界','fb','质量闸门');
+  s+=ln(160,326,160,300,'fb');
+  s+=lab(320,356,'不通过 → 只重跑失败段，不重跑全片','fb');
+  wrap('dag-offline-deep',W,400,s);
+})();
+
+// JOURNEY · 用户从交互到退出
+(function(){
+  var W=1080,s='';
+  var r=hrow([['点开视频','带 videoTime 进入','on','点开视频'],
+              ['被动在场','默认态 · 挂起不空转','on','陪你看'],
+              ['事件唤醒','手势 / 剧情 / 播放 / 时钟 / 异常','fb','START · 触发'],
+              ['演出帧','神态 / 动作 / 语言 / 卡片','core','演出帧'],
+              ['写回 State','commit · 再挂起','on','commit 写回']],44,{W:W,nw:176,gap:32,h:56});
+  s+=r.s;
+  var b=[['显式语音','轻点 → 降音量 → ASR → 对话','fb','轻点 / 降音量'],
+         ['召唤 / 寻回','点按 → 探头 → 关系决定何时回','core','外出'],
+         ['控制 / 作息','安静 / 出去玩 / 睡 / 叫醒','sup','困倦'],
+         ['异常降级','断网 / 拒授权 → 纯表情','off','异常降级']];
+  b.forEach(function(v,i){
+    var x=40+i*260;
+    s+=flowNode(x,170,220,54,v[0],v[1],v[2],v[3]);
+    s+=ln(r.cx[2],100,x+110,170,'fb',1);
+  });
+  s+='<path d="M150 224 L150 270 L1060 270 L1060 72 L1044 72" fill="none" stroke="'+LC.on+'" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#arG)"/>';
+  s+=lab(560,290,'四条支路都回到写回 → 再挂起','on');
+  s+=lane(20,302,1040,112,'退出 / 迁移 · END 只结束 thread，profile 跨视频跨设备','sup');
+  var e=[['单视频关闭','本帧弃 · 账号记忆留'],['全局关闭','停演 · 账号态封存'],
+         ['切后台 / 锁屏','停演停跟随 · 回前台恢复原帧'],['换端 / 投屏','thread 换新 · profile 跟随账号']];
+  e.forEach(function(v,i){s+=flowNode(40+i*260,340,220,52,v[0],v[1],'sup',v[0])});
+  s+=ln(540,300,560,340,'sup',1);
+  wrap('dag-journey',W,430,s);
+})();
+
+// BEHAVIOR · 模型驱动的行为选择
+(function(){
+  var W=1080,s='';
+  s+=flowNode(350,16,190,52,'语言纪律','电报体 · 禁客套','sup','硬规则');
+  s+=flowNode(558,16,190,52,'身份 / 伦理','明示 AI · 无分发','sup','硬规则');
+  s+=flowNode(766,16,190,52,'防剧透 / 权限','按 t 取可说集','sup','防剧透索引');
+  var r=hrow([['输入切片','事件+状态+剧情+记忆引用','on','事件归一化'],
+              ['行为选择器','小模型 · 结构化输出','fb','行为选择器'],
+              ['约束复核','硬规则 + 成本 + 剧透','sup','约束复核'],
+              ['语言生成','仅放行时 · 大模型','fb','电报体生成'],
+              ['演出帧','四路组合 · 自洽校验','core','演出帧']],110,{W:W,nw:176,gap:32,h:56});
+  s+=r.s;
+  [445,653,861].forEach(function(x){s+=ln(x,68,r.cx[2],110,'sup',1)});
+  s+=lane(30,206,1020,112,'行为原语表 · 与渲染层状态名对齐（state-drowsy / away-checking / state-error）','core');
+  var p=[['神态','竖条眼 / 看你一眼 / 半眯 / Zzz / 灰眼','core'],
+         ['动作','探头 / 缩回 / 天线立起 / 捂眼','core'],
+         ['语言','无 / 感受 / 判断 / 提问 / 追问','fb'],
+         ['卡片','无 / 安利 / 回看 / 休息提醒','off']];
+  p.forEach(function(v,i){s+=flowNode(46+i*250,248,230,52,v[0],v[1],v[2],'行为原语')});
+  s+=ln(r.cx[1],166,r.cx[1],206,'fb',1);
+  s+=flowNode(40,344,460,54,'被动在场：离线情绪曲线 → 在线查表','不逐帧调模型 · 近零边际','off','情绪曲线');
+  s+='<path d="M500 371 L1060 371 L1060 138 L1044 138" fill="none" stroke="'+LC.off+'" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#arB)"/>';
+  s+=lab(280,416,'常态零调用；被唤醒一次小模型；要说话才一次大模型','off');
+  wrap('dag-behavior',W,430,s);
+})();
+
+// STATE UPDATE · 三层 State 与统一写回
+(function(){
+  var W=1080,s='';
+  s+=lane(20,16,330,96,'会话态 thread · 可弃','on');
+  s+=lane(366,16,330,96,'账号态 profile · 永久','core');
+  s+=lane(712,16,348,96,'内容态 video · 版本化','off');
+  s+=flowNode(34,56,302,50,'messages / summon_count','mute_until / wake_deadline / fsm','on','会话态');
+  s+=flowNode(380,56,302,50,'memory{画像/概要/碎片}','persona{口味/阈值/亲近} / alias','core','账号态');
+  s+=flowNode(726,56,318,50,'segments / facts / viewpoints','emotion_curve / spoiler_index','off','内容态');
+  var r=hrow([['observe','读 thread','core','observe'],
+              ['gate / 行为','读 persona 参数','sup','反应闸门'],
+              ['retrieve','读 video + profile','core','上下文合成'],
+              ['generate','读装配上下文','fb','电报体生成'],
+              ['render','读帧 + 容器','on','渲染输出'],
+              ['commit','写回 patch','fb','commit 写回']],158,{W:W,nw:150,gap:24,h:56});
+  s+=r.s;
+  s+=ln(185,112,r.cx[0],158,'on',1);
+  s+=ln(531,112,r.cx[1],158,'core',1);
+  s+=ln(886,112,r.cx[2],158,'off',1);
+  s+='<path d="M'+r.cx[5]+' 214 L'+r.cx[5]+' 246 L105 246 L105 112" fill="none" stroke="'+LC.fb+'" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#arK)"/>';
+  s+=ln(531,246,531,112,'core',1);
+  s+=lab(540,266,'commit 统一写回：会话 / 记忆 / 性格 / 计数 / 计时（节点仍只读，patch 由 reducer 应用）','fb');
+  wrap('dag-stateupdate',W,290,s);
+})();
+
+// CONTEXT STEP · 每步上下文成分条
+(function(){
+  var W=1080,s='';
+  var N=[['observe','~0.2k','on','observe'],
+         ['gate / 行为','~0.8k','sup','反应闸门'],
+         ['retrieve','~1.2k','core','剧本切片'],
+         ['generate','2.5–3.5k','fb','电报体生成'],
+         ['render','~0.1k','on','渲染输出'],
+         ['commit','~0.2k','fb','commit 写回']];
+  var xs=[30,204,378,552,726,900];
+  var mix=[
+    [['事件','n',0.6],['状态','on',0.4]],
+    [['硬规则','sup',0.25],['剧情','off',0.35],['状态','on',0.2],['性格','core',0.2]],
+    [['剧情','off',0.6],['记忆','core',0.25],['会话','fb',0.15]],
+    [['硬规则','sup',0.12],['剧情','off',0.4],['会话','fb',0.18],['记忆','core',0.2],['输入','n',0.1]],
+    [['帧','core',0.5],['状态','on',0.5]],
+    [['patch','fb',0.4],['状态','on',0.6]]
+  ];
+  N.forEach(function(v,i){
+    s+=flowNode(xs[i],28,150,54,v[0],'预算 '+v[1],v[2],v[3]);
+    var acc=0;
+    mix[i].forEach(function(m){
+      var w=150*m[2];
+      s+='<rect x="'+(xs[i]+acc)+'" y="104" width="'+w+'" height="18" fill="'+(LC[m[1]]||'#9499a0')+'" opacity="0.85"/>';
+      acc+=w;
+    });
+    s+='<text x="'+(xs[i]+75)+'" y="146" font-size="10.5" fill="#61666d" text-anchor="middle">'+v[1]+' tokens</text>';
+    if(i>0)s+=ln(xs[i]-24,55,xs[i],55,N[i][2]);
+  });
+  var lg=[['硬规则','sup'],['剧情','off'],['状态','on'],['会话 / 输入','fb'],['记忆 / 帧','core'],['输入','n']];
+  lg.forEach(function(m,i){s+='<rect x="'+(40+i*170)+'" y="184" width="12" height="12" rx="3" fill="'+(LC[m[1]]||'#9499a0')+'"/><text x="'+(57+i*170)+'" y="195" font-size="11" fill="#61666d">'+m[0]+'</text>'});
+  s+=lab(540,232,'裁切从尾往前：碎片 → 概要 → 旧轮 → 邻帧；硬规则与当前段永不裁','fb');
+  wrap('dag-context-step',W,250,s);
+})();
+</script>
+</body>
+</html>

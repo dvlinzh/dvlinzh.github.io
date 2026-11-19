@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="电商运营 Agent 静态演示：通过对话创建事件，一键执行日常运营，人工审批关键变更，并保留完整审计记录。">
+  <title>电商运营 Agent · 事件工作台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' rx='3' fill='%23191919'/%3E%3Cpath d='M5 10H15M10 5V15' stroke='%23fff' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --ink: #191919;
+      --ink-2: #6f6e69;
+      --ink-3: #9b9a97;
+      --line: #e9e9e7;
+      --line-2: #dcdcda;
+      --paper: #ffffff;
+      --paper-2: #f7f7f5;
+      --paper-3: #f1f1ef;
+      --ok: #307a5d;
+      --ok-bg: #edf5f0;
+      --warn: #8a6424;
+      --warn-bg: #faf5e9;
+      --danger: #a24a44;
+      --danger-bg: #fbefed;
+      --font: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", sans-serif;
+      --mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+    html { scroll-behavior: smooth; }
+    body { min-height: 100%; font-family: var(--font); color: var(--ink); background: var(--paper); -webkit-font-smoothing: antialiased; }
+    button, textarea { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { color: inherit; cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+    .mono { font-family: var(--mono); }
+
+    .topnav { position: sticky; top: 0; z-index: 30; background: rgba(255,255,255,.96); border-bottom: 1px solid var(--line); backdrop-filter: blur(12px); }
+    .topnav-inner { max-width: 1440px; height: 60px; margin: 0 auto; padding: 0 32px; display: flex; align-items: center; gap: 24px; }
+    .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .brand-mark { width: 27px; height: 27px; border-radius: 3px; display: grid; place-items: center; background: var(--ink); color: #fff; }
+    .brand-name { font-size: 15px; font-weight: 600; }
+    .brand-divider { width: 1px; height: 16px; background: var(--line-2); }
+    .workspace-name { font-size: 13px; color: var(--ink-2); }
+    .nav { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+    .nav-item { min-height: 40px; padding: 0 11px; border: 0; background: none; color: var(--ink-2); font-size: 13px; }
+    .nav-item:hover { color: var(--ink); }
+    .demo-tag { margin-left: 10px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 3px; color: var(--ink-3); font-family: var(--mono); font-size: 10px; white-space: nowrap; }
+
+    .page { max-width: 1440px; margin: 0 auto; padding: 42px 32px 72px; }
+    .hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; margin-bottom: 34px; }
+    .eyebrow { margin-bottom: 12px; color: var(--ink-3); font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+    .hero h1 { font-size: clamp(30px, 3.2vw, 44px); line-height: 1.25; font-weight: 600; letter-spacing: -.04em; }
+    .hero-sub { max-width: 650px; margin-top: 12px; color: var(--ink-2); font-size: 14px; line-height: 1.8; }
+    .hero-actions { display: flex; gap: 10px; flex-shrink: 0; }
+    .btn { min-height: 40px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line-2); border-radius: 4px; background: var(--paper); font-size: 13px; font-weight: 500; transition: background .15s, border-color .15s; }
+    .btn:hover { background: var(--paper-2); border-color: #c8c8c5; }
+    .btn-dark { border-color: var(--ink); background: var(--ink); color: #fff; }
+    .btn-dark:hover { border-color: #000; background: #000; }
+    .btn-quiet { color: var(--ink-2); }
+    .btn-danger { color: var(--danger); }
+    .btn:disabled { opacity: .45; cursor: default; }
+
+    .status-strip { display: flex; align-items: center; gap: 26px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+    .status-item { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 12px; }
+    .status-item strong { color: var(--ink); font-weight: 500; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+    .status-spacer { flex: 1; }
+    .status-note { color: var(--ink-3); font-size: 11px; }
+
+    .workspace-grid { display: grid; grid-template-columns: 210px minmax(340px, .9fr) minmax(420px, 1.1fr); gap: 12px; align-items: stretch; }
+    .module { min-width: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+    .module-head { min-height: 64px; padding: 15px 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--line); }
+    .module-title { font-size: 13px; font-weight: 600; }
+    .module-sub { margin-top: 3px; color: var(--ink-3); font-size: 10.5px; }
+    .module-head .module-sub { margin: 0 0 0 auto; }
+    .module-kicker { margin-left: auto; color: var(--ink-3); font-family: var(--mono); font-size: 9px; letter-spacing: .08em; }
+
+    .sidebar { display: flex; flex-direction: column; min-height: 620px; }
+    .side-body { padding: 12px; }
+    .side-label { padding: 10px 10px 8px; color: var(--ink-3); font-family: var(--mono); font-size: 9px; letter-spacing: .1em; }
+    .side-nav { display: grid; gap: 3px; }
+    .side-item { width: 100%; min-height: 38px; padding: 0 10px; display: flex; align-items: center; gap: 9px; border: 0; border-radius: 4px; background: transparent; color: var(--ink-2); font-size: 12px; text-align: left; }
+    .side-item svg { flex-shrink: 0; }
+    .side-item:hover { background: var(--paper-2); color: var(--ink); }
+    .side-item.active { background: var(--paper-3); color: var(--ink); font-weight: 500; }
+    .side-badge { min-width: 19px; height: 19px; margin-left: auto; padding: 0 5px; display: grid; place-items: center; border: 1px solid var(--line-2); border-radius: 10px; color: var(--ink-2); font-family: var(--mono); font-size: 9px; }
+    .side-divider { height: 1px; margin: 12px 10px; background: var(--line); }
+    .quick-item { position: relative; padding-left: 28px; }
+    .quick-item::before { content: ""; position: absolute; left: 12px; top: 50%; width: 5px; height: 5px; border: 1px solid var(--ink-3); border-radius: 50%; transform: translateY(-50%); }
+    .safety-card { margin: auto 12px 12px; padding: 13px; background: var(--paper-2); border: 1px solid var(--line); border-radius: 4px; }
+    .safety-title { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; }
+    .safety-card p { margin-top: 7px; color: var(--ink-2); font-size: 10px; line-height: 1.7; }
+
+    .chat-module { min-height: 620px; display: flex; flex-direction: column; }
+    .agent-state { margin-left: auto; display: flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 10px; }
+    .messages { flex: 1; min-height: 0; max-height: 434px; overflow-y: auto; padding: 22px 20px; scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
+    .message { display: flex; gap: 10px; margin-bottom: 22px; animation: fade-up .25s ease both; }
+    .message.user { justify-content: flex-end; }
+    .avatar { width: 25px; height: 25px; flex-shrink: 0; display: grid; place-items: center; border-radius: 3px; background: var(--ink); color: #fff; font-family: var(--mono); font-size: 10px; }
+    .message-body { max-width: 88%; }
+    .message-meta { margin-bottom: 5px; color: var(--ink-3); font-size: 9.5px; }
+    .message-text { color: var(--ink-2); font-size: 12px; line-height: 1.8; white-space: pre-wrap; }
+    .message.user .message-body { max-width: 82%; padding: 10px 12px; border-radius: 5px; background: var(--paper-3); }
+    .message.user .message-text { color: var(--ink); }
+    .artifact-link { margin-top: 8px; padding: 0; border: 0; border-bottom: 1px solid var(--line-2); background: none; color: var(--ink); font-size: 10.5px; }
+    .artifact-link:hover { border-color: var(--ink); }
+    .typing { display: inline-flex; gap: 4px; padding: 5px 0; }
+    .typing i { width: 4px; height: 4px; border-radius: 50%; background: var(--ink-3); animation: blink 1s infinite; }
+    .typing i:nth-child(2) { animation-delay: .15s; }
+    .typing i:nth-child(3) { animation-delay: .3s; }
+    .suggestions { display: flex; gap: 6px; padding: 0 16px 10px; overflow-x: auto; }
+    .suggestion { flex-shrink: 0; padding: 6px 9px; border: 1px solid var(--line); border-radius: 3px; background: var(--paper); color: var(--ink-2); font-size: 10px; }
+    .suggestion:hover { border-color: var(--line-2); color: var(--ink); }
+    .composer-wrap { padding: 0 14px 14px; }
+    .composer { padding: 10px 11px 8px; border: 1px solid var(--line-2); border-radius: 5px; transition: border-color .15s; }
+    .composer:focus-within { border-color: var(--ink-2); }
+    .composer textarea { width: 100%; min-height: 48px; max-height: 110px; display: block; resize: vertical; border: 0; outline: 0; color: var(--ink); background: transparent; font-size: 12px; line-height: 1.6; }
+    .composer textarea::placeholder { color: var(--ink-3); }
+    .composer-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .composer-hint { color: var(--ink-3); font-size: 9px; }
+    .send-btn { width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 3px; background: var(--ink); color: #fff; }
+    .send-btn:hover { background: #000; }
+
+    .artifact-module { min-height: 620px; display: flex; flex-direction: column; }
+    .artifact-body { flex: 1; min-height: 0; max-height: 556px; display: flex; flex-direction: column; overflow: hidden; }
+    .artifact-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 22px; scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
+    .artifact-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+    .artifact-id { margin-bottom: 7px; color: var(--ink-3); font-family: var(--mono); font-size: 9px; }
+    .artifact-title { font-size: 19px; line-height: 1.4; font-weight: 600; letter-spacing: -.02em; }
+    .status-pill { flex-shrink: 0; padding: 4px 7px; border-radius: 3px; background: var(--paper-3); color: var(--ink-2); font-size: 9.5px; white-space: nowrap; }
+    .status-pill.pending { background: var(--warn-bg); color: var(--warn); }
+    .status-pill.done { background: var(--ok-bg); color: var(--ok); }
+    .status-pill.rejected { background: var(--danger-bg); color: var(--danger); }
+    .artifact-meta { display: flex; flex-wrap: wrap; gap: 7px 16px; margin-top: 12px; color: var(--ink-3); font-size: 9.5px; }
+    .artifact-summary { margin: 18px 0; padding: 13px 14px; border-left: 2px solid var(--ink); background: var(--paper-2); color: var(--ink-2); font-size: 11px; line-height: 1.75; }
+    .section-label { margin: 20px 0 10px; color: var(--ink-3); font-family: var(--mono); font-size: 9px; letter-spacing: .09em; }
+    .change-list { border: 1px solid var(--line); border-radius: 4px; }
+    .change-item { padding: 12px 13px; border-bottom: 1px solid var(--line); }
+    .change-item:last-child { border-bottom: 0; }
+    .change-name { font-size: 11.5px; font-weight: 500; }
+    .change-meta { margin-top: 3px; color: var(--ink-3); font-size: 9.5px; }
+    .change-diff { margin-top: 8px; display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-family: var(--mono); font-size: 9.5px; }
+    .diff-before { text-decoration: line-through; text-decoration-color: var(--ink-3); }
+    .diff-after { color: var(--ink); }
+    .steps { display: grid; }
+    .step { position: relative; min-height: 43px; padding: 0 0 14px 24px; }
+    .step::before { content: ""; position: absolute; left: 5px; top: 5px; width: 7px; height: 7px; border: 1px solid var(--line-2); border-radius: 50%; background: var(--paper); z-index: 1; }
+    .step::after { content: ""; position: absolute; left: 9px; top: 15px; bottom: -1px; width: 1px; background: var(--line); }
+    .step:last-child::after { display: none; }
+    .step.done::before { border-color: var(--ink); background: var(--ink); }
+    .step.current::before { border-color: var(--warn); background: var(--warn); box-shadow: 0 0 0 3px var(--warn-bg); }
+    .step-name { font-size: 10.5px; line-height: 1.4; }
+    .step-detail { margin-top: 3px; color: var(--ink-3); font-size: 9px; }
+    .approval-box { flex-shrink: 0; padding: 16px 22px 18px; border-top: 1px solid var(--line); background: var(--paper-2); }
+    .artifact-body > .result-box { flex-shrink: 0; margin: 0; padding: 16px 22px; border: 0; border-top: 1px solid var(--line); border-radius: 0; }
+    .approval-note { margin-bottom: 12px; color: var(--ink-2); font-size: 10px; line-height: 1.7; }
+    .approval-actions { display: flex; gap: 8px; }
+    .result-box { margin-top: 18px; padding: 12px 13px; border: 1px solid var(--line); border-radius: 4px; color: var(--ink-2); background: var(--paper-2); font-size: 10.5px; line-height: 1.7; }
+    .empty-state { padding: 70px 20px; color: var(--ink-3); font-size: 12px; text-align: center; }
+
+    .queue-module, .audit-module { margin-top: 12px; scroll-margin-top: 76px; }
+    .module-actions { margin-left: auto; display: flex; gap: 5px; }
+    .filter-btn { padding: 5px 8px; border: 0; border-radius: 3px; background: transparent; color: var(--ink-3); font-size: 10px; }
+    .filter-btn.active { background: var(--paper-3); color: var(--ink); }
+    .table-head, .event-row { display: grid; grid-template-columns: minmax(230px, 1.5fr) minmax(140px, .85fr) 100px 90px 70px; gap: 16px; align-items: center; }
+    .table-head { padding: 10px 18px; border-bottom: 1px solid var(--line); background: var(--paper-2); color: var(--ink-3); font-family: var(--mono); font-size: 8.5px; letter-spacing: .06em; }
+    .event-row { width: 100%; padding: 14px 18px; border: 0; border-bottom: 1px solid var(--line); background: var(--paper); text-align: left; font-size: 11px; }
+    .event-row:last-child { border-bottom: 0; }
+    .event-row:hover, .event-row.selected { background: var(--paper-2); }
+    .event-name { display: block; font-weight: 500; }
+    .event-id { display: block; margin-top: 4px; color: var(--ink-3); font-family: var(--mono); font-size: 8.5px; }
+    .event-source, .event-time { color: var(--ink-2); font-size: 10px; }
+    .row-action { color: var(--ink-2); font-size: 10px; text-align: right; }
+    .audit-head, .audit-row { grid-template-columns: 80px minmax(240px, 1.25fr) 100px minmax(180px, 1fr) 90px 48px; }
+    .audit-row { display: grid; gap: 16px; align-items: center; padding: 13px 18px; border-bottom: 1px solid var(--line); font-size: 10.5px; }
+    .audit-row:last-child { border-bottom: 0; }
+    .audit-time { color: var(--ink-3); font-family: var(--mono); font-size: 9px; }
+    .audit-event { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .audit-actor, .audit-action { color: var(--ink-2); }
+    .audit-result { color: var(--ok); }
+    .audit-result.blocked { color: var(--danger); }
+    .log-detail { padding: 4px 0; border: 0; border-bottom: 1px solid var(--line-2); background: none; color: var(--ink-2); font-size: 9.5px; }
+    .log-detail:hover { color: var(--ink); border-color: var(--ink); }
+    .table-empty { padding: 28px; color: var(--ink-3); font-size: 11px; text-align: center; }
+    .footer-note { margin-top: 20px; display: flex; justify-content: space-between; gap: 20px; color: var(--ink-3); font-size: 10px; line-height: 1.7; }
+
+    .toast { position: fixed; left: 50%; bottom: 24px; z-index: 60; max-width: calc(100vw - 32px); padding: 10px 15px; border: 1px solid var(--ink); border-radius: 4px; background: var(--ink); color: #fff; font-size: 11px; opacity: 0; pointer-events: none; transform: translate(-50%, 8px); transition: .2s; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    dialog { width: min(560px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--line-2); border-radius: 6px; color: var(--ink); background: var(--paper); }
+    dialog::backdrop { background: rgba(25,25,25,.28); backdrop-filter: blur(2px); }
+    .dialog-head { padding: 18px 20px; display: flex; align-items: center; border-bottom: 1px solid var(--line); }
+    .dialog-title { font-size: 14px; font-weight: 600; }
+    .dialog-close { margin-left: auto; width: 30px; height: 30px; border: 0; background: none; color: var(--ink-2); font-size: 20px; }
+    .dialog-body { padding: 20px; }
+    .log-grid { display: grid; grid-template-columns: 110px 1fr; gap: 12px 18px; font-size: 11px; }
+    .log-grid dt { color: var(--ink-3); }
+    .log-grid dd { color: var(--ink-2); line-height: 1.65; word-break: break-word; }
+    .log-payload { margin-top: 20px; padding: 14px; overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; background: var(--paper-2); color: var(--ink-2); font-family: var(--mono); font-size: 9px; line-height: 1.8; white-space: pre-wrap; }
+
+    @keyframes fade-up { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+    @keyframes blink { 0%, 60%, 100% { opacity: .3; } 30% { opacity: 1; } }
+    @media (max-width: 1120px) {
+      .workspace-grid { grid-template-columns: 190px 1fr; }
+      .artifact-module { grid-column: 1 / -1; min-height: auto; }
+      .artifact-body { max-height: 620px; }
+      .sidebar, .chat-module { min-height: 590px; }
+      .messages { max-height: 410px; }
+      .table-head, .event-row { grid-template-columns: minmax(220px, 1.4fr) minmax(120px, .8fr) 90px 80px 50px; gap: 10px; }
+      .audit-head, .audit-row { grid-template-columns: 70px minmax(200px, 1.2fr) 80px minmax(150px, 1fr) 70px 40px; gap: 10px; }
+    }
+    @media (max-width: 760px) {
+      .topnav-inner { height: 56px; padding: 0 16px; }
+      .workspace-name, .brand-divider, .nav-item, .demo-tag { display: none; }
+      .nav::after { content: "静态演示"; color: var(--ink-3); font-family: var(--mono); font-size: 9px; }
+      .page { padding: 28px 16px 52px; }
+      .hero { display: block; margin-bottom: 24px; }
+      .hero-actions { margin-top: 20px; flex-wrap: wrap; }
+      .status-strip { gap: 12px 20px; flex-wrap: wrap; }
+      .status-spacer, .status-note { display: none; }
+      .workspace-grid { grid-template-columns: 1fr; }
+      .sidebar { min-height: auto; }
+      .side-body { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+      .side-label, .side-divider { display: none; }
+      .safety-card { display: none; }
+      .chat-module { min-height: 570px; }
+      .artifact-module { grid-column: auto; }
+      .artifact-scroll { padding: 18px; }
+      .approval-box { padding: 16px 18px; }
+      .table-head { display: none; }
+      .event-row { grid-template-columns: 1fr auto; gap: 8px 12px; }
+      .event-source { grid-column: 1; }
+      .event-time { display: none; }
+      .event-row .status-pill { grid-column: 2; grid-row: 1; }
+      .row-action { grid-column: 2; grid-row: 2; }
+      .audit-row { grid-template-columns: 62px 1fr auto; gap: 8px; }
+      .audit-actor, .audit-action { display: none; }
+      .audit-result { text-align: right; }
+      .log-detail { grid-column: 3; }
+      .footer-note { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topnav">
+    <div class="topnav-inner">
+      <a class="brand" href="../index.html#work-ecom" aria-label="返回作品集">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="15" height="15" viewBox="0 0 18 18" fill="none"><path d="M4 9H14M9 4V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </span>
+        <span class="brand-name">运营 Agent</span>
+      </a>
+      <span class="brand-divider"></span>
+      <span class="workspace-name">天天周末 · 运营工作区</span>
+      <nav class="nav" aria-label="页面导航">
+        <button class="nav-item" data-scroll="workspace" type="button">工作台</button>
+        <button class="nav-item" data-scroll="events" type="button">事件队列</button>
+        <button class="nav-item" data-scroll="audit" type="button">审计记录</button>
+        <a class="nav-item" href="../index.html#work-ecom">返回作品集</a>
+        <span class="demo-tag">STATIC DEMO</span>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Agent workspace / Event-driven operations</p>
+        <h1>把日常运营，交给 Agent。</h1>
+        <p class="hero-sub">你负责交代目标和做关键决策。Agent 负责理解任务、生成计划、调用工具并留下可回放的执行记录。</p>
+      </div>
+      <div class="hero-actions">
+        <button class="btn btn-quiet" id="resetBtn" type="button">重置演示</button>
+        <button class="btn btn-dark" data-task="daily" type="button">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M5 3.5L11.5 8L5 12.5V3.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+          一键执行日常运营
+        </button>
+      </div>
+    </section>
+
+    <div class="status-strip">
+      <span class="status-item"><span class="status-dot"></span><strong>Agent 在线</strong></span>
+      <span class="status-item">权限策略 <strong>写操作需审批</strong></span>
+      <span class="status-item">待审批 <strong id="stripPending">1</strong></span>
+      <span class="status-spacer"></span>
+      <span class="status-note">所有数据均为演示示例，不连接真实业务系统</span>
+    </div>
+
+    <div class="workspace-grid" id="workspace">
+      <aside class="module sidebar">
+        <div class="module-head"><span class="module-title">工作区</span><span class="module-kicker">SPACE 01</span></div>
+        <div class="side-body">
+          <p class="side-label">MANAGE</p>
+          <div class="side-nav">
+            <button class="side-item active" data-scroll="workspace" type="button">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5" stroke="currentColor"/><path d="M5.5 2.5V13.5" stroke="currentColor"/></svg>
+              运营工作台
+            </button>
+            <button class="side-item" data-scroll="events" type="button">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 4H13M3 8H13M3 12H9" stroke="currentColor" stroke-linecap="round"/></svg>
+              事件队列<span class="side-badge" id="queueCount">3</span>
+            </button>
+            <button class="side-item" data-scroll="events" data-filter="pending" type="button">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2.5L13 5V8.5C13 11 10.5 12.8 8 13.5C5.5 12.8 3 11 3 8.5V5L8 2.5Z" stroke="currentColor" stroke-linejoin="round"/></svg>
+              审批中心<span class="side-badge" id="pendingCount">1</span>
+            </button>
+            <button class="side-item" data-scroll="audit" type="button">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 4V8L10.5 9.5" stroke="currentColor" stroke-linecap="round"/><circle cx="8" cy="8" r="5.5" stroke="currentColor"/></svg>
+              审计记录
+            </button>
+          </div>
+          <div class="side-divider"></div>
+          <p class="side-label">QUICK ACTIONS</p>
+          <div class="side-nav">
+            <button class="side-item quick-item" data-task="daily" type="button">每日运营收尾</button>
+            <button class="side-item quick-item" data-task="create" type="button">创建周末活动</button>
+            <button class="side-item quick-item" data-task="off" type="button">下架已结束活动</button>
+            <button class="side-item quick-item" data-task="check" type="button">活动信息巡检</button>
+          </div>
+        </div>
+        <div class="safety-card">
+          <div class="safety-title">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2.5L13 5V8.5C13 11 10.5 12.8 8 13.5C5.5 12.8 3 11 3 8.5V5L8 2.5Z" stroke="currentColor"/><path d="M5.8 8L7.3 9.5L10.3 6.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Human-in-the-loop
+          </div>
+          <p>只读任务自动完成。发布、修改和下架必须经人工审批，驳回后不执行任何变更。</p>
+        </div>
+      </aside>
+
+      <section class="module chat-module" aria-label="与运营 Agent 对话">
+        <div class="module-head">
+          <div><p class="module-title">运营对话</p><p class="module-sub">通过自然语言创建事件</p></div>
+          <span class="agent-state"><span class="status-dot"></span>可接受任务</span>
+        </div>
+        <div class="messages" id="messages" aria-live="polite"></div>
+        <div class="suggestions" aria-label="示例指令">
+          <button class="suggestion" data-task="check" type="button">检查活动信息是否完整</button>
+          <button class="suggestion" data-task="off" type="button">下架已结束活动</button>
+          <button class="suggestion" data-task="create" type="button">创建一个周末活动</button>
+        </div>
+        <div class="composer-wrap">
+          <form class="composer" id="chatForm">
+            <label for="chatInput" hidden>给运营 Agent 下达任务</label>
+            <textarea id="chatInput" placeholder="交代一个运营任务，例如：下架所有已结束的周末活动" required></textarea>
+            <div class="composer-foot">
+              <span class="composer-hint">Enter 发送 · Shift + Enter 换行</span>
+              <button class="send-btn" type="submit" aria-label="发送指令">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8H12M8.5 4.5L12 8L8.5 11.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="module artifact-module" aria-label="事件执行产物">
+        <div class="module-head">
+          <div><p class="module-title">执行产物</p><p class="module-sub">计划、变更与验证结果</p></div>
+          <span class="module-kicker">PLAN / DIFF</span>
+        </div>
+        <div class="artifact-body" id="artifactBody"></div>
+      </section>
+    </div>
+
+    <section class="module queue-module" id="events">
+      <div class="module-head">
+        <div><p class="module-title">事件队列</p><p class="module-sub">每个指令都有独立状态与负责人</p></div>
+        <div class="module-actions" role="group" aria-label="筛选事件">
+          <button class="filter-btn active" data-event-filter="all" type="button">全部</button>
+          <button class="filter-btn" data-event-filter="pending" type="button">待审批</button>
+          <button class="filter-btn" data-event-filter="done" type="button">已完成</button>
+        </div>
+      </div>
+      <div class="table-head"><span>事件</span><span>来源</span><span>创建时间</span><span>状态</span><span></span></div>
+      <div id="eventList"></div>
+    </section>
+
+    <section class="module audit-module" id="audit">
+      <div class="module-head">
+        <div><p class="module-title">审计记录</p><p class="module-sub">从原始指令到最终执行，全程可回放</p></div>
+        <div class="module-actions"><button class="filter-btn" id="exportBtn" type="button">导出 JSON</button></div>
+      </div>
+      <div class="table-head audit-head"><span>时间</span><span>关联事件</span><span>操作者</span><span>动作</span><span>结果</span><span></span></div>
+      <div id="auditList"></div>
+    </section>
+
+    <footer class="footer-note">
+      <span>静态交互 Demo · 示例数据 · 不连接真实后端</span>
+      <span>对话派单 → 计划生成 → 风险审批 → 工具执行 → 审计留痕</span>
+    </footer>
+  </main>
+
+  <dialog id="logDialog">
+    <div class="dialog-head"><span class="dialog-title">审计详情</span><button class="dialog-close" id="dialogClose" type="button" aria-label="关闭">×</button></div>
+    <div class="dialog-body">
+      <dl class="log-grid" id="logMeta"></dl>
+      <pre class="log-payload" id="logPayload"></pre>
+    </div>
+  </dialog>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const statusMap = {
+        pending: '待审批',
+        running: '执行中',
+        done: '已完成',
+        rejected: '已驳回'
+      };
+
+      const templates = {
+        daily: {
+          title: '每日运营巡检与收尾', type: '组合任务', risk: '含写操作 · 需审批',
+          summary: '已完成 24 个活动巡检：信息完整 22 个，发现 2 个已结束活动。只读检查已完成，下架变更等待审批。',
+          items: [
+            { name: '《午夜巴黎》周末放映', meta: '11 月 17 日 22:00 已结束', from: '在售', to: '已下架' },
+            { name: '城市漫步 · 老街夜游', meta: '11 月 17 日 20:30 已结束', from: '在售', to: '已下架' }
+          ],
+          steps: ['解析日常运营 SOP', '巡检活动信息', '生成变更计划', '人工审批', '执行并验证结果']
+        },
+        off: {
+          title: '下架已结束活动', type: '活动状态变更', risk: '写操作 · 需审批',
+          summary: '检测到 2 个活动已超过结束时间，计划将其状态由「在售」改为「已下架」。',
+          items: [
+            { name: '《午夜巴黎》周末放映', meta: '11 月 17 日 22:00 已结束', from: '在售', to: '已下架' },
+            { name: '城市漫步 · 老街夜游', meta: '11 月 17 日 20:30 已结束', from: '在售', to: '已下架' }
+          ],
+          steps: ['理解运营指令', '读取活动状态', '匹配已结束活动', '人工审批', '执行并验证结果']
+        },
+        create: {
+          title: '创建周末活动', type: '活动创建', risk: '写操作 · 需审批',
+          summary: '已根据对话生成活动草稿，并完成必填字段检查。审批后创建活动，草稿与最终配置将一并留档。',
+          items: [
+            { name: '城市天台音乐会', meta: '11 月 21 日 19:30 · 深圳', from: '未创建', to: '活动草稿' },
+            { name: '配置摘要', meta: '2 个票档 · 120 个名额 · 退票说明已补全', from: '无', to: '待创建' }
+          ],
+          steps: ['提取活动要素', '补齐必填字段', '生成活动草稿', '人工审批', '创建并验证页面']
+        },
+        check: {
+          title: '活动信息完整性巡检', type: '只读检查', risk: '只读 · 自动执行', auto: true,
+          summary: '扫描活动标题、时间、地点、票档与退票说明，不修改任何业务数据。',
+          items: [
+            { name: '落日音乐会', meta: '退票说明缺失', from: '待补全', to: '已生成建议' },
+            { name: '其余 23 个活动', meta: '标题、时间、地点与票档完整', from: '检查中', to: '通过' }
+          ],
+          steps: ['读取巡检规则', '扫描 24 个活动', '定位缺失字段', '生成修复建议', '输出巡检报告']
+        },
+        update: {
+          title: '更新活动信息', type: '内容变更', risk: '写操作 · 需审批',
+          summary: '已生成信息补全计划，执行前可检查每项字段的原始内容与目标内容。',
+          items: [
+            { name: '落日音乐会', meta: '补全退票说明', from: '字段缺失', to: '已生成内容' },
+            { name: '城市天台音乐会', meta: '更新活动地点', from: '待定', to: '深圳 · 天台剧场' }
+          ],
+          steps: ['识别变更对象', '读取原始内容', '生成字段差异', '人工审批', '更新并验证结果']
+        }
+      };
+
+      let sequence = 32;
+      let selectedId = 'EVT-20261118-032';
+      let eventFilter = 'all';
+      let thinking = false;
+      let events = [];
+      let messages = [];
+      let logs = [];
+
+      const messagesEl = document.getElementById('messages');
+      const artifactBody = document.getElementById('artifactBody');
+      const eventList = document.getElementById('eventList');
+      const auditList = document.getElementById('auditList');
+      const toast = document.getElementById('toast');
+
+      function esc(value) {
+        return String(value).replace(/[&<>'"]/g, function (char) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char];
+        });
+      }
+
+      function now() {
+        return new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+      }
+
+      function clone(value) { return JSON.parse(JSON.stringify(value)); }
+
+      function makeEvent(kind, instruction, fixedId) {
+        const template = clone(templates[kind]);
+        const id = fixedId || 'EVT-20261118-' + String(++sequence).padStart(3, '0');
+        template.id = id;
+        template.instruction = instruction;
+        template.source = '对话指令';
+        template.created = now();
+        template.status = template.auto ? 'running' : 'pending';
+        template.steps = template.steps.map(function (name, index) {
+          return { name: name, state: template.auto ? (index < 2 ? 'done' : 'current') : (index < 3 ? 'done' : index === 3 ? 'current' : 'wait') };
+        });
+        return template;
+      }
+
+      function resetState() {
+        events = [
+          makeEvent('off', '帮我下架已结束的周末活动', 'EVT-20261118-032'),
+          makeEvent('check', '检查本周末活动信息是否完整', 'EVT-20261118-031'),
+          makeEvent('create', '创建落日音乐会活动', 'EVT-20261118-030')
+        ];
+        events[0].created = '10:24';
+        events[1].created = '09:30';
+        events[1].status = 'done';
+        events[1].steps.forEach(function (step) { step.state = 'done'; });
+        events[2].created = '昨天 17:42';
+        events[2].status = 'done';
+        events[2].steps.forEach(function (step) { step.state = 'done'; });
+        messages = [
+          { type: 'agent', text: '早上好。你可以直接交代一个运营任务。我会先给出执行计划；涉及发布、修改或下架时，我会等你确认。' },
+          { type: 'user', text: '帮我下架已结束的周末活动' },
+          { type: 'agent', text: '已找到 2 个已结束活动。我生成了下架计划，请在右侧确认影响范围后执行。', eventId: 'EVT-20261118-032' }
+        ];
+        logs = [
+          { id: 'LOG-1048', time: '10:24', eventId: 'EVT-20261118-032', event: '下架已结束活动', actor: '运营 Agent', action: '生成执行计划与变更预览', result: '待审批', payload: { instruction: '帮我下架已结束的周末活动', matched: 2, policy: 'write_requires_approval', next: '等待人工审批' } },
+          { id: 'LOG-1047', time: '10:24', eventId: 'EVT-20261118-032', event: '下架已结束活动', actor: '运营 Agent', action: '识别意图并读取活动状态', result: '成功', payload: { intent: 'event.offline', source: '对话指令', tools: ['event.search', 'event.read'] } },
+          { id: 'LOG-1046', time: '09:30', eventId: 'EVT-20261118-031', event: '活动信息完整性巡检', actor: '运营 Agent', action: '输出巡检报告', result: '成功', payload: { scanned: 24, passed: 23, suggestions: 1, write_operation: false } },
+          { id: 'LOG-1045', time: '昨天 17:45', eventId: 'EVT-20261118-030', event: '创建落日音乐会活动', actor: '林政豪', action: '审批并完成活动创建', result: '成功', payload: { approved_by: '林政豪', approved_at: '昨天 17:44', verification: '活动页面与配置一致' } }
+        ];
+        selectedId = 'EVT-20261118-032';
+        eventFilter = 'all';
+        thinking = false;
+        renderAll();
+      }
+
+      function showToast(text) {
+        toast.textContent = text;
+        toast.classList.add('show');
+        clearTimeout(showToast.timer);
+        showToast.timer = setTimeout(function () { toast.classList.remove('show'); }, 2400);
+      }
+
+      function addLog(event, actor, action, result, payload) {
+        logs.unshift({
+          id: 'LOG-' + (1049 + logs.length), time: now(), eventId: event.id, event: event.title,
+          actor: actor, action: action, result: result, payload: payload || {}
+        });
+      }
+
+      function renderMessages() {
+        messagesEl.innerHTML = '';
+        messages.forEach(function (message) {
+          const row = document.createElement('div');
+          row.className = 'message ' + message.type;
+          if (message.type === 'agent') {
+            const avatar = document.createElement('span');
+            avatar.className = 'avatar';
+            avatar.textContent = 'A';
+            row.appendChild(avatar);
+          }
+          const body = document.createElement('div');
+          body.className = 'message-body';
+          const meta = document.createElement('p');
+          meta.className = 'message-meta';
+          meta.textContent = message.type === 'agent' ? '运营 Agent' : '你';
+          const text = document.createElement('p');
+          text.className = 'message-text';
+          text.textContent = message.text;
+          if (message.type === 'agent') body.appendChild(meta);
+          body.appendChild(text);
+          if (message.eventId) {
+            const link = document.createElement('button');
+            link.type = 'button';
+            link.className = 'artifact-link';
+            link.dataset.openEvent = message.eventId;
+            link.textContent = '查看执行产物 →';
+            body.appendChild(link);
+          }
+          row.appendChild(body);
+          messagesEl.appendChild(row);
+        });
+        if (thinking) {
+          const row = document.createElement('div');
+          row.className = 'message agent';
+          row.innerHTML = '<span class="avatar">A</span><div class="message-body"><p class="message-meta">正在规划任务</p><span class="typing"><i></i><i></i><i></i></span></div>';
+          messagesEl.appendChild(row);
+        }
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function renderArtifact() {
+        const event = events.find(function (item) { return item.id === selectedId; });
+        if (!event) {
+          artifactBody.innerHTML = '<div class="empty-state">从事件队列选择一条记录，<br>查看计划、变更与验证结果。</div>';
+          return;
+        }
+        const items = event.items.map(function (item) {
+          return '<div class="change-item"><p class="change-name">' + esc(item.name) + '</p><p class="change-meta">' + esc(item.meta) + '</p><div class="change-diff"><span class="diff-before">' + esc(item.from) + '</span><span>→</span><span class="diff-after">' + esc(item.to) + '</span></div></div>';
+        }).join('');
+        const steps = event.steps.map(function (step, index) {
+          const detail = step.state === 'done' ? '已完成并留痕' : step.state === 'current' ? (event.status === 'pending' ? '等待人工决策' : '正在执行') : '等待前序步骤';
+          return '<div class="step ' + step.state + '"><p class="step-name">' + String(index + 1).padStart(2, '0') + ' · ' + esc(step.name) + '</p><p class="step-detail">' + detail + '</p></div>';
+        }).join('');
+        let footer = '';
+        if (event.status === 'pending') {
+          footer = '<div class="approval-box"><p class="approval-note">请确认执行计划与影响范围。批准后才会调用写入工具；驳回不会产生任何变更。</p><div class="approval-actions"><button class="btn btn-dark" data-approve="' + esc(event.id) + '" type="button">批准并执行</button><button class="btn btn-danger" data-reject="' + esc(event.id) + '" type="button">驳回任务</button></div></div>';
+        } else if (event.status === 'running') {
+          footer = '<div class="result-box">Agent 正在调用工具并验证结果，执行过程会持续写入审计记录。</div>';
+        } else if (event.status === 'done') {
+          footer = '<div class="result-box">执行完成。计划、审批、工具结果与最终状态均已写入审计记录。</div>';
+        } else {
+          footer = '<div class="result-box">任务已驳回，未执行任何业务变更。决策与原因已留痕。</div>';
+        }
+        artifactBody.innerHTML =
+          '<div class="artifact-scroll"><div class="artifact-top"><div><p class="artifact-id">' + esc(event.id) + '</p><h2 class="artifact-title">' + esc(event.title) + '</h2></div><span class="status-pill ' + event.status + '">' + statusMap[event.status] + '</span></div>' +
+          '<div class="artifact-meta"><span>' + esc(event.type) + '</span><span>' + esc(event.risk) + '</span><span>' + esc(event.created) + '</span></div>' +
+          '<p class="artifact-summary">' + esc(event.summary) + '</p>' +
+          '<p class="section-label">变更预览 / CHANGE PREVIEW</p><div class="change-list">' + items + '</div>' +
+          '<p class="section-label">执行计划 / PLAN</p><div class="steps">' + steps + '</div></div>' + footer;
+      }
+
+      function renderEvents() {
+        const visible = events.filter(function (event) {
+          return eventFilter === 'all' || (eventFilter === 'pending' ? event.status === 'pending' : event.status === 'done');
+        });
+        eventList.innerHTML = visible.length ? visible.map(function (event) {
+          return '<button class="event-row' + (event.id === selectedId ? ' selected' : '') + '" data-event="' + esc(event.id) + '" type="button"><span><span class="event-name">' + esc(event.title) + '</span><span class="event-id">' + esc(event.id) + '</span></span><span class="event-source">' + esc(event.source) + '</span><span class="event-time">' + esc(event.created) + '</span><span class="status-pill ' + event.status + '">' + statusMap[event.status] + '</span><span class="row-action">查看 →</span></button>';
+        }).join('') : '<div class="table-empty">当前筛选下暂无事件</div>';
+        const pending = events.filter(function (event) { return event.status === 'pending'; }).length;
+        document.getElementById('pendingCount').textContent = pending;
+        document.getElementById('stripPending').textContent = pending;
+        document.getElementById('queueCount').textContent = events.length;
+        document.querySelectorAll('[data-event-filter]').forEach(function (button) {
+          button.classList.toggle('active', button.dataset.eventFilter === eventFilter);
+        });
+      }
+
+      function renderLogs() {
+        auditList.innerHTML = logs.map(function (log) {
+          return '<div class="audit-row"><span class="audit-time">' + esc(log.time) + '</span><span class="audit-event">' + esc(log.event) + '</span><span class="audit-actor">' + esc(log.actor) + '</span><span class="audit-action">' + esc(log.action) + '</span><span class="audit-result' + (log.result === '已驳回' ? ' blocked' : '') + '">' + esc(log.result) + '</span><button class="log-detail" data-log="' + esc(log.id) + '" type="button">详情</button></div>';
+        }).join('');
+      }
+
+      function renderAll() {
+        renderMessages();
+        renderArtifact();
+        renderEvents();
+        renderLogs();
+      }
+
+      function openEvent(id, shouldScroll) {
+        selectedId = id;
+        renderArtifact();
+        renderEvents();
+        if (shouldScroll) document.querySelector('.artifact-module').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      function startTask(kind, instruction) {
+        if (thinking) { showToast('Agent 正在规划上一项任务'); return; }
+        messages.push({ type: 'user', text: instruction });
+        thinking = true;
+        renderMessages();
+        setTimeout(function () {
+          const event = makeEvent(kind, instruction);
+          events.unshift(event);
+          selectedId = event.id;
+          thinking = false;
+          if (event.auto) {
+            messages.push({ type: 'agent', text: '巡检已自动完成：24 个活动中 23 个通过，1 个缺少退票说明。未修改任何数据，报告已归档。', eventId: event.id });
+            event.status = 'done';
+            event.steps.forEach(function (step) { step.state = 'done'; });
+            addLog(event, '运营 Agent', '完成只读巡检并输出报告', '成功', { scanned: 24, passed: 23, write_operation: false });
+            showToast('巡检完成：发现 1 项待补全信息');
+          } else {
+            messages.push({ type: 'agent', text: '执行计划已生成。我完成了只读检查，变更内容已列在右侧；你批准后我才会继续执行。', eventId: event.id });
+            addLog(event, '运营 Agent', '生成执行计划与变更预览', '待审批', { instruction: instruction, policy: 'write_requires_approval', plan_version: 'v1' });
+            showToast('计划已生成，等待人工审批');
+          }
+          renderAll();
+        }, 650);
+      }
+
+      function approve(id) {
+        const event = events.find(function (item) { return item.id === id; });
+        if (!event || event.status !== 'pending') return;
+        event.status = 'running';
+        event.steps.forEach(function (step, index) { step.state = index < event.steps.length - 1 ? 'done' : 'current'; });
+        addLog(event, '林政豪', '批准执行计划', '已批准', { decision: 'approved', plan_version: 'v1', permission: 'event.write' });
+        messages.push({ type: 'agent', text: '审批已通过，正在执行「' + event.title + '」。完成后我会核对结果并更新事件状态。', eventId: event.id });
+        renderAll();
+        setTimeout(function () {
+          event.status = 'done';
+          event.steps.forEach(function (step) { step.state = 'done'; });
+          addLog(event, '运营 Agent', '调用工具执行并验证结果', '成功', { tool: 'event.write', result: 'verified', changes: event.items.length });
+          messages.push({ type: 'agent', text: '「' + event.title + '」已执行完成，结果验证通过。完整记录已写入审计日志。', eventId: event.id });
+          renderAll();
+          showToast('执行完成，结果已留痕');
+        }, 900);
+      }
+
+      function reject(id) {
+        const event = events.find(function (item) { return item.id === id; });
+        if (!event || event.status !== 'pending') return;
+        event.status = 'rejected';
+        event.steps.forEach(function (step) { if (step.state === 'current' || step.state === 'wait') step.state = 'wait'; });
+        addLog(event, '林政豪', '驳回执行计划', '已驳回', { decision: 'rejected', write_operation: false });
+        messages.push({ type: 'agent', text: '已驳回「' + event.title + '」，没有执行任何变更。你可以继续告诉我需要调整的地方。', eventId: event.id });
+        renderAll();
+        showToast('任务已驳回，未执行变更');
+      }
+
+      function showLog(id) {
+        const log = logs.find(function (item) { return item.id === id; });
+        if (!log) return;
+        const fields = [
+          ['记录编号', log.id], ['时间', log.time], ['关联事件', log.event + ' / ' + log.eventId],
+          ['操作者', log.actor], ['动作', log.action], ['结果', log.result]
+        ];
+        const meta = document.getElementById('logMeta');
+        meta.innerHTML = '';
+        fields.forEach(function (field) {
+          const dt = document.createElement('dt');
+          const dd = document.createElement('dd');
+          dt.textContent = field[0];
+          dd.textContent = field[1];
+          meta.appendChild(dt);
+          meta.appendChild(dd);
+        });
+        document.getElementById('logPayload').textContent = JSON.stringify(log.payload, null, 2);
+        document.getElementById('logDialog').showModal();
+      }
+
+      document.querySelectorAll('[data-task]').forEach(function (button) {
+        button.addEventListener('click', function () {
+          const labels = { daily: '执行今天的日常运营', off: '下架所有已结束的周末活动', create: '创建一个周末活动', check: '检查活动信息是否完整' };
+          startTask(button.dataset.task, labels[button.dataset.task]);
+        });
+      });
+
+      document.querySelectorAll('[data-scroll]').forEach(function (button) {
+        button.addEventListener('click', function () {
+          if (button.dataset.filter) {
+            eventFilter = button.dataset.filter;
+            renderEvents();
+          }
+          document.getElementById(button.dataset.scroll).scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+
+      document.querySelectorAll('[data-event-filter]').forEach(function (button) {
+        button.addEventListener('click', function () { eventFilter = button.dataset.eventFilter; renderEvents(); });
+      });
+
+      document.getElementById('chatForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        if (/日常|收尾/.test(text)) startTask('daily', text);
+        else if (/巡检|检查|核对/.test(text)) startTask('check', text);
+        else if (/下架|结束/.test(text)) startTask('off', text);
+        else if (/创建|上新|建品|新增/.test(text)) startTask('create', text);
+        else if (/修改|更新|补全|改价/.test(text)) startTask('update', text);
+        else {
+          messages.push({ type: 'user', text: text });
+          messages.push({ type: 'agent', text: '我可以处理活动上新、信息修改、下架和巡检。请补充操作对象与目标，例如「下架所有已结束活动」。' });
+          renderMessages();
+        }
+      });
+
+      document.getElementById('chatInput').addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          document.getElementById('chatForm').requestSubmit();
+        }
+      });
+
+      messagesEl.addEventListener('click', function (event) {
+        const button = event.target.closest('[data-open-event]');
+        if (button) openEvent(button.dataset.openEvent, true);
+      });
+      eventList.addEventListener('click', function (event) {
+        const button = event.target.closest('[data-event]');
+        if (button) openEvent(button.dataset.event, true);
+      });
+      artifactBody.addEventListener('click', function (event) {
+        const approveBtn = event.target.closest('[data-approve]');
+        const rejectBtn = event.target.closest('[data-reject]');
+        if (approveBtn) approve(approveBtn.dataset.approve);
+        if (rejectBtn) reject(rejectBtn.dataset.reject);
+      });
+      auditList.addEventListener('click', function (event) {
+        const button = event.target.closest('[data-log]');
+        if (button) showLog(button.dataset.log);
+      });
+
+      document.getElementById('dialogClose').addEventListener('click', function () { document.getElementById('logDialog').close(); });
+      document.getElementById('logDialog').addEventListener('click', function (event) {
+        if (event.target === this) this.close();
+      });
+      document.getElementById('resetBtn').addEventListener('click', function () { resetState(); showToast('演示已重置'); });
+      document.getElementById('exportBtn').addEventListener('click', function () {
+        const blob = new Blob([JSON.stringify({ demo: true, exported_at: new Date().toISOString(), logs: logs }, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'ecom-agent-audit-demo.json';
+        link.click();
+        URL.revokeObjectURL(url);
+        showToast('审计记录已导出');
+      });
+
+      resetState();
+    })();
+  </script>
+</body>
+</html>
