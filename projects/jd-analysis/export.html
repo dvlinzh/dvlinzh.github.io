@@ -16,15 +16,15 @@
 </style>
 </head>
 <body>
-<p><a href="/">← 返回</a></p>
+<p><a href="../../index.html">← 返回</a></p>
 <h1>导出岗位档案（结构化 markdown）</h1>
 <div id="list"></div>
 <p id="out"></p>
 <p class="note">导出的 md 包含：岗位信息、总分、六维评分、薪资与工时（含休息偏离度、时薪区间、性价比倍数区间，倍数以全国 = 1.00 为基准）、城市基础数据（带来源）、维度分析、JD 风险标记、JD 结构化原文。</p>
-<script src="/score.js"></script>
-<script src="/archive.js"></script>
+<script src="score.js"></script>
+<script src="archive.js"></script>
 <!-- 使用记录：导出这一页也算一次浏览，导出动作记一条 export_backup（失败静默，不影响下载） -->
-<script src="/track.js"></script>
+<script src="track.js"></script>
 <script>
 const list = JSON.parse(localStorage.getItem('ai-jd-history-v1') || '[]');
 const params = new URLSearchParams(location.search);
